@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>robotbot_msgs</name>
+  <version>0.1.0</version>
+  <description>Robotbot Raubase ROS2 messages</description>
+  <maintainer email="geoffrey.cote@centraliens-nantes.org">Geoffrey Côte</maintainer>
+  <author>Geoffrey Côte</author>
+  <url type="repository">https://github.com/Baxterminator/robotbot_msgs</url>
+  <license>MIT</license>
+
+  <buildtool_depend>rosidl_default_generators</buildtool_depend>
+  <exec_depend>rosidl_default_runtime</exec_depend>
+  <member_of_group>rosidl_interface_packages</member_of_group>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
