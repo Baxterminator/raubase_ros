@@ -1,14 +1,17 @@
 cmake_minimum_required(VERSION 3.8)
-project(raubase)
+project(robotbot_ros)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
+  add_compile_options(-Wall -Wextra -Wpedantic -std=c++17)
 endif()
 
-find_package(OpenCV REQUIRED )
-find_package(Threads REQUIRED)
-#find_package(libgpiodcxx REQUIRED)
+find_package(ament_cmake_auto REQUIRED)
+ament_auto_find_build_dependencies()
 
+
+# =================================================================
+#                  Raspberry PI Compilation arguments
+# =================================================================
 include_directories(${OpenCV_INCLUDE_DIRS} ${rclcpp_INCLUDE_DIRS} ${dlib_INCLUDE_DIR})
 execute_process(COMMAND uname -m RESULT_VARIABLE IS_OK OUTPUT_VARIABLE CPU1)
 string(STRIP ${CPU1} CPU)
@@ -27,41 +30,47 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic \
     -std=c++20 ${EXTRA_CC_FLAGS}")
 set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
 
+# =================================================================
+#                             ROS Nodes
+# =================================================================
+############################### Tensy ################################
 
-add_executable(raubase
-      src/bplan20.cpp
-      src/bplan21.cpp
-      src/bplan40.cpp
-      src/bplan100.cpp
-      src/bplan101.cpp
-      src/cedge.cpp
-      src/cheading.cpp
-      src/cmixer.cpp
-      src/cmotor.cpp
-      src/cservo.cpp
-      src/main.cpp
-      src/maruco.cpp
-      src/medge.cpp
-      src/mpose.cpp
-      src/scam.cpp
-      src/sedge.cpp
-      src/sencoder.cpp
-      src/sgpiod.cpp
-      src/simu.cpp
-      src/sdist.cpp
-      src/sjoylogitech.cpp
-      src/spyvision.cpp
-      src/sstate.cpp
-      src/steensy.cpp
-      src/upid.cpp
-      src/uservice.cpp
-      src/usocket.cpp
-      src/utime.cpp
-      )
 
-if (${CPU} MATCHES "armv7l" OR ${CPU} MATCHES "aarch64")
-  target_link_libraries(raubase ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod rt)
-else()
-  target_link_libraries(raubase ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod)
-endif()
+# add_executable(raubase
+#       src/bplan20.cpp
+#       src/bplan21.cpp
+#       src/bplan40.cpp
+#       src/bplan100.cpp
+#       src/bplan101.cpp
+#       src/cedge.cpp
+#       src/cheading.cpp
+#       src/cmixer.cpp
+#       src/cmotor.cpp
+#       src/cservo.cpp
+#       src/main.cpp
+#       src/maruco.cpp
+#       src/medge.cpp
+#       src/mpose.cpp
+#       src/scam.cpp
+#       src/sedge.cpp
+#       src/sencoder.cpp
+#       src/sgpiod.cpp
+#       src/simu.cpp
+#       src/sdist.cpp
+#       src/sjoylogitech.cpp
+#       src/spyvision.cpp
+#       src/sstate.cpp
+#       src/steensy.cpp
+#       src/upid.cpp
+#       src/uservice.cpp
+#       src/usocket.cpp
+#       src/utime.cpp
+#       )
 
+# if (${CPU} MATCHES "armv7l" OR ${CPU} MATCHES "aarch64")
+#   target_link_libraries(raubase ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod rt)
+# else()
+#   target_link_libraries(raubase ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod)
+# endif()
+
+ament_auto_package()
