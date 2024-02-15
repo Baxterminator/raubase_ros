@@ -3,7 +3,7 @@
 This package is based on ROS2 Humble. It contains all messages that is used in the [RobotBot-Ros](https://github.com/Baxterminator/robotbot_ros) package.
 This project is distributed under the MIT license.
 
-For Copyright © 2023 -2024 by DTU 
+Copyright © 2023 -2024 by DTU 
 
 ## Maintainer
 
