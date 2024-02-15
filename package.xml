@@ -11,7 +11,10 @@
 
   <depend>rclcpp</depend>
   <depend>ament_index</depend>
+
+  <!-- Messages --> 
   <depend>std_msgs</depend>
+  <depend>robotbot_msgs</depend>
   <depend>sensor_msgs</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>

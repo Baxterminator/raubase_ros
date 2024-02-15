@@ -6,7 +6,8 @@
  #* The MIT License (MIT)  https://mit-license.org/
  #*
  #* Permission is hereby granted, free of charge, to any person obtaining a copy of this software
- #* and associated documentation files (the “Software”), to deal in the Software without restriction,
+ #* and associated documentation files (the “Software”), to deal in the Software without
+ restriction,
  #* including without limitation the rights to use, copy, modify, merge, publish, distribute,
  #* sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
  #* is furnished to do so, subject to the following conditions:
@@ -21,24 +22,23 @@
  #* ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  #* THE SOFTWARE. */
 
-
 #ifndef SREGBOT_H
 #define SREGBOT_H
 
+#include <string.h>
+
 #include <mutex>
 #include <queue>
-#include <thread>
-#include <string.h>
 #include <string>
+#include <thread>
 
-#include "utime.h"
+#include "utime.hpp"
 
 /**
  * Queue class for messages that require confirmation
  *  */
-class UOutQueue
-{
-public:
+class UOutQueue {
+ public:
   static const int MML = 400;
   char msg[MML];
   int len;
@@ -48,8 +48,7 @@ public:
   int resendCnt;
   /**
    * Constructor */
-  UOutQueue(const char * msg)
-  {
+  UOutQueue(const char* msg) {
     setMessage(msg);
     queuedAt.now();
     isSend = false;
@@ -60,26 +59,24 @@ public:
   bool setMessage(const char* message);
   /**
    * Confirm a match */
-  bool compare(const char * got)
-  { // ignore potential \n
+  bool compare(const char* got) {  // ignore potential \n
     int n = strlen(got) - 1;
     bool equal = strncmp(&msg[3], got, n) == 0;
     return equal;
   }
 };
 
-
 /**
- * The robot class handles the 
+ * The robot class handles the
  * port to the REGBOT part of the robot,
  * REGBOT handles the most real time issues
  * and this class is the interface to that. */
-class STeensy //: public URun, public USource
-{ // REGBOT interface
-public:
+class STeensy  //: public URun, public USource
+{              // REGBOT interface
+ public:
   /// Is port opened successfully
   bool teensyConnectionOpen = false;
-  // mission state from hbt 
+  // mission state from hbt
   int missionState = 0;
   // reference time
   UTime justConnectedTime;
@@ -92,19 +89,18 @@ public:
   // all used motors has encoder (A,B) reversed.
   bool encoderReversed = true;
 
-  
-private:
+ private:
   // serial port handle
   int usbport = -1;
   // serial port (USB)
-//   int usbdeviceNum = 0;
+  //   int usbdeviceNum = 0;
   // simulator hostname
-//   const char * simHost;
+  //   const char * simHost;
   // simulator port
-//   int simPort = 0;
+  //   int simPort = 0;
   // mutex to ensure commands to regbot is not mixed
-//   mutex txLock;
-//   mutex logMtx;
+  //   mutex txLock;
+  //   mutex logMtx;
   std::mutex eventUpdate;
   std::mutex sendLock;
   // receive buffer
@@ -115,7 +111,7 @@ private:
   //
   UTime lastTxTime;
   // socket to simulator
-//   tcpCase socket;
+  //   tcpCase socket;
   /**
    * communication count */
   int gotCnt = 0;
@@ -123,12 +119,11 @@ private:
   /** interface just opened */
   bool justConnected = false;
   bool confirmSend = false;
-//   bool sendDirectFromNowOn = false;
+  //   bool sendDirectFromNowOn = false;
 
-  std::thread * th1;
+  std::thread* th1;
 
-  
-public:
+ public:
   /**
    * Set device */
   void setup();
@@ -143,30 +138,31 @@ public:
    * \param message is c_string to send,
    * \param direct for bypassing the default message queue
    * \returns true if send direct and delivered OK */
-  bool send(const char * message, bool direct = false);
+  bool send(const char* message, bool direct = false);
   /**
-   * runs the receive thread 
+   * runs the receive thread
    * This run() function is called in a thread after a start() call.
    * This function will not return until the thread is stopped. */
   void run();
   /**
-  * decode commands potentially for this device */
-  bool decode(const char* msg, UTime & msgTime);
+   * decode commands potentially for this device */
+  bool decode(const char* msg, UTime& msgTime);
+
   /** Generate 3 character CRC as ";XX", where
    * NN is sum of character value modulus 99 + 1.
    * Only characters with a value c>' ' counts
    * @param cmd is message string to generate CRC from
    * @param rcr is a string of (at least) 4 characters, where the result is returned.
    * @returns true is message ends with a '\n' */
-  bool generateCRC(const char * cmd, char * crc);
+  bool generateCRC(const char* cmd, char* crc);
   /**
    * Get Teensy communication errors */
-  int getTeensyCommError(int & retryCnt);
+  int getTeensyCommError(int& retryCnt);
   /**
    * get messages queued, but not send */
   int getTeensyCommQueueSize();
 
-private:
+ private:
   /**
    * queue a message
    * @param message  */
@@ -178,21 +174,17 @@ private:
    * Check for crc error
    * \param rawMsg is the message preceded by crc
    * \return true if OK */
-  bool crcCheck(const char * rawMsg);
+  bool crcCheck(const char* rawMsg);
   /**
    * is data source active (is device open) */
-  virtual bool isActive()
-  {
-    return (usbport >= 0) and gotActivityRecently and not justConnected;
-  }
+  virtual bool isActive() { return (usbport >= 0) and gotActivityRecently and not justConnected; }
 
-  static void runObj(STeensy * obj)
-  { // called, when thread is started
+  static void runObj(STeensy* obj) {  // called, when thread is started
     // transfer to the class run() function.
     obj->run();
   }
 
-private:
+ private:
   /**
    * Open the connection.
    * \returns true if successful */
@@ -203,7 +195,7 @@ private:
    * A confirm message is received,
    * Check, and
    * release the next in the queue */
-  void messageConfirmed(const char * confirm);
+  void messageConfirmed(const char* confirm);
   void closeUSB();
   int connectErrCnt = 0;
   ///
@@ -215,7 +207,7 @@ private:
   /**
    * uotgoing message queue */
   std::queue<UOutQueue> outQueue;
-  float confirmTimeout = 0.03; // timeout in seconds for writing to Teensy
+  float confirmTimeout = 0.03;  // timeout in seconds for writing to Teensy
   // transmission statistics
   int confirmMismatchCnt = 0;
   int confirmRetryCnt = 0;
@@ -224,16 +216,15 @@ private:
   /// count of dropped messages requiring confirm
   int confirmRetryDump = 0;
   /// save in log with different time + marking
-  void toLog(const char * msg);
+  void toLog(const char* msg);
   void toLogRx(const char*, UTime& mt);
   void toLogTx();
   void toLogQu();
   /// should logged messages be printed on console too.
   bool toConsole = false;
   /// data io logfile
-  FILE * logfile = nullptr;
-  std::mutex dataLock; // ensure consistency
-
+  FILE* logfile = nullptr;
+  std::mutex dataLock;  // ensure consistency
 };
 
 extern STeensy teensy1;

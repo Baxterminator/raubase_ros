@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 project(robotbot_ros)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic -std=c++17)
 endif()
@@ -8,11 +12,9 @@ endif()
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
-
 # =================================================================
 #                  Raspberry PI Compilation arguments
 # =================================================================
-include_directories(${OpenCV_INCLUDE_DIRS} ${rclcpp_INCLUDE_DIRS} ${dlib_INCLUDE_DIR})
 execute_process(COMMAND uname -m RESULT_VARIABLE IS_OK OUTPUT_VARIABLE CPU1)
 string(STRIP ${CPU1} CPU)
 # works for Raspberry 3 and 4
@@ -30,47 +32,30 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic \
     -std=c++20 ${EXTRA_CC_FLAGS}")
 set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
 
+macro(link_raspberry_libs node_name)
+  if (${CPU} MATCHES "armv7l" OR ${CPU} MATCHES "aarch64")
+    target_link_libraries(${node_name} ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod rt)
+  elseif(${CPU} MATCHES "x86_64")
+    target_link_libraries(${node_name} ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS})
+  else()
+    target_link_libraries(${node_name} ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod)
+  endif()
+endmacro()
+
 # =================================================================
 #                             ROS Nodes
 # =================================================================
-############################### Tensy ################################
+############################ Teensy ################################
+file(GLOB common_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/common/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/common/**/**.cpp")
+ament_auto_add_library(common ${common_src})
+target_include_directories(common PRIVATE include)
+link_raspberry_libs(common)
 
-
-# add_executable(raubase
-#       src/bplan20.cpp
-#       src/bplan21.cpp
-#       src/bplan40.cpp
-#       src/bplan100.cpp
-#       src/bplan101.cpp
-#       src/cedge.cpp
-#       src/cheading.cpp
-#       src/cmixer.cpp
-#       src/cmotor.cpp
-#       src/cservo.cpp
-#       src/main.cpp
-#       src/maruco.cpp
-#       src/medge.cpp
-#       src/mpose.cpp
-#       src/scam.cpp
-#       src/sedge.cpp
-#       src/sencoder.cpp
-#       src/sgpiod.cpp
-#       src/simu.cpp
-#       src/sdist.cpp
-#       src/sjoylogitech.cpp
-#       src/spyvision.cpp
-#       src/sstate.cpp
-#       src/steensy.cpp
-#       src/upid.cpp
-#       src/uservice.cpp
-#       src/usocket.cpp
-#       src/utime.cpp
-#       )
-
-# if (${CPU} MATCHES "armv7l" OR ${CPU} MATCHES "aarch64")
-#   target_link_libraries(raubase ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod rt)
-# else()
-#   target_link_libraries(raubase ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod)
-# endif()
+############################ Teensy ################################
+file(GLOB teensy_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/teensy/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/teensy/**/**.cpp")
+ament_auto_add_executable(teensy ${teensy_src})
+target_link_libraries(teensy common)
+target_include_directories(teensy PRIVATE include)
+link_raspberry_libs(teensy)
 
 ament_auto_package()
