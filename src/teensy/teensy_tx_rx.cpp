@@ -18,9 +18,8 @@ void Teensy::send(sptr<MSG> msg, bool direct) {
   TX_queue.push(msg);
 }
 
-void Teensy::sendDirect(sptr<MSG> msg) {}
-
 void Teensy::receiveUSB(char* msg) {
+  RCLCPP_DEBUG(get_logger(), "Receiving msg %s", msg);
   for (auto& [sub_prefix, proxy] : converters) {
     if (std::strncmp(sub_prefix, msg, std::strlen(sub_prefix)) == 0) {
       proxy->decode(msg);
@@ -103,7 +102,62 @@ void Teensy::fetchRX() {
   n = 0;
 }
 
-void Teensy::sendTX() {}
+void Teensy::sendTX() {
+  if (TX_queue.isEmpty()) return;
+
+  auto obj = TX_queue.front();
+
+  // If confirmation has timed out, resend it or drop it
+  if (obj->sent && obj->time_sent.getTimePassed() > _confirm_timeout) {
+    RCLCPP_DEBUG(get_logger(), "Confirmation timed out for message (%s)", obj->msg);
+    if (obj->sent_count >= _max_resend_cnt) {
+      RCLCPP_WARN(get_logger(), "TX Message runned out of confirmation and has been dropped");
+      TX_queue.pop();
+    } else
+      obj->sent = false;
+  }
+
+  // If first message non sent, send it
+  if (!obj->sent) sendDirect(obj);
+}
+
+void Teensy::sendDirect(sptr<MSG> msg) {
+  if (!usb_co.opened) return;
+
+  usb_co._tx_lock.lock();
+  int n = msg->len;
+  int sent = 0, last_sent = 0, iterations = 0;
+  bool lostConnection = false;
+  while ((sent < n) && (iterations < 100)) {
+    last_sent = write(usb_co.port, &msg->msg[sent], msg->len - sent);
+
+    // Check any error
+    if (last_sent < 0) {
+      switch (errno) {
+        case EAGAIN:
+          // Buffer full, waiting
+          // not all send - just continue
+          printf("STeensy::sendDirect: waiting - nothing send %d/%d\n", sent, n);
+          usleep(_timer_wait.count());
+          iterations += 1;
+          break;
+        default:
+          RCLCPP_ERROR(get_logger(), "Closing connection on TX!");
+          lostConnection = true;
+          break;
+      }
+      // dump the rest on most errors
+      if (lostConnection) break;
+    } else {
+      // Count bytes sent
+      sent += last_sent;
+    }
+  }
+
+  msg->sent_count++;
+  usleep(_timer_wait.count());
+  usb_co._tx_lock.unlock();
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 

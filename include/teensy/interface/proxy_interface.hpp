@@ -95,8 +95,8 @@ class TeensyProxy {
    * @brief Send a command to the Teensy board to subscribe to the given component
    */
   void subscribeTeensyComponent(const char *name, int period) {
-    char cmd[MSG::MSL];
-    snprintf(cmd, MSG::MSL, "sub %s %d", name, period);
+    char cmd[MSG::MBL];
+    snprintf(cmd, MSG::MBL, "sub %s %d", name, period);
     sendToTeensy(std::make_shared<MSG>(cmd), false);
   }
 

@@ -37,6 +37,7 @@ THE SOFTWARE.
 
 #include "common/shared_queue.hpp"
 #include "teensy/interface/message.hpp"
+#include "teensy/interface/message_queue.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 #include "teensy/proxy/encoder.hpp"
 #include "teensy/usb_connection.hpp"
@@ -44,9 +45,9 @@ THE SOFTWARE.
 namespace raubase::teensy {
 
 class Teensy : public rclcpp::Node {
-  // =================================================================
-  //                             Methods
-  // =================================================================
+  // ==========================================================================
+  //                                 Methods
+  // ==========================================================================
  public:
   // ----------------------------- Life Cycle ---------------------------------
 
@@ -58,9 +59,19 @@ class Teensy : public rclcpp::Node {
   Teensy(rclcpp::NodeOptions);
 
   /**
+   * @brief Setup Regbot by flashing bot parameters.*
+   */
+  void setupTeensy();
+
+  /**
    * @brief Setup all subcomponents needed for this node.
    */
   void setupProxy();
+
+  /**
+   * @brief Send signals to properly stop the Teensy board communication.
+   */
+  void stopTeensy();
 
   /**
    * @brief Destructor of the Teensy Node to close all connections.
@@ -75,7 +86,7 @@ class Teensy : public rclcpp::Node {
    * @param msg - the message to send
    * @param direct - whether to directly send it to the board or to place in the queue.
    */
-  void send(sptr<MSG> msg, bool direct);
+  void send(sptr<MSG> msg, bool direct = false);
 
   /**
    * @brief Send the given message directly to the Teensy board without waiting in the queue.
@@ -122,16 +133,19 @@ class Teensy : public rclcpp::Node {
    */
   void closeUSB();
 
-  // -------------------------------- Custom ----------------------------------
-
-  // =================================================================
-  //                             Members
-  // =================================================================
+  // ==========================================================================
+  //                                    Members
+  // ==========================================================================
  public:
   static constexpr const char* NODE_NAME{"teensy"};     //< ROS Node name
-  static constexpr int REGBOT_HW{-1};                   //< RegBot hardware model
   static constexpr const char* CONFIRM_MSG{"confirm"};  //< Confirmation message
   static constexpr int CONFIRM_LENGTH = 7;  //< Confirmation message length (length of CONFIRM_MSG)
+  static constexpr const char* INIT_MSG{"idi"};        //< Initialization of the Teensy message
+  static constexpr const char* REG_NUM_MSG{"setidx"};  //< Setting the Regbot number
+  static constexpr const char* REG_HW_MSG{"sethw"};    //< Setting the Regbot hardware ID
+  static constexpr const char* MOT_REV_MSG{"motr"};    //< Setting the reversed encoder setting
+  static constexpr const char* BOT_NAME_MSG{"setid"};  //< Setting the robot name
+  static constexpr const char* FLASH_MSG{"eew"};       //< Regbot flashing message
 
  private:
   // ------------------------------- ROS Object -------------------------------
@@ -142,11 +156,25 @@ class Teensy : public rclcpp::Node {
 
   // ------------------------------ Configurations ----------------------------
 
-  std::string _device;      //< Device name (e.g. robotbot)
   float _confirm_timeout;   //< Time for confirming the timeout
   float _connect_timeout;   //< Timeout when connecting to the device
   float _activity_timeout;  //< Timeout for activity, if nothing happens, stop the connection
+  short _max_resend_cnt;    //< Number of time a message can be resend
   USBConnection usb_co;     //< USB Connection data
+
+  std::string _bot_name;  //< Device name (e.g. robotbot)
+  bool _reverse_enc;      //< Whether the encoders (A, B) are reversed or not
+  /**
+   * @brief Flag to allocate a number (and robobot type) to the Teensy (Regbot)
+   * Must be in range [0..149]
+   */
+  short _regbotNumber = -1;
+  /**
+   * @brief Save regbot hardware type to regbot if number is [5..15]
+   * Should typically be 9 (blue pcb version 6.3)
+   *
+   */
+  short _regbotHardware = -1;
 
   // ------------------------- Message encoding / decoding --------------------
   const SendingCallback _sending_cbk = [this](sptr<MSG> msg, bool direct) {
@@ -154,8 +182,8 @@ class Teensy : public rclcpp::Node {
   };
   std::map<const char*, TeensyProxy::SharedPtr> converters = {
       {"enc", TeensyProxy::make_shared<proxy::EncoderProxy>(_sending_cbk)},
-  };                                //< Converter map
-  SharedQueue<sptr<MSG>> TX_queue;  //< Queue for sending cmd to the teensy board
+  };                  //< Converter map
+  MSGQueue TX_queue;  //< Queue for sending cmd to the teensy board
 };
 
 }  // namespace raubase::teensy

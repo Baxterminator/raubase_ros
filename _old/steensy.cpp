@@ -424,6 +424,7 @@ void STeensy::run() {  // read thread for REGBOT messages
         fflush(nullptr);
         titsum[6] += tit[6].getTimePassed();
       }
+
       if (not outQueue.empty()) {  // got the first confirm
                                    //         printf("#STeensy:: que not empty\n");
         tit[7].now();
@@ -459,6 +460,7 @@ void STeensy::run() {  // read thread for REGBOT messages
             }
           }
         }
+        
         titsum[7] += tit[7].getTimePassed();
       }
     }  // connected

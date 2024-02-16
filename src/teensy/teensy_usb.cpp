@@ -12,12 +12,13 @@ namespace raubase::teensy {
 void Teensy::closeUSB() {
   if (!usb_co.opened) return;
 
-  RCLCPP_INFO(get_logger(), "Closing USB connection !");
+  RCLCPP_INFO(get_logger(), "Closing USB connection!");
   usleep(100000);  // Wait 100ms before closing
 
   // Close USB connection
   close(usb_co.port);
   usb_co.toDefault();
+  RCLCPP_INFO(get_logger(), "USB connection closed!");
 
   // Flush the queue
   TX_queue.flush();
@@ -64,6 +65,7 @@ void Teensy::openUSB() {
   configUSBConnection(usb_co);
   usb_co.error = 0;
   usb_co.connecting = true;
+  RCLCPP_INFO(get_logger(), "Connection opened!");
   setupProxy();
 }
 

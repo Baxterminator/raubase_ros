@@ -76,7 +76,6 @@ class EncoderProxy : public TeensyProxy {
   //                           Sensor Parameters
   // =================================================================
   int refresh_rate;  //< The refresh rate for the encoders
-  bool reverse_enc;  //< Whether the encoder are reverse or not
 };
 
 }  // namespace raubase::teensy::proxy

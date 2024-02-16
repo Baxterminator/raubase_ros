@@ -2,6 +2,10 @@
 #define RAUBASE_TENSY_MESSAGE
 
 #include <cstring>
+#include <memory>
+
+#include "common/types.hpp"
+#include "common/utime.hpp"
 
 namespace raubase::teensy {
 
@@ -12,7 +16,7 @@ struct MSG {
   static constexpr int MML = 400;                //< Max length for USB Messaging
   static constexpr int MCL = 3;                  //< Max length for CRC validation
   static constexpr int MPL = MCL + 1;            //< Max length for prefix (CRC+confirmation)
-  static constexpr int MSL = MML - MCL;          //< Max Length for body slot
+  static constexpr int MBL = MML - MPL;          //< Max Length for body slot
   static constexpr const char SOL{';'};          //< Command starting character
   static constexpr const char EOL{'\n'};         //< End of line character for USB Messaging
   static constexpr const char EOS{'\0'};         //< End of string character
@@ -34,13 +38,23 @@ struct MSG {
    */
   static bool checkCRC(const char* msg);
 
+  /**
+   * @brief Make a new message object. Return a shared pointer to the message.
+   *
+   * @param msg the message to send
+   * @return sptr<MSG> a shared point to the message.
+   */
+  static sptr<MSG> make(const char* msg) { return std::make_shared<MSG>(msg); }
+
   // =================================================================
   //                          Message Struct
   // =================================================================
   char msg[MML];
   int len;
   bool ok = false;
+  bool sent = false;
   short sent_count = 0;
+  UTime time_sent;
   MSG(const char* msg);
 
   /**

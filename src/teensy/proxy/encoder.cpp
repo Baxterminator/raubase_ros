@@ -9,7 +9,6 @@ void EncoderProxy::setup(rclcpp::Node::SharedPtr node) {
 
   // Declaring parameters for the encoder
   refresh_rate = node->declare_parameter("enc_ms", 8);
-  reverse_enc = node->declare_parameter("enc_rev", true);
 
   // Initializing working components
   publisher = node->create_publisher<EncoderState>(PUBLISHING_TOPIC, QOS);

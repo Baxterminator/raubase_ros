@@ -26,6 +26,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
+#include <mutex>
 #include <string>
 
 #include "common/utime.hpp"
@@ -53,8 +54,11 @@ struct USBConnection {
   UTime lastRXTime;        //< The last time a RX byte has been received
 
   // Error
-  short error = 0;  //< The number of time the connection has failed to open successfully
-  bool NTPUpdate = false;
+  short error = 0;         //< The number of time the connection has failed to open successfully
+  bool NTPUpdate = false;  //< Whether there was a NTP update during the loop
+
+  // TX Lock
+  std::mutex _tx_lock;
 
   USBConnection() { toDefault(); }
 
