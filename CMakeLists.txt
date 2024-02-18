@@ -45,13 +45,19 @@ endmacro()
 # =================================================================
 #                             ROS Nodes
 # =================================================================
-############################ Teensy ################################
+########################## Common Lib #############################
 file(GLOB common_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/common/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/common/**/**.cpp")
 ament_auto_add_library(common ${common_src})
 target_include_directories(common PRIVATE include)
 link_raspberry_libs(common)
 
-############################ Teensy ################################
+############################ Camera ###############################
+file(GLOB cam_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/camera/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/camera/**/**.cpp")
+ament_auto_add_executable(camera ${cam_src})
+target_include_directories(camera PRIVATE include)
+link_raspberry_libs(camera)
+
+############################ Teensy ###############################
 file(GLOB teensy_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/teensy/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/teensy/**/**.cpp")
 ament_auto_add_executable(teensy ${teensy_src})
 target_link_libraries(teensy common)

@@ -10,6 +10,8 @@ namespace raubase {
 template <typename T>
 using sptr = std::shared_ptr<T>;
 
+typedef unsigned long ulong;
+
 }  // namespace raubase
 
 #endif

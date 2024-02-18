@@ -114,6 +114,7 @@ void UCam::setup()
     }
     toLog("Camera matrix (from robot.ini)", ini["camera"]["matrix"].c_str());
     toLog("Distortion vector (from robot.ini)", ini["camera"]["distortion"].c_str());
+    
     // prepare to open camera
     int apiID = cv::CAP_V4L2;  //cv::CAP_ANY;  // 0 = autodetect default API
     // open selected camera using selected API

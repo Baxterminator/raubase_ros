@@ -44,6 +44,9 @@ THE SOFTWARE.
 
 namespace raubase::teensy {
 
+/**
+ * @brief ROS Node providing USB connection to the Teensy board.
+ */
 class Teensy : public rclcpp::Node {
   // ==========================================================================
   //                                 Methods
