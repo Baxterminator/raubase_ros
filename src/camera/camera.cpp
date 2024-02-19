@@ -6,6 +6,8 @@
 #include <cmath>
 #include <memory>
 #include <opencv2/videoio.hpp>
+#include <rclcpp/logging.hpp>
+#include <string>
 
 #include "common/types.hpp"
 
@@ -14,7 +16,7 @@ namespace raubase::cam {
 Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node("camera", opts) {
   // ---------------------------- Configurations ------------------------------
   _checking_s = declare_parameter("check_s", 1);
-  device = declare_parameter("device", 0);
+  device = "/dev/video" + std::to_string(declare_parameter("device", 0));
 
   img_width = declare_parameter("width", 1280);
   img_height = declare_parameter("height", 720);
@@ -29,8 +31,16 @@ Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node("camera", opts) {
   // -------------------------- Camera connection -----------------------------
   checker =
       create_wall_timer(milliseconds(_checking_s * 1000), std::bind(&Camera::try_connect, this));
-  runner = create_wall_timer(milliseconds((int)std::floor(1 / img_fps * 1000)),
-                             std::bind(&Camera::run, this));
+  // runner = create_wall_timer(milliseconds((int)std::floor(1 / img_fps * 1000)),
+  //                            std::bind(&Camera::run, this));
+  runner = create_wall_timer(0ms, std::bind(&Camera::run, this));
+  test = create_wall_timer(milliseconds((int)std::floor(1 / img_fps * 1000)), [this]() {
+    static auto start = std::chrono::high_resolution_clock::now();
+    auto end = std::chrono::high_resolution_clock::now();
+    RCLCPP_INFO(this->get_logger(), "FPS: %ld %f", (end - start).count(),
+                1. / ((double)(end - start).count() * 1E-9));
+    start = end;
+  });
   runner->cancel();
 }
 
@@ -44,18 +54,18 @@ void Camera::try_connect() {
   // Try to open camera
   _cam.open(device, CAM_API);
   if (!_cam.isOpened()) {
-    RCLCPP_ERROR(get_logger(), "Couldn't open camera %zu", device);
+    RCLCPP_ERROR(get_logger(), "Couldn't open camera %s", device.c_str());
     return;
   }
 
   // Configure it
-  RCLCPP_INFO(get_logger(), "Camera %zu opened!", device);
+  RCLCPP_INFO(get_logger(), "Camera %s opened!", device.c_str());
 
   _cam.set(cv::CAP_PROP_FOURCC, CC4);
   _cam.set(cv::CAP_PROP_FRAME_WIDTH, img_width);
   _cam.set(cv::CAP_PROP_FRAME_HEIGHT, img_height);
   _cam.set(cv::CAP_PROP_FPS, img_fps);
-  _cam.set(cv::CAP_PROP_CONVERT_RGB, true);
+  _cam.set(cv::CAP_PROP_BUFFERSIZE, 2);
 
   RCLCPP_INFO(get_logger(), "Configuring camera to prop: %dx%d@%f", img_width, img_height, img_fps);
   checker->cancel();
@@ -74,9 +84,8 @@ void Camera::run() {
   }
 
   // Else extract next image
-  _cam.read(frame);
-  if (frame.empty()) return;
-  msg.image = frame;
+  _cam.read(msg.image);
+  if (msg.image.empty()) return;
   msg.header.stamp = get_clock()->now();
   _img_pub->publish(*msg.toImageMsg());
 }

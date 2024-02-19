@@ -82,7 +82,7 @@ class Camera : public rclcpp::Node {
   // --------------------------- Data Connection ------------------------------
   static constexpr int CAM_API{cv::CAP_V4L2};
   long _checking_s;
-  long device;
+  std::string device;
   rclcpp::TimerBase::SharedPtr checker;
 
   // ------------------------------ Camera Prop -------------------------------
@@ -100,6 +100,7 @@ class Camera : public rclcpp::Node {
   Image sent_msg;
   cv_bridge::CvImage msg;
   rclcpp::TimerBase::SharedPtr runner;
+  rclcpp::TimerBase::SharedPtr test;
   rclcpp::Publisher<Image>::SharedPtr _img_pub;
 };
 
