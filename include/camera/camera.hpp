@@ -31,14 +31,20 @@ THE SOFTWARE.
 #include <chrono>
 #include <opencv2/videoio.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <rclcpp/service.hpp>
+#include <robotbot_msgs/srv/ask_camera_image.hpp>
+#include <robotbot_msgs/srv/detail/ask_camera_image__struct.hpp>
+#include <robotbot_msgs/srv/set_camera_mode.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
 namespace raubase::cam {
 
-using sensor_msgs::image_encodings::BGR8;
+using robotbot_msgs::srv::AskCameraImage;
+using robotbot_msgs::srv::SetCameraMode;
 using sensor_msgs::msg::Image;
 using std::chrono::milliseconds;
+using namespace sensor_msgs::image_encodings;
 
 using namespace std::chrono_literals;
 
@@ -46,6 +52,9 @@ using namespace std::chrono_literals;
  * @brief Camera interface for the robobot.
  */
 class Camera : public rclcpp::Node {
+  // ==========================================================================
+  //                                 Methods
+  // ==========================================================================
  public:
   // ----------------------------- Life Cycle ---------------------------------
   Camera(rclcpp::NodeOptions);
@@ -68,16 +77,32 @@ class Camera : public rclcpp::Node {
 
   // ------------------------- Running methods --------------------------------
 
+ private:
   /**
    * @brief Run the image extractor.
    */
   void run();
 
   /**
-   * @brief Copy the image inside the message container.
+   * @brief Grab the last image and put it inside the image message
    */
-  void setImage();
+  Image::SharedPtr grabLastImage();
 
+  void set_on_demand(SetCameraMode::Request::ConstSharedPtr req,
+                     [[maybe_unused]] SetCameraMode::Response::SharedPtr res) {
+    on_demand = req->on_demand;
+  }
+
+  void get_image([[maybe_unused]] AskCameraImage::Request::ConstSharedPtr req,
+                 AskCameraImage::Response::SharedPtr res) {
+    auto img = grabLastImage();
+    res->image = *img;
+    _img_pub->publish(*img);
+  }
+
+  // ==========================================================================
+  //                                    Members
+  // ==========================================================================
  private:
   // --------------------------- Data Connection ------------------------------
   static constexpr int CAM_API{cv::CAP_V4L2};
@@ -86,22 +111,30 @@ class Camera : public rclcpp::Node {
   rclcpp::TimerBase::SharedPtr checker;
 
   // ------------------------------ Camera Prop -------------------------------
-  static constexpr const char* VIDEO_FORMAT{"MJPG"};
-  unsigned long CC4;      //< CC4 instance
-  int img_width;          //< Width of the image to read
-  int img_height;         //< Height of the image to read
-  double img_fps;         //< FPS to the video to read
-  cv::VideoCapture _cam;  //< Camera handle
+  static constexpr const char* VIDEO_FORMAT{"MJPG"};  //< The format for the input video
+  unsigned long CC4;                                  //< CC4 instance
+  int img_width;                                      //< Width of the image to read
+  int img_height;                                     //< Height of the image to read
+  double img_fps;                                     //< FPS to the video to read
+  cv::VideoCapture _cam;                              //< Camera handle
+  bool on_demand;  //< Whether the pictures should be sent on  demand or at request
 
   // ----------------------------- Camera Reading -----------------------------
   static constexpr const char* IMG_ENCODING{BGR8};
   static constexpr int QOS{10};
   cv::Mat frame;
-  Image sent_msg;
   cv_bridge::CvImage msg;
   rclcpp::TimerBase::SharedPtr runner;
-  rclcpp::TimerBase::SharedPtr test;
   rclcpp::Publisher<Image>::SharedPtr _img_pub;
+
+  // ----------------------------- Node service -----------------------------
+  static constexpr const char* NODE_NAME{"camera"};
+
+  static constexpr const char* MODE_SET_SRV{"/camera/set_mode"};
+  rclcpp::Service<SetCameraMode>::SharedPtr srv_mode_set;
+
+  static constexpr const char* ASK_IMG_SRV{"/camera/get_image"};
+  rclcpp::Service<AskCameraImage>::SharedPtr srv_ask_img;
 };
 
 }  // namespace raubase::cam

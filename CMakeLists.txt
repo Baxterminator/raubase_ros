@@ -64,4 +64,10 @@ target_link_libraries(teensy common)
 target_include_directories(teensy PRIVATE include)
 link_raspberry_libs(teensy)
 
+############################ Test ###############################
+file(GLOB test_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/test/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/test/**/**.cpp")
+ament_auto_add_executable(testing ${test_src})
+target_include_directories(testing PRIVATE include)
+link_raspberry_libs(testing)
+
 ament_auto_package()
