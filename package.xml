@@ -9,6 +9,9 @@
   <url type="repository">https://github.com/Baxterminator/robotbot_msgs</url>
   <license>MIT</license>
 
+  <depend>std_msgs</depend>
+  <depend>sensor_msgs</depend>
+
   <buildtool_depend>rosidl_default_generators</buildtool_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
   <member_of_group>rosidl_interface_packages</member_of_group>

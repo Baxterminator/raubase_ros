@@ -40,10 +40,11 @@ file(GLOB msg_files RELATIVE "${CMAKE_CURRENT_LIST_DIR}"
         "${CMAKE_CURRENT_LIST_DIR}/srv/*.srv"
         "${CMAKE_CURRENT_LIST_DIR}/action/*.action"
 )
+
 if (msg_files)
   rosidl_generate_interfaces(${PROJECT_NAME}
           ${msg_files}
-          DEPENDENCIES ${dependencies})
+          DEPENDENCIES std_msgs sensor_msgs)
   ament_export_dependencies(rosidl_default_runtime)
 
   if(NOT ${LEGACY_IDL})
