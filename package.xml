@@ -9,6 +9,7 @@
   <url type="repository">https://github.com/Baxterminator/robotbot_msgs</url>
   <license>MIT</license>
 
+  <depend>builtin_interfaces</depend>
   <depend>std_msgs</depend>
   <depend>sensor_msgs</depend>
 
