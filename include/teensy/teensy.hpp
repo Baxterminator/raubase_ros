@@ -40,6 +40,7 @@ THE SOFTWARE.
 #include "teensy/interface/message_queue.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 #include "teensy/proxy/encoder.hpp"
+#include "teensy/proxy/heartbeat.hpp"
 #include "teensy/usb_connection.hpp"
 
 namespace raubase::teensy {
@@ -184,7 +185,10 @@ class Teensy : public rclcpp::Node {
     this->send(msg, direct);
   };
   std::map<const char*, TeensyProxy::SharedPtr> converters = {
-      {"enc", TeensyProxy::make_shared<proxy::EncoderProxy>(_sending_cbk)},
+      {proxy::EncoderProxy::TEENSY_MSG,
+       TeensyProxy::make_shared<proxy::EncoderProxy>(_sending_cbk)},
+      {proxy::HeartBeatProxy::TEENSY_MSG,
+       TeensyProxy::make_shared<proxy::HeartBeatProxy>(_sending_cbk)},
   };                  //< Converter map
   MSGQueue TX_queue;  //< Queue for sending cmd to the teensy board
 };

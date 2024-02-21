@@ -27,6 +27,7 @@ THE SOFTWARE.
 
 #include <cstdio>
 #include <memory>
+#include <rclcpp/clock.hpp>
 #include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
