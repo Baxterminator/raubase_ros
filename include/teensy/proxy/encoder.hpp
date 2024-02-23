@@ -28,6 +28,7 @@ THE SOFTWARE.
 
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
+#include <robotbot_msgs/msg/detail/encoder_state__struct.hpp>
 
 #include "robotbot_msgs/msg/encoder_state.hpp"
 #include "teensy/interface/proxy_interface.hpp"
@@ -45,8 +46,10 @@ class EncoderProxy : public TeensyProxy {
   // =================================================================
  public:
   static constexpr const char* NODE_NAME{"EncoderProxy"};  //< ROS Node name
-  static constexpr const char* TEENSY_COMP{"enc"};
-  static constexpr const char* TEENSY_MSG = TEENSY_COMP;  //< Teensy board component name
+  static constexpr const char* TEENSY_COMP{"enc"};         //< Teensy component to subscribe from
+  static constexpr const char* TEENSY_MSG = TEENSY_COMP;   //< Teensy board receiving prefix
+  static constexpr const char* REVERSED_ENC{
+      "encrev"};  //< Command to set whether components are reversed or not
 
  protected:
   static constexpr const char* PUBLISHING_TOPIC{"encoders"};  //< Encoder state topic
@@ -57,7 +60,8 @@ class EncoderProxy : public TeensyProxy {
   // =================================================================
  public:
   EncoderProxy(SendingCallback _clbk) : TeensyProxy(_clbk, NODE_NAME) {}
-  void setup(rclcpp::Node::SharedPtr) override;
+  void setupParams(rclcpp::Node::SharedPtr) override;
+  void setupSubscriptions() override;
   void decode(char*) override;
 
   // =================================================================
@@ -70,12 +74,14 @@ class EncoderProxy : public TeensyProxy {
   //                             ROS Members
   // =================================================================
  protected:
+  EncoderState _msg;
   rclcpp::Publisher<EncoderState>::SharedPtr publisher;
 
   // =================================================================
   //                           Sensor Parameters
   // =================================================================
-  int refresh_rate;  //< The refresh rate for the encoders
+  int _refresh_rate;  //< The refresh rate for the encoders
+  bool _reverse_enc;  //< Whether the encoders (A, B) are reversed or not
 };
 
 }  // namespace raubase::teensy::proxy

@@ -78,9 +78,14 @@ class TeensyProxy {
    * @brief Setup all needed components for making this proxy work (e.g. ROS publishers /
    * subscribers, ...).
    */
-  virtual void setup(rclcpp::Node::SharedPtr) {
+  virtual void setupParams(rclcpp::Node::SharedPtr) {
     RCLCPP_FATAL(logger, "%s", USING_INTERFACE_METHOD);
   };
+
+  /**
+   * @brief Sends all messages needed for subscribing to components.
+   */
+  virtual void setupSubscriptions() { RCLCPP_FATAL(logger, "%s", USING_INTERFACE_METHOD); }
 
   /**
    * @brief Decode a Teensy message and send it inside its own dedicated topic.

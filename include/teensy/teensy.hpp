@@ -63,14 +63,19 @@ class Teensy : public rclcpp::Node {
   Teensy(rclcpp::NodeOptions);
 
   /**
-   * @brief Setup Regbot by flashing bot parameters.*
+   * @brief Setup Regbot by flashing bot parameters.
    */
   void setupTeensy();
 
   /**
-   * @brief Setup all subcomponents needed for this node.
+   * @brief Setup all proxies on the ROS side.
    */
-  void setupProxy();
+  void setupProxiesROS();
+
+  /**
+   * @brief Setuping all proxy on the Teensy side
+   */
+  void setupProxiesTeensy();
 
   /**
    * @brief Send signals to properly stop the Teensy board communication.
@@ -167,7 +172,6 @@ class Teensy : public rclcpp::Node {
   USBConnection usb_co;     //< USB Connection data
 
   std::string _bot_name;  //< Device name (e.g. robotbot)
-  bool _reverse_enc;      //< Whether the encoders (A, B) are reversed or not
   /**
    * @brief Flag to allocate a number (and robobot type) to the Teensy (Regbot)
    * Must be in range [0..149]

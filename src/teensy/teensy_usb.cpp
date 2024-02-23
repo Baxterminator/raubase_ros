@@ -59,6 +59,7 @@ void Teensy::openUSB() {
     RCLCPP_WARN(get_logger(), "Could not open connection with device %s", usb_co.name.c_str());
     usb_co.error++;
     usleep(300000);
+    return;
   }
 
   // Configure everything
@@ -66,7 +67,7 @@ void Teensy::openUSB() {
   usb_co.error = 0;
   usb_co.connecting = true;
   RCLCPP_INFO(get_logger(), "Connection opened!");
-  setupProxy();
+  setupProxiesTeensy();
 }
 
 }  // namespace raubase::teensy

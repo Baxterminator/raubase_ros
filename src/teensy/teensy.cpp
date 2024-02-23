@@ -31,7 +31,6 @@ Teensy::Teensy(rclcpp::NodeOptions opts) : rclcpp::Node(Teensy::NODE_NAME, opts)
 
   _regbotNumber = declare_parameter("regbot_number", -1);
   _regbotHardware = declare_parameter("regbot_hardware", -1);
-  _reverse_enc = declare_parameter("enc_rev", true);
 
   // ---------------------------- Verifications -------------------------------
   if (_confirm_timeout < 0.01) _confirm_timeout = 0.02;
@@ -59,10 +58,6 @@ void Teensy::setupTeensy() {
     send(MSG::make(s));
   }
 
-  // Reversed motors encoder
-  snprintf(s, MSG::MBL, "%s %d", MOT_REV_MSG, _reverse_enc);
-  send(MSG::make(s));
-
   // Robot name
   snprintf(s, MSG::MBL, "%s %s", BOT_NAME_MSG, _bot_name.c_str());
   send(MSG::make(s));
@@ -71,11 +66,19 @@ void Teensy::setupTeensy() {
   send(MSG::make(FLASH_MSG));
 }
 
-void Teensy::setupProxy() {
-  RCLCPP_INFO(get_logger(), "Initializing the messages proxies!");
+void Teensy::setupProxiesROS() {
+  RCLCPP_INFO(get_logger(), "Initializing the messages proxies (ROS)!");
   // --------------------------- Messages converters --------------------------
   for (auto& [key, val] : this->converters) {
-    val->setup(this->shared_from_this());
+    val->setupParams(this->shared_from_this());
+  }
+}
+
+void Teensy::setupProxiesTeensy() {
+  RCLCPP_INFO(get_logger(), "Initializing the messages proxies (Teensy)!");
+  // --------------------------- Messages converters --------------------------
+  for (auto& [key, val] : this->converters) {
+    val->setupSubscriptions();
   }
 }
 
@@ -100,7 +103,7 @@ Teensy::~Teensy() {
 int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   auto teensy = std::make_shared<raubase::teensy::Teensy>(rclcpp::NodeOptions{});
-  teensy->setupProxy();
+  teensy->setupProxiesROS();
   while (rclcpp::ok()) rclcpp::spin_some(teensy);
   rclcpp::shutdown();
 }

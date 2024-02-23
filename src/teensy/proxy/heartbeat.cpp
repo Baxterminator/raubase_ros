@@ -5,7 +5,7 @@
 
 namespace raubase::teensy::proxy {
 
-void HeartBeatProxy::setup(rclcpp::Node::SharedPtr node) {
+void HeartBeatProxy::setupParams(rclcpp::Node::SharedPtr node) {
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
 
   // Declaring parameters for the encoder
@@ -13,10 +13,10 @@ void HeartBeatProxy::setup(rclcpp::Node::SharedPtr node) {
 
   // Initializing working components
   publisher = node->create_publisher<HeartBeatState>(PUBLISHING_TOPIC, QOS);
-  clock = node->get_clock();
-
-  subscribeTeensyComponent(TEENSY_COMP, refresh_rate);
+  // clock = node->get_clock();
 }
+
+void HeartBeatProxy::setupSubscriptions() { subscribeTeensyComponent(TEENSY_COMP, refresh_rate); }
 
 void HeartBeatProxy::decode(char* msg) {
   // like: regbot:hbt 37708.7329 74 1430 5.01 0 6 1 1
@@ -29,20 +29,23 @@ void HeartBeatProxy::decode(char* msg) {
    *     7 : load
    *     8,9 : motor enabled (left,right)
    */
+  if (strlen(msg) < 5) return;
+  const char* p1 = msg + 5;
 
-  _msg.stamp = clock->now();
+  // Time code, Teensy time in seconds
+  strtof64(p1, (char**)&p1);
+  //_msg.stamp = clock->now();
+  //_msg.stamp = 0;
 
-  // Identification
-  _msg.device_id = 0;
-  _msg.hw_rev = 0;
-  _msg.sw_rev = 0;
+  _msg.device_id = strtol(p1, (char**)&p1, 10);
+  _msg.sw_rev = strtol(p1, (char**)&p1, 10);
+  _msg.voltage = strtof(p1, (char**)&p1);
+  _msg.state = strtol(p1, (char**)&p1, 10);
+  _msg.hw_rev = strtol(p1, (char**)&p1, 10);
 
-  // Actual state
-  _msg.voltage = 5;
-  _msg.load = 3;
-  _msg.state = 2;
-  _msg.m_right = 1;
-  _msg.m_left = 1;
+  _msg.load = strtol(p1, (char**)&p1, 10);
+  _msg.m_right = strtol(p1, (char**)&p1, 10);
+  _msg.m_left = strtol(p1, (char**)&p1, 10);
 
   publisher->publish(_msg);
 }

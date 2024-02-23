@@ -46,8 +46,8 @@ class HeartBeatProxy : public TeensyProxy {
   // =================================================================
  public:
   static constexpr const char* NODE_NAME{"HeartBeatProxy"};  //< ROS Node name
-  static constexpr const char* TEENSY_COMP{"hbt"};           //< Teensy board component name
-  static constexpr const char* TEENSY_MSG = TEENSY_COMP;     //< Message to catch on
+  static constexpr const char* TEENSY_COMP{"hbt"};           //< Teensy component to subscribe from
+  static constexpr const char* TEENSY_MSG = TEENSY_COMP;     //< Teensy board receiving prefix
 
  protected:
   static constexpr const char* PUBLISHING_TOPIC{"heartbeat"};  //< Encoder state topic
@@ -58,7 +58,8 @@ class HeartBeatProxy : public TeensyProxy {
   // =================================================================
  public:
   HeartBeatProxy(SendingCallback _clbk) : TeensyProxy(_clbk, NODE_NAME) {}
-  void setup(rclcpp::Node::SharedPtr) override;
+  void setupParams(rclcpp::Node::SharedPtr) override;
+  void setupSubscriptions() override;
   void decode(char*) override;
 
   // =================================================================
@@ -73,7 +74,8 @@ class HeartBeatProxy : public TeensyProxy {
  protected:
   HeartBeatState _msg;                                     //< Message to send
   rclcpp::Publisher<HeartBeatState>::SharedPtr publisher;  //< Heartbeat publisher
-  rclcpp::Clock::SharedPtr clock;                          //< ROS clock for stamping the messages
+  // rclcpp::Clock::SharedPtr clock;                          //< ROS clock for stamping the
+  // messages
 
   // =================================================================
   //                           Sensor Parameters
