@@ -19,6 +19,13 @@ void Teensy::send(sptr<MSG> msg, bool direct) {
 }
 
 void Teensy::receiveUSB(char* msg) {
+  // If receiving a comment message from the Teensy
+  if (std::strncmp(msg, "#", 1) == 0) {
+    RCLCPP_INFO(get_logger(), "%s", msg);
+    return;
+  }
+
+  // Else if message to process, send it to the right proxy
   RCLCPP_DEBUG(get_logger(), "Receiving msg %s", msg);
   for (auto& [sub_prefix, proxy] : converters) {
     if (std::strncmp(sub_prefix, msg, std::strlen(sub_prefix)) == 0) {
@@ -36,18 +43,17 @@ void Teensy::confirmMessage(const char* msg) {
   if (TX_queue.isEmpty()) return;
 
   // Get queue lock
-  auto lock = TX_queue.getLock();
-  lock.lock();
+  TX_queue.lock();
   auto front_obj = TX_queue.front();
 
   // Test if first message in queue has already been sent
   if (front_obj->sent_count != 0 && front_obj->compare(&msg[Teensy::CONFIRM_LENGTH + MSG::MPL])) {
-    RCLCPP_DEBUG(get_logger(), "Received confirmation message for cmd %s", front_obj->msg);
+    RCLCPP_INFO(get_logger(), "Received confirmation message for cmd %s", front_obj->msg);
     front_obj = nullptr;
-    lock.unlock();
+    TX_queue.unlock();
     TX_queue.pop();
   }
-  lock.unlock();
+  TX_queue.unlock();
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -96,6 +102,7 @@ void Teensy::fetchRX() {
     receiveUSB(&usb_co.RX_buffer[MSG::MCL]);
 
   // Reset RX state after processing the command
+  usb_co.connecting = false;
   usb_co.hasRecentActivity = true;
   usb_co.lastRXTime.now();
   usb_co.rxIdx = 0;
@@ -109,21 +116,24 @@ void Teensy::sendTX() {
 
   // If confirmation has timed out, resend it or drop it
   if (obj->sent && obj->time_sent.getTimePassed() > _confirm_timeout) {
-    RCLCPP_DEBUG(get_logger(), "Confirmation timed out for message (%s)", obj->msg);
+    RCLCPP_WARN(get_logger(), "Confirmation timed out for message (%s)", obj->_debug_msg);
     if (obj->sent_count >= _max_resend_cnt) {
-      RCLCPP_WARN(get_logger(), "TX Message runned out of confirmation and has been dropped");
+      RCLCPP_ERROR(get_logger(), "TX Message runned out of confirmation and has been dropped");
       TX_queue.pop();
     } else
       obj->sent = false;
   }
 
   // If first message non sent, send it
-  if (!obj->sent) sendDirect(obj);
+  if (!obj->sent) {
+    sendDirect(obj);
+  }
 }
 
 void Teensy::sendDirect(sptr<MSG> msg) {
   if (!usb_co.opened) return;
 
+  RCLCPP_INFO(get_logger(), "Sending message (%s)", msg->_debug_msg);
   usb_co._tx_lock.lock();
   int n = msg->len;
   int sent = 0, last_sent = 0, iterations = 0;
@@ -155,6 +165,8 @@ void Teensy::sendDirect(sptr<MSG> msg) {
   }
 
   msg->sent_count++;
+  msg->sent = true;
+  msg->time_sent.now();
   usleep(_timer_wait.count());
   usb_co._tx_lock.unlock();
 }
@@ -166,7 +178,7 @@ void Teensy::TRXLoop() {
 
   // Check for connections errors
   if (usb_co.connectionTimeout(_activity_timeout, _connect_timeout)) {
-    RCLCPP_ERROR(get_logger(), "USB connection timed out !");
+    RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(), 200, "USB connection timed out !");
     closeUSB();
     return;
   } else if (!usb_co.opened) {

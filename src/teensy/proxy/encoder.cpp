@@ -19,6 +19,7 @@ void EncoderProxy::setupParams(rclcpp::Node::SharedPtr node) {
 }
 
 void EncoderProxy::setupSubscriptions() {
+  RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
   subscribeTeensyComponent(TEENSY_COMP, _refresh_rate);
   configEncoderReversing();
 }

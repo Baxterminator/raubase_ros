@@ -67,11 +67,22 @@ struct USBConnection {
     opened = false;
     connecting = false;
     hasRecentActivity = false;
+    lastRXTime.now();
     error = 0;
     rxIdx = 0;
     NTPUpdate = false;
   }
 
+  /**
+   * @brief Return whether the USB connection has timed out:
+   *    - If connected, if no message has been received for a fixed duration -> timeout
+   *    - If connecting, if the delay to connect has been passed -> timeout
+   *
+   * @param rx_timeout
+   * @param connect_timeout
+   * @return true
+   * @return false
+   */
   inline bool connectionTimeout(float rx_timeout, float connect_timeout) {
     return opened && ((!hasRecentActivity && lastRXTime.getTimePassed() > rx_timeout) ||
                       (connecting && connectTime.getTimePassed() > connect_timeout));

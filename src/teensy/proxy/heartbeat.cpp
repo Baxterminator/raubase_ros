@@ -16,7 +16,10 @@ void HeartBeatProxy::setupParams(rclcpp::Node::SharedPtr node) {
   // clock = node->get_clock();
 }
 
-void HeartBeatProxy::setupSubscriptions() { subscribeTeensyComponent(TEENSY_COMP, refresh_rate); }
+void HeartBeatProxy::setupSubscriptions() {
+  RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
+  subscribeTeensyComponent(TEENSY_COMP, refresh_rate);
+}
 
 void HeartBeatProxy::decode(char* msg) {
   // like: regbot:hbt 37708.7329 74 1430 5.01 0 6 1 1

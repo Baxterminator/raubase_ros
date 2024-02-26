@@ -44,7 +44,7 @@ void configUSBConnection(USBConnection& usb) {
 }
 
 void Teensy::openUSB() {
-  RCLCPP_INFO(get_logger(), "Trying to connect to USB device !");
+  RCLCPP_INFO(get_logger(), "Trying to connect to USB device %s!", usb_co.name.c_str());
 
   // If connected do nothing
   if (usb_co.port != -1) {
@@ -58,7 +58,7 @@ void Teensy::openUSB() {
   if (!usb_co.opened) {
     RCLCPP_WARN(get_logger(), "Could not open connection with device %s", usb_co.name.c_str());
     usb_co.error++;
-    usleep(300000);
+    usleep(300000);  // 300ms
     return;
   }
 
@@ -66,6 +66,7 @@ void Teensy::openUSB() {
   configUSBConnection(usb_co);
   usb_co.error = 0;
   usb_co.connecting = true;
+  usb_co.connectTime.now();
   RCLCPP_INFO(get_logger(), "Connection opened!");
   setupProxiesTeensy();
 }

@@ -3,6 +3,7 @@
 #include <cctype>
 #include <cstdio>
 #include <cstring>
+#include <rclcpp/logger.hpp>
 #include <rclcpp/logging.hpp>
 
 namespace raubase::teensy {
@@ -14,20 +15,27 @@ MSG::MSG(const char *message) {
   if (!ok) return;
 
   // Make actual message
-  len += MCL;
-  msg[MPL] = REQ_CONFIRM;
-  strncpy(&msg[4], message, len);
+  msg[0] = '0';
+  msg[1] = '0';
+  msg[2] = '0';
+  msg[MPL - 1] = REQ_CONFIRM;
+  len += MPL;
+  strncpy(&msg[MPL], message, len);
 
   // EOL + End of string verification
   if (msg[len - 1] != EOL) msg[len++] = EOL;
   msg[len] = '\0';
 
   MSG::generateCRC(msg);
+
+  // DEBUG: generate copy message without EOL character (\n)
+  strncpy(_debug_msg, msg, len);
+  _debug_msg[len - 1] = '\0';
 }
 
 void MSG::generateCRC(char *msg) {
-  int n = strlen(msg);
-  const char *p1 = &msg[3];
+  int n = strlen(&msg[MCL]);
+  const char *p1 = &msg[MCL];
   int sum = 0;
   for (int i = 0; i < n; i++) {  // do not count \t, \r, \n etc
     // as these gives problems for systems with auto \n or \n\r or similar
@@ -37,7 +45,7 @@ void MSG::generateCRC(char *msg) {
     }
     p1++;
   }
-  snprintf(msg, MCL, ";%02d", (sum % 99) + 1);
+  snprintf(msg, MML, ";%02d%s", (sum % 99) + 1, &msg[MCL]);
 }
 
 bool MSG::checkCRC(const char *msg) {

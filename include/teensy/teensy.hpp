@@ -45,6 +45,8 @@ THE SOFTWARE.
 
 namespace raubase::teensy {
 
+using namespace std::chrono_literals;
+
 /**
  * @brief ROS Node providing USB connection to the Teensy board.
  */
@@ -155,6 +157,8 @@ class Teensy : public rclcpp::Node {
   static constexpr const char* MOT_REV_MSG{"motr"};    //< Setting the reversed encoder setting
   static constexpr const char* BOT_NAME_MSG{"setid"};  //< Setting the robot name
   static constexpr const char* FLASH_MSG{"eew"};       //< Regbot flashing message
+  static constexpr const char* LEAVING_MSG{"leave"};   //< Message to send on proxies closing
+  static constexpr const char* DISP_STP_MSG{"disp stopped"};  //< Message for stopping display
 
  private:
   // ------------------------------- ROS Object -------------------------------
@@ -170,8 +174,7 @@ class Teensy : public rclcpp::Node {
   float _activity_timeout;  //< Timeout for activity, if nothing happens, stop the connection
   short _max_resend_cnt;    //< Number of time a message can be resend
   USBConnection usb_co;     //< USB Connection data
-
-  std::string _bot_name;  //< Device name (e.g. robotbot)
+  std::string _bot_name;    //< Device name (e.g. robotbot)
   /**
    * @brief Flag to allocate a number (and robobot type) to the Teensy (Regbot)
    * Must be in range [0..149]
@@ -180,20 +183,11 @@ class Teensy : public rclcpp::Node {
   /**
    * @brief Save regbot hardware type to regbot if number is [5..15]
    * Should typically be 9 (blue pcb version 6.3)
-   *
    */
   short _regbotHardware = -1;
 
   // ------------------------- Message encoding / decoding --------------------
-  const SendingCallback _sending_cbk = [this](sptr<MSG> msg, bool direct) {
-    this->send(msg, direct);
-  };
-  std::map<const char*, TeensyProxy::SharedPtr> converters = {
-      {proxy::EncoderProxy::TEENSY_MSG,
-       TeensyProxy::make_shared<proxy::EncoderProxy>(_sending_cbk)},
-      {proxy::HeartBeatProxy::TEENSY_MSG,
-       TeensyProxy::make_shared<proxy::HeartBeatProxy>(_sending_cbk)},
-  };                  //< Converter map
+  std::map<const char*, TeensyProxy::SharedPtr> converters;  //< Converter map
   MSGQueue TX_queue;  //< Queue for sending cmd to the teensy board
 };
 

@@ -28,8 +28,6 @@ THE SOFTWARE.
 #include <mutex>
 #include <queue>
 
-typedef std::unique_lock<std::mutex> ULockMutex;
-
 /**
  * @brief Queue implementation that support multithreaded actions.
  *
@@ -38,49 +36,44 @@ typedef std::unique_lock<std::mutex> ULockMutex;
 template <typename T>
 class SharedQueue {
  public:
+  void lock() { _m.lock(); }
+  void unlock() { _m.unlock(); }
+
   void push(const T &elem) {
-    auto lock = getLock();
-    lock.lock();
+    lock();
     _queue.push(elem);
-    _m.unlock();
+    unlock();
   }
 
   void pop() {
-    auto lock = getLock();
-    lock.lock();
+    lock();
     _queue.pop();
-    lock.unlock();
+    unlock();
   }
 
   T &front() { return _queue.front(); }
 
   bool isEmpty() {
-    auto lock = getLock();
-    lock.lock();
+    lock();
     bool empty = _queue.empty();
-    lock.unlock();
+    unlock();
     return empty;
   }
 
   unsigned long size() {
-    auto lock = getLock();
-    lock.lock();
+    lock();
     unsigned long size = _queue.size();
-    lock.unlock();
+    unlock();
     return size;
   }
 
   void flush() {
-    auto lock = getLock();
-    lock.lock();
+    lock();
     while (!_queue.empty()) _queue.pop();
-    lock.unlock();
+    unlock();
   }
 
-  ULockMutex getLock() { return ULockMutex(_m); }
-  void unlock(ULockMutex &lock) { lock.unlock(); }
-
- private:
+ protected:
   std::mutex _m;
   std::queue<T> _queue;
 };

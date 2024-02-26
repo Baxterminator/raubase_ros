@@ -49,12 +49,13 @@ struct MSG {
   // =================================================================
   //                          Message Struct
   // =================================================================
-  char msg[MML];
-  int len;
-  bool ok = false;
-  bool sent = false;
-  short sent_count = 0;
-  UTime time_sent;
+  char msg[MML];             //< Message to send
+  char _debug_msg[MML - 1];  //< Message to send (DEBUG, no end of line)
+  int len;                   //< Length of the message to send
+  bool ok = false;           //< If the message was correctly computed
+  bool sent = false;         //< If the message was sent
+  short sent_count = 0;      //< The number of time the message was sent
+  UTime time_sent;           //< The time at which the messange was last sent
   MSG(const char* msg);
 
   /**

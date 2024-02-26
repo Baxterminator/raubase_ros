@@ -35,6 +35,16 @@ Teensy::Teensy(rclcpp::NodeOptions opts) : rclcpp::Node(Teensy::NODE_NAME, opts)
   // ---------------------------- Verifications -------------------------------
   if (_confirm_timeout < 0.01) _confirm_timeout = 0.02;
 
+  // -------------------------- Setup Proxies List -----------------------------
+  SendingCallback _sending_cbk = [this](sptr<MSG> msg, bool direct) { this->send(msg, direct); };
+  converters = {
+      {proxy::HeartBeatProxy::TEENSY_MSG,
+       TeensyProxy::make_shared<proxy::HeartBeatProxy>(_sending_cbk)},
+      {proxy::EncoderProxy::TEENSY_MSG,
+       TeensyProxy::make_shared<proxy::EncoderProxy>(_sending_cbk)},
+
+  };
+
   // -------------------------- Communication Init ----------------------------
   trx_runtime = create_wall_timer(_timer_period, std::bind(&Teensy::TRXLoop, this));
 }
@@ -92,7 +102,7 @@ void Teensy::stopTeensy() {
 
 Teensy::~Teensy() {
   stopTeensy();
-  usleep(1000000);  // Waiting for everything to be sent
+  usleep(1000000);  // Waiting for everything to be sent (1s)
   closeUSB();
 }
 
