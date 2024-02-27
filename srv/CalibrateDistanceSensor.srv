@@ -1,0 +1,6 @@
+# Service call for calibrating the distance sensors
+
+float64[2] sensor1
+float64[2] sensor2
+
+---
