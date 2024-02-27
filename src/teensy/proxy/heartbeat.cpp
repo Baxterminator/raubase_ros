@@ -1,8 +1,5 @@
 #include "teensy/proxy/heartbeat.hpp"
 
-#include <rclcpp/logging.hpp>
-#include <robotbot_msgs/msg/detail/heart_beat_state__struct.hpp>
-
 namespace raubase::teensy::proxy {
 
 void HeartBeatProxy::setupParams(rclcpp::Node::SharedPtr node) {
@@ -38,7 +35,6 @@ void HeartBeatProxy::decode(char* msg) {
   // Time code, Teensy time in seconds
   strtof64(p1, (char**)&p1);
   _msg.stamp = clock->now();
-  //_msg.stamp = 0;
 
   _msg.device_id = strtol(p1, (char**)&p1, 10);
   _msg.sw_rev = strtol(p1, (char**)&p1, 10);

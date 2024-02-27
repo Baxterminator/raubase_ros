@@ -13,7 +13,7 @@ void LineSensorProxy::setupParams(rclcpp::Node::SharedPtr node) {
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
 
   // Declaring parameters for the encoder
-  _refresh_rate = node->declare_parameter("liv_ms", 8);
+  _refresh_rate = node->declare_parameter("liv_ms", 25);
 
   // Initializing working components
   publisher = node->create_publisher<LineSensorData>(PUBLISHING_TOPIC, QOS);
@@ -40,7 +40,7 @@ void LineSensorProxy::setupSubscriptions() {
 }
 
 void LineSensorProxy::closeTeensy() {
-  RCLCPP_INFO(logger, "Cleaning-up proxy %s", NODE_NAME);
+  RCLCPP_INFO(logger, "Cleaning-up ...");
   // Stop the line sensor on closing the proxy
   _internal_req->on = false;
   _internal_req->high_power = false;
@@ -52,7 +52,7 @@ void LineSensorProxy::setLineSensorMode(const SetLineSensor::Request::SharedPtr 
   char msg[MSG::MBL];
   snprintf(msg, MSG::MBL, LineSensorProxy::SENSOR_CONFIG, req->on, req->white, req->high_power,
            req->tilt, req->cross_th, req->wide, req->swap);
-  sendToTeensy(MSG::make(msg), false);
+  sendToTeensy(MSG::make(msg), true);
   _internal_req = req;
 }
 

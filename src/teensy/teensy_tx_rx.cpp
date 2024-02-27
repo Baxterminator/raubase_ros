@@ -26,10 +26,10 @@ void Teensy::receiveUSB(char* msg) {
   }
 
   // Else if message to process, send it to the right proxy
-  RCLCPP_DEBUG(get_logger(), "Receiving msg %s", msg);
-  for (auto& [sub_prefix, proxy] : converters) {
+  RCLCPP_INFO(get_logger(), "Receiving msg %s", msg);
+  for (auto& [sub_prefix, proxy] : _proxies_mapping) {
     if (std::strncmp(sub_prefix, msg, std::strlen(sub_prefix)) == 0) {
-      proxy->decode(msg);
+      _proxies[proxy]->decode(msg);
       return;
     }
   }
@@ -48,7 +48,7 @@ void Teensy::confirmMessage(const char* msg) {
 
   // Test if first message in queue has already been sent
   if (front_obj->sent_count != 0 && front_obj->compare(&msg[Teensy::CONFIRM_LENGTH + MSG::MPL])) {
-    RCLCPP_INFO(get_logger(), "Received confirmation message for cmd %s", front_obj->msg);
+    RCLCPP_INFO(get_logger(), "Confirmation receivedfor message (%s)", front_obj->_debug_msg);
     front_obj = nullptr;
     TX_queue.unlock();
     TX_queue.pop();

@@ -90,6 +90,18 @@ class Teensy : public rclcpp::Node {
   ~Teensy();
 
  private:
+  // -------------------------- Converter Management --------------------------
+
+  /**
+   * @brief Append a proxy to the node.
+   */
+  void add_proxy(TeensyProxy::SharedPtr, const std::vector<const char*>&);
+
+  /**
+   * @brief Append a proxy to the node.
+   */
+  void add_proxy(TeensyProxy::SharedPtr, const char* const);
+
   // ------------------------------ USB Exchange ------------------------------
 
   /**
@@ -187,7 +199,8 @@ class Teensy : public rclcpp::Node {
   short _regbotHardware = -1;
 
   // ------------------------- Message encoding / decoding --------------------
-  std::map<const char*, TeensyProxy::SharedPtr> converters;  //< Converter map
+  std::vector<TeensyProxy::SharedPtr> _proxies;
+  std::map<const char*, unsigned long> _proxies_mapping;  //< Converter map
   MSGQueue TX_queue;  //< Queue for sending cmd to the teensy board
 };
 

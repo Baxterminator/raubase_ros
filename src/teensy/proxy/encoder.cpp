@@ -11,7 +11,7 @@ void EncoderProxy::setupParams(rclcpp::Node::SharedPtr node) {
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
 
   // Declaring parameters for the encoder
-  _refresh_rate = node->declare_parameter("enc_ms", 8);
+  _refresh_rate = node->declare_parameter("enc_ms", 25);
   _reverse_enc = node->declare_parameter("enc_rev", true);
 
   // Initializing working components

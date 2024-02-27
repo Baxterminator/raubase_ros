@@ -9,8 +9,11 @@
 #include <queue>
 #include <ratio>
 
+#include "teensy/interface/proxy_interface.hpp"
+#include "teensy/proxy/distance.hpp"
 #include "teensy/proxy/encoder.hpp"
 #include "teensy/proxy/heartbeat.hpp"
+#include "teensy/proxy/imu.hpp"
 #include "teensy/proxy/line_sensor.hpp"
 
 namespace raubase::teensy {
@@ -25,26 +28,30 @@ Teensy::Teensy(rclcpp::NodeOptions opts) : rclcpp::Node(Teensy::NODE_NAME, opts)
   _connect_timeout = declare_parameter("con_timeout_s", 20.0);
   _activity_timeout = declare_parameter("act_timeout_s", 10.0);
   _max_resend_cnt = declare_parameter("max_resend_num", 50);
-  _timer_period = std::chrono::microseconds(declare_parameter("loop_rate_us", 200));
+  _timer_period = std::chrono::microseconds(declare_parameter("loop_rate_us", 0));
   _timer_wait = std::chrono::microseconds(declare_parameter("loop_wait_us", 1000));
   usb_co.name = declare_parameter("usb_device", "/dev/ttyACM0");
 
   _regbotNumber = declare_parameter("regbot_number", -1);
   _regbotHardware = declare_parameter("regbot_hardware", -1);
 
-  // ---------------------------- Verifications -------------------------------
+  // ---------------------------- Verifications --------------------------Look at your class
+  // definition. Find the first non-inline virtual function that is not pure virtual (not "= 0") and
+  // whose definition you provide (not "= default"). -----
   if (_confirm_timeout < 0.01) _confirm_timeout = 0.02;
 
   // -------------------------- Setup Proxies List -----------------------------
   SendingCallback _sending_cbk = [this](sptr<MSG> msg, bool direct) { this->send(msg, direct); };
-  converters = {
-      {proxy::HeartBeatProxy::TEENSY_MSG,
-       TeensyProxy::make_shared<proxy::HeartBeatProxy>(_sending_cbk)},
-      {proxy::EncoderProxy::TEENSY_MSG,
-       TeensyProxy::make_shared<proxy::EncoderProxy>(_sending_cbk)},
-      {proxy::LineSensorProxy::TEENSY_MSG,
-       TeensyProxy::make_shared<proxy::LineSensorProxy>(_sending_cbk)},
-  };
+  add_proxy(TeensyProxy::make_shared<proxy::HeartBeatProxy>(_sending_cbk),
+            proxy::HeartBeatProxy::TEENSY_MSG);
+  add_proxy(TeensyProxy::make_shared<proxy::EncoderProxy>(_sending_cbk),
+            proxy::EncoderProxy::TEENSY_MSG);
+  add_proxy(TeensyProxy::make_shared<proxy::LineSensorProxy>(_sending_cbk),
+            proxy::LineSensorProxy::TEENSY_MSG);
+  add_proxy(TeensyProxy::make_shared<proxy::IMUProxy>(_sending_cbk),
+            {proxy::IMUProxy::GYRO_MSG, proxy::IMUProxy::ACC_MSG});
+  add_proxy(TeensyProxy::make_shared<proxy::DistanceProxy>(_sending_cbk),
+            proxy::DistanceProxy::TEENSY_MSG);
 
   // -------------------------- Communication Init ----------------------------
   trx_runtime = create_wall_timer(_timer_period, std::bind(&Teensy::TRXLoop, this));
@@ -79,15 +86,15 @@ void Teensy::setupTeensy() {
 
 void Teensy::setupProxiesROS() {
   RCLCPP_INFO(get_logger(), "Initializing the messages proxies (ROS)!");
-  for (auto& [key, val] : this->converters) {
-    val->setupParams(this->shared_from_this());
+  for (auto& p : this->_proxies) {
+    p->setupParams(this->shared_from_this());
   }
 }
 
 void Teensy::setupProxiesTeensy() {
   RCLCPP_INFO(get_logger(), "Initializing the messages proxies (Teensy)!");
-  for (auto& [key, val] : this->converters) {
-    val->setupSubscriptions();
+  for (auto& p : this->_proxies) {
+    p->setupSubscriptions();
   }
 }
 
@@ -95,8 +102,8 @@ void Teensy::setupProxiesTeensy() {
 
 void Teensy::stopProxiesTeensy() {
   RCLCPP_INFO(get_logger(), "Launching proxies cleanup sequence (Teensy)!");
-  for (auto& [key, val] : this->converters) {
-    val->closeTeensy();
+  for (auto& p : this->_proxies) {
+    p->closeTeensy();
   }
 }
 
@@ -112,6 +119,28 @@ Teensy::~Teensy() {
   stopTeensy();
   usleep(1000000);  // Waiting for everything to be sent (1s)
   closeUSB();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void Teensy::add_proxy(TeensyProxy::SharedPtr prox, const std::vector<const char*>& msgs) {
+  // Add proxy to the list
+  _proxies.push_back(prox);
+  unsigned long proxy_idx = _proxies.size() - 1;
+
+  // Add mapping
+  for (auto& m : msgs) {
+    _proxies_mapping.insert_or_assign(m, proxy_idx);
+  }
+}
+
+void Teensy::add_proxy(TeensyProxy::SharedPtr prox, const char* const msg) {
+  // Add proxy to the list
+  _proxies.push_back(prox);
+  unsigned long proxy_idx = _proxies.size() - 1;
+
+  // Add mapping
+  _proxies_mapping.insert_or_assign(msg, proxy_idx);
 }
 
 }  // namespace raubase::teensy
