@@ -42,7 +42,7 @@ file(GLOB msg_files RELATIVE "${CMAKE_CURRENT_LIST_DIR}"
 )
 
 if (msg_files)
-  message(${msg_files})
+  message("${msg_files}")
   rosidl_generate_interfaces(${PROJECT_NAME}
           ${msg_files}
           DEPENDENCIES std_msgs sensor_msgs)
