@@ -76,6 +76,7 @@ class EncoderProxy : public TeensyProxy {
  protected:
   EncoderState _msg;
   rclcpp::Publisher<EncoderState>::SharedPtr publisher;
+  rclcpp::Clock::SharedPtr clock;  //< ROS clock for stamping the messages
 
   // =================================================================
   //                           Sensor Parameters

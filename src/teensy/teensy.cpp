@@ -8,10 +8,10 @@
 #include <memory>
 #include <queue>
 #include <ratio>
-#include <rclcpp/executors.hpp>
-#include <rclcpp/logging.hpp>
-#include <rclcpp/node_options.hpp>
-#include <rclcpp/utilities.hpp>
+
+#include "teensy/proxy/encoder.hpp"
+#include "teensy/proxy/heartbeat.hpp"
+#include "teensy/proxy/line_sensor.hpp"
 
 namespace raubase::teensy {
 
@@ -42,7 +42,8 @@ Teensy::Teensy(rclcpp::NodeOptions opts) : rclcpp::Node(Teensy::NODE_NAME, opts)
        TeensyProxy::make_shared<proxy::HeartBeatProxy>(_sending_cbk)},
       {proxy::EncoderProxy::TEENSY_MSG,
        TeensyProxy::make_shared<proxy::EncoderProxy>(_sending_cbk)},
-
+      {proxy::LineSensorProxy::TEENSY_MSG,
+       TeensyProxy::make_shared<proxy::LineSensorProxy>(_sending_cbk)},
   };
 
   // -------------------------- Communication Init ----------------------------
@@ -78,7 +79,6 @@ void Teensy::setupTeensy() {
 
 void Teensy::setupProxiesROS() {
   RCLCPP_INFO(get_logger(), "Initializing the messages proxies (ROS)!");
-  // --------------------------- Messages converters --------------------------
   for (auto& [key, val] : this->converters) {
     val->setupParams(this->shared_from_this());
   }
@@ -86,13 +86,19 @@ void Teensy::setupProxiesROS() {
 
 void Teensy::setupProxiesTeensy() {
   RCLCPP_INFO(get_logger(), "Initializing the messages proxies (Teensy)!");
-  // --------------------------- Messages converters --------------------------
   for (auto& [key, val] : this->converters) {
     val->setupSubscriptions();
   }
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+void Teensy::stopProxiesTeensy() {
+  RCLCPP_INFO(get_logger(), "Launching proxies cleanup sequence (Teensy)!");
+  for (auto& [key, val] : this->converters) {
+    val->closeTeensy();
+  }
+}
 
 void Teensy::stopTeensy() {
   RCLCPP_INFO(get_logger(), "Stopping communication with the Teensy Board!");
@@ -101,6 +107,8 @@ void Teensy::stopTeensy() {
 }
 
 Teensy::~Teensy() {
+  stopProxiesTeensy();
+  usleep(1000000);  // Waiting for everything to be sent (1s)
   stopTeensy();
   usleep(1000000);  // Waiting for everything to be sent (1s)
   closeUSB();

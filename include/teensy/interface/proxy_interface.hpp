@@ -93,6 +93,11 @@ class TeensyProxy {
    */
   virtual void decode(char *) { RCLCPP_FATAL(logger, "%s", USING_INTERFACE_METHOD); };
 
+  /**
+   * @brief Describe message to send before closing the Teensy connection.
+   */
+  virtual void closeTeensy() {}
+
   // =================================================================
   //                           Utils Methods
   // =================================================================

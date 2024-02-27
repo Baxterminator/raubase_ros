@@ -74,8 +74,7 @@ class HeartBeatProxy : public TeensyProxy {
  protected:
   HeartBeatState _msg;                                     //< Message to send
   rclcpp::Publisher<HeartBeatState>::SharedPtr publisher;  //< Heartbeat publisher
-  // rclcpp::Clock::SharedPtr clock;                          //< ROS clock for stamping the
-  // messages
+  rclcpp::Clock::SharedPtr clock;                          //< ROS clock for stamping the messages
 
   // =================================================================
   //                           Sensor Parameters

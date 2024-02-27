@@ -16,6 +16,7 @@ void EncoderProxy::setupParams(rclcpp::Node::SharedPtr node) {
 
   // Initializing working components
   publisher = node->create_publisher<EncoderState>(PUBLISHING_TOPIC, QOS);
+  clock = node->get_clock();
 }
 
 void EncoderProxy::setupSubscriptions() {
@@ -37,6 +38,7 @@ void EncoderProxy::decode(char* msg) {
    */
   if (strlen(msg) <= 4) return;
   const char* p1 = msg + 4;
+  _msg.stamp = clock->now();
   _msg.right = -strtoll(p1, (char**)&p1, 10);
   _msg.left = strtoll(p1, (char**)&p1, 10);
 

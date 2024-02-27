@@ -13,7 +13,7 @@ void HeartBeatProxy::setupParams(rclcpp::Node::SharedPtr node) {
 
   // Initializing working components
   publisher = node->create_publisher<HeartBeatState>(PUBLISHING_TOPIC, QOS);
-  // clock = node->get_clock();
+  clock = node->get_clock();
 }
 
 void HeartBeatProxy::setupSubscriptions() {
@@ -37,7 +37,7 @@ void HeartBeatProxy::decode(char* msg) {
 
   // Time code, Teensy time in seconds
   strtof64(p1, (char**)&p1);
-  //_msg.stamp = clock->now();
+  _msg.stamp = clock->now();
   //_msg.stamp = 0;
 
   _msg.device_id = strtol(p1, (char**)&p1, 10);

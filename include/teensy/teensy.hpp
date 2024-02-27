@@ -30,17 +30,12 @@ THE SOFTWARE.
 #include <cstring>
 #include <map>
 #include <queue>
-#include <rclcpp/node.hpp>
-#include <rclcpp/node_options.hpp>
 #include <rclcpp/rclcpp.hpp>
-#include <rclcpp/timer.hpp>
 
 #include "common/shared_queue.hpp"
 #include "teensy/interface/message.hpp"
 #include "teensy/interface/message_queue.hpp"
 #include "teensy/interface/proxy_interface.hpp"
-#include "teensy/proxy/encoder.hpp"
-#include "teensy/proxy/heartbeat.hpp"
 #include "teensy/usb_connection.hpp"
 
 namespace raubase::teensy {
@@ -78,6 +73,11 @@ class Teensy : public rclcpp::Node {
    * @brief Setuping all proxy on the Teensy side
    */
   void setupProxiesTeensy();
+
+  /**
+   * @brief Launch the proxies specific cleanup on stopping the connection to the Teensy.
+   */
+  void stopProxiesTeensy();
 
   /**
    * @brief Send signals to properly stop the Teensy board communication.
