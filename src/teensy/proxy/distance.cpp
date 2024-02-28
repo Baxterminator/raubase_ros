@@ -1,8 +1,6 @@
 #include "teensy/proxy/distance.hpp"
 
 #include <cstdio>
-#include <robotbot_msgs/msg/detail/sensor_data__struct.hpp>
-#include <robotbot_msgs/srv/detail/calibrate_distance_sensor__struct.hpp>
 
 #include "teensy/interface/proxy_interface.hpp"
 
@@ -10,10 +8,10 @@ namespace raubase::teensy::proxy {
 
 char strToIRType(const char* msg) {
   if (strcmp(msg, "sharp") == 0)
-    return SensorData::SHARP;
+    return DistanceData::SHARP;
   else if (strcmp(msg, "URM09") == 0)
-    return SensorData::URM09;
-  return SensorData::UNKNOWN;
+    return DistanceData::URM09;
+  return DistanceData::UNKNOWN;
 }
 
 void DistanceProxy::setupParams(rclcpp::Node::SharedPtr node) {
@@ -31,8 +29,8 @@ void DistanceProxy::setupParams(rclcpp::Node::SharedPtr node) {
   _urm_factor = node->declare_parameter("us_calib", 0.00126953125);  // 5.20m / 4096 (m per LSB)
 
   // Initializing working components
-  sensor1_pub = node->create_publisher<SensorData>(SENSOR_1_PUB_TOPIC, QOS);
-  sensor2_pub = node->create_publisher<SensorData>(SENSOR2_PUB_TOPIC, QOS);
+  sensor1_pub = node->create_publisher<DistanceData>(SENSOR_1_PUB_TOPIC, QOS);
+  sensor2_pub = node->create_publisher<DistanceData>(SENSOR2_PUB_TOPIC, QOS);
   calib_srv = node->create_service<CalibrateDistanceSensor>(
       CALIBRATE_SRV, std::bind(&DistanceProxy::calibrateSensors, this, std::placeholders::_1,
                                std::placeholders::_2));
@@ -78,7 +76,7 @@ void DistanceProxy::decode(char* msg) {
   _sensor1_msg.range = strtod(p1, (char**)&p1);
   _sensor1_msg.range_ad = strtod(p1, (char**)&p1);
   // If URM09, compute the range value
-  if (_sensor1_msg.type == SensorData::URM09)
+  if (_sensor1_msg.type == DistanceData::URM09)
     _sensor1_msg.range = _sensor1_msg.range_ad * _urm_factor;
   sensor1_pub->publish(_sensor1_msg);
 
@@ -86,7 +84,7 @@ void DistanceProxy::decode(char* msg) {
   _sensor2_msg.stamp = clock->now();
   _sensor2_msg.range = strtod(p1, (char**)&p1);
   _sensor2_msg.range_ad = strtod(p1, (char**)&p1);
-  if (_sensor2_msg.type == SensorData::URM09)
+  if (_sensor2_msg.type == DistanceData::URM09)
     _sensor2_msg.range = _sensor2_msg.range_ad * _urm_factor;
   sensor2_pub->publish(_sensor2_msg);
 }

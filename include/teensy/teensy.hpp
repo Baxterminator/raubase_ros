@@ -93,14 +93,19 @@ class Teensy : public rclcpp::Node {
   // -------------------------- Converter Management --------------------------
 
   /**
-   * @brief Append a proxy to the node.
+   * @brief Append a proxy to the node (receive messages on several channel of the Teensy).
    */
   void add_proxy(TeensyProxy::SharedPtr, const std::vector<const char*>&);
 
   /**
-   * @brief Append a proxy to the node.
+   * @brief Append a proxy to the node (receive on only one channel of the Teensy).
    */
   void add_proxy(TeensyProxy::SharedPtr, const char* const);
+
+  /**
+   * @brief Append a proxy to the node (receive no messages from the Teensy).
+   */
+  void add_proxy(TeensyProxy::SharedPtr);
 
   // ------------------------------ USB Exchange ------------------------------
 

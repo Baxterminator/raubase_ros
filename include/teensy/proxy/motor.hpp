@@ -1,5 +1,5 @@
-#ifndef RAUBASE_DISTANCE_PROXY
-#define RAUBASE_DISTANCE_PROXY
+#ifndef RAUBSE_MOTOR_PROXY
+#define RAUBSE_MOTOR_PROXY
 
 /*
 Copyright (C) 2017-2024 by DTU
@@ -26,77 +26,53 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
-#include <rclcpp/service.hpp>
-#include <robotbot_msgs/srv/detail/calibrate_distance_sensor__struct.hpp>
-
-#include "robotbot_msgs/msg/distance_data.hpp"
-#include "robotbot_msgs/srv/calibrate_distance_sensor.hpp"
+#include "robotbot_msgs/msg/motor_voltage.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using robotbot_msgs::msg::DistanceData;
-using robotbot_msgs::srv::CalibrateDistanceSensor;
+using robotbot_msgs::msg::MotorVoltage;
 
 namespace raubase::teensy::proxy {
-
 /**
- * @brief Proxy for converting Teensy Encoder messages into a ROS data message.
+ * @brief Proxy for communicating with the motors.
+ * It's essentially for commanding him.
  */
-class DistanceProxy : public TeensyProxy {
+class MotorProxy : public TeensyProxy {
   // =================================================================
   //                             Constants
   // =================================================================
  public:
-  static constexpr const char* NODE_NAME{"DistanceProxy"};  //< ROS Node name
-  static constexpr const char* TEENSY_COMP{"ir"};           //< Teensy component to subscribe from
-  static constexpr const char* TEENSY_MSG = TEENSY_COMP;    //< Teensy board receiving prefix
+  static constexpr const char* NODE_NAME{"MotorProxy"};  //< ROS Node name
 
  protected:
-  static constexpr const char* SENSOR_1_PUB_TOPIC{"dist_1"};  //< Sensor1 data topic
-  static constexpr const char* SENSOR2_PUB_TOPIC{"dist_2"};   //< Sensor2 data topic
-  static constexpr const char* CALIB_CMD{
-      "irc %f %f %f %f 1"};  //< Calibration message for the Teensy
-  static constexpr const char* CALIBRATE_SRV{
-      "distance/set_calib"};     //< Service to calibrate the sensors
-  static constexpr int QOS{10};  //< QOS for all components
+  static constexpr const char* SUBSCRIBING_TOPIC{"set_voltage"};  //< Cmd subscribing topic
+  static constexpr const char* MOTOR_CMD{"motv %f %f"};  // Cmd to send to control the motors
+  static constexpr int QOS{10};                          //< QOS for all components
 
   // =================================================================
   //                             Proxy Methods
   // =================================================================
  public:
-  DistanceProxy(SendingCallback _clbk) : TeensyProxy(_clbk, NODE_NAME) {}
+  MotorProxy(SendingCallback _clbk) : TeensyProxy(_clbk, NODE_NAME) {}
   void setupParams(rclcpp::Node::SharedPtr) override;
   void setupSubscriptions() override;
-  void decode(char*) override;
+  void decode(char*) override{};
+
+  void closeTeensy() override;
 
   // =================================================================
   //                          Component Methods
   // =================================================================
- protected:
-  /**
-   * @brief Set the calibration values to the sensors.
-   */
-  void calibrateSensors(const CalibrateDistanceSensor::Request::SharedPtr,
-                        CalibrateDistanceSensor::Response::SharedPtr = nullptr);
+ private:
+  void sendCmd(const MotorVoltage::SharedPtr, bool direct = false);
 
- public:
   // =================================================================
   //                             ROS Members
   // =================================================================
  protected:
-  DistanceData _sensor1_msg;
-  DistanceData _sensor2_msg;
-  rclcpp::Publisher<DistanceData>::SharedPtr sensor1_pub;
-  rclcpp::Publisher<DistanceData>::SharedPtr sensor2_pub;
-  rclcpp::Service<CalibrateDistanceSensor>::SharedPtr calib_srv;
-  rclcpp::Clock::SharedPtr clock;  //< ROS clock for stamping the messages
-
-  // =================================================================
-  //                           Sensor Parameters
-  // =================================================================
-  int _refresh_rate;   //< The refresh rate for the encoders
-  double _urm_factor;  //< Calibration value for URM09
+  rclcpp::Subscription<MotorVoltage>::SharedPtr subscriber;  //< Heartbeat publisher
+  rclcpp::Clock::SharedPtr clock;                            //< ROS clock for stamping the messages
+  double _max_voltage;  //< Maximum voltage allowed by the motors
 };
-
 }  // namespace raubase::teensy::proxy
 
 #endif
