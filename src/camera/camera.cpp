@@ -6,8 +6,8 @@
 #include <cmath>
 #include <memory>
 #include <opencv2/videoio.hpp>
-#include <rclcpp/logging.hpp>
 #include <raubase_msgs/srv/detail/set_camera_mode__struct.hpp>
+#include <rclcpp/logging.hpp>
 #include <string>
 
 #include "common/types.hpp"
@@ -41,8 +41,6 @@ Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node("camera", opts) {
   // -------------------------- Camera connection -----------------------------
   checker =
       create_wall_timer(milliseconds(_checking_s * 1000), std::bind(&Camera::try_connect, this));
-  // runner = create_wall_timer(milliseconds((int)std::floor(1 / img_fps * 1000)),
-  //                            std::bind(&Camera::run, this));
   runner = create_wall_timer(0ms, std::bind(&Camera::run, this));
   runner->cancel();
 }

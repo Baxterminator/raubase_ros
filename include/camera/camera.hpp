@@ -30,11 +30,12 @@ THE SOFTWARE.
 
 #include <chrono>
 #include <opencv2/videoio.hpp>
-#include <rclcpp/rclcpp.hpp>
-#include <rclcpp/service.hpp>
 #include <raubase_msgs/srv/ask_camera_image.hpp>
 #include <raubase_msgs/srv/detail/ask_camera_image__struct.hpp>
 #include <raubase_msgs/srv/set_camera_mode.hpp>
+#include <rclcpp/logging.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <rclcpp/service.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
@@ -95,9 +96,11 @@ class Camera : public rclcpp::Node {
 
   void get_image([[maybe_unused]] AskCameraImage::Request::ConstSharedPtr req,
                  AskCameraImage::Response::SharedPtr res) {
+    RCLCPP_INFO(get_logger(), "Asking for image ...");
     auto img = grabLastImage();
     res->image = *img;
     _img_pub->publish(*img);
+    RCLCPP_INFO(get_logger(), "Sending it back ...");
   }
 
   // ==========================================================================

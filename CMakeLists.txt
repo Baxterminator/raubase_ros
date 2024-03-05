@@ -88,7 +88,7 @@ endif()
 
 ############################ Python ###############################
 install(PROGRAMS
-	scripts/image_processor.py
+	scripts/image_processor
 	DESTINATION lib/${PROJECT_NAME}
 	)
 
