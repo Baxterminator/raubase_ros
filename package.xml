@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>robotbot_msgs</name>
+  <name>raubase_msgs</name>
   <version>0.1.0</version>
   <description>Robotbot Raubase ROS2 messages</description>
   <maintainer email="geoffrey.cote@centraliens-nantes.org">Geoffrey Côte</maintainer>
   <author>Geoffrey Côte</author>
-  <url type="repository">https://github.com/Baxterminator/robotbot_msgs</url>
+  <url type="repository">https://github.com/Baxterminator/raubase_msgs</url>
   <license>MIT</license>
 
   <depend>builtin_interfaces</depend>
