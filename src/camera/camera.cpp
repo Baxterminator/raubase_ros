@@ -7,7 +7,7 @@
 #include <memory>
 #include <opencv2/videoio.hpp>
 #include <rclcpp/logging.hpp>
-#include <robotbot_msgs/srv/detail/set_camera_mode__struct.hpp>
+#include <raubase_msgs/srv/detail/set_camera_mode__struct.hpp>
 #include <string>
 
 #include "common/types.hpp"

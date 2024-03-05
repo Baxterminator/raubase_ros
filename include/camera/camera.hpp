@@ -32,16 +32,16 @@ THE SOFTWARE.
 #include <opencv2/videoio.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/service.hpp>
-#include <robotbot_msgs/srv/ask_camera_image.hpp>
-#include <robotbot_msgs/srv/detail/ask_camera_image__struct.hpp>
-#include <robotbot_msgs/srv/set_camera_mode.hpp>
+#include <raubase_msgs/srv/ask_camera_image.hpp>
+#include <raubase_msgs/srv/detail/ask_camera_image__struct.hpp>
+#include <raubase_msgs/srv/set_camera_mode.hpp>
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
 namespace raubase::cam {
 
-using robotbot_msgs::srv::AskCameraImage;
-using robotbot_msgs::srv::SetCameraMode;
+using raubase_msgs::srv::AskCameraImage;
+using raubase_msgs::srv::SetCameraMode;
 using sensor_msgs::msg::Image;
 using std::chrono::milliseconds;
 using namespace sensor_msgs::image_encodings;

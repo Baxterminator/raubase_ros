@@ -27,14 +27,14 @@ THE SOFTWARE.
 */
 
 #include <rclcpp/service.hpp>
-#include <robotbot_msgs/srv/detail/calibrate_distance_sensor__struct.hpp>
+#include <raubase_msgs/srv/detail/calibrate_distance_sensor__struct.hpp>
 
-#include "robotbot_msgs/msg/distance_data.hpp"
-#include "robotbot_msgs/srv/calibrate_distance_sensor.hpp"
+#include "raubase_msgs/msg/distance_data.hpp"
+#include "raubase_msgs/srv/calibrate_distance_sensor.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using robotbot_msgs::msg::DistanceData;
-using robotbot_msgs::srv::CalibrateDistanceSensor;
+using raubase_msgs::msg::DistanceData;
+using raubase_msgs::srv::CalibrateDistanceSensor;
 
 namespace raubase::teensy::proxy {
 

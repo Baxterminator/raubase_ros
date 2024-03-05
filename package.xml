@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>robotbot_ros</name>
+  <name>raubase_ros</name>
   <version>0.1.0</version>
   <description>Robotbot Raubase ROS2 version</description>
   <maintainer email="geoffrey.cote@centraliens-nantes.org">Geoffrey Côte</maintainer>
@@ -10,11 +10,12 @@
   <license>MIT</license>
 
   <depend>rclcpp</depend>
+  <depend>rclpy</depend>
   <depend>ament_index</depend>
 
   <!-- Messages --> 
   <depend>std_msgs</depend>
-  <depend>robotbot_msgs</depend>
+  <depend>raubase_msgs</depend>
   <depend>sensor_msgs</depend>
 
   <!-- Libraries --> 

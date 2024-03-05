@@ -1,8 +1,8 @@
 #include "teensy/proxy/line_sensor.hpp"
 
 #include <rclcpp/logging.hpp>
-#include <robotbot_msgs/msg/detail/line_sensor_data__struct.hpp>
-#include <robotbot_msgs/srv/detail/toggle_line_sensor__struct.hpp>
+#include <raubase_msgs/msg/detail/line_sensor_data__struct.hpp>
+#include <raubase_msgs/srv/detail/toggle_line_sensor__struct.hpp>
 #include <sstream>
 
 #include "teensy/interface/message.hpp"

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(robotbot_ros)
+project(raubase_ros)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
@@ -47,27 +47,49 @@ endmacro()
 # =================================================================
 ########################## Common Lib #############################
 file(GLOB common_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/common/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/common/**/**.cpp")
-ament_auto_add_library(common ${common_src})
-target_include_directories(common PRIVATE include)
-link_raspberry_libs(common)
+if (common_src)
+  ament_auto_add_library(common ${common_src})
+  target_include_directories(common PRIVATE include)
+  link_raspberry_libs(common)
+endif()
 
 ############################ Camera ###############################
 file(GLOB cam_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/camera/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/camera/**/**.cpp")
-ament_auto_add_executable(camera ${cam_src})
-target_include_directories(camera PRIVATE include)
-link_raspberry_libs(camera)
+if (cam_src)
+  ament_auto_add_executable(camera ${cam_src})
+  target_include_directories(camera PRIVATE include)
+  link_raspberry_libs(camera)
+endif()
+
+########################## Controller #############################
+file(GLOB controller_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/controller/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/controller/**/**.cpp")
+if (controller_src)
+  ament_auto_add_executable(controller ${controller_src})
+  target_include_directories(controller PRIVATE include)
+  link_raspberry_libs(controller)
+endif()
 
 ############################ Teensy ###############################
 file(GLOB teensy_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/teensy/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/teensy/**/**.cpp")
-ament_auto_add_executable(teensy ${teensy_src})
-target_link_libraries(teensy common)
-target_include_directories(teensy PRIVATE include)
-link_raspberry_libs(teensy)
+if (teensy_src)
+  ament_auto_add_executable(teensy ${teensy_src})
+  target_link_libraries(teensy common)
+  target_include_directories(teensy PRIVATE include)
+  link_raspberry_libs(teensy)
+endif()
 
 ############################ Test ###############################
 file(GLOB test_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/test/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/test/**/**.cpp")
-ament_auto_add_executable(testing ${test_src})
-target_include_directories(testing PRIVATE include)
-link_raspberry_libs(testing)
+if (test_src)
+  ament_auto_add_executable(testing ${test_src})
+  target_include_directories(testing PRIVATE include)
+  link_raspberry_libs(testing)
+endif()
+
+############################ Python ###############################
+install(PROGRAMS
+	scripts/image_processor.py
+	DESTINATION lib/${PROJECT_NAME}
+	)
 
 ament_auto_package()

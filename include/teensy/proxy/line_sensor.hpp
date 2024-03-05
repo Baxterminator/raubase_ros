@@ -27,16 +27,16 @@ THE SOFTWARE.
 */
 
 #include <rclcpp/service.hpp>
-#include <robotbot_msgs/srv/detail/toggle_line_sensor__struct.hpp>
+#include <raubase_msgs/srv/detail/toggle_line_sensor__struct.hpp>
 
-#include "robotbot_msgs/msg/line_sensor_data.hpp"
-#include "robotbot_msgs/srv/set_line_sensor.hpp"
-#include "robotbot_msgs/srv/toggle_line_sensor.hpp"
+#include "raubase_msgs/msg/line_sensor_data.hpp"
+#include "raubase_msgs/srv/set_line_sensor.hpp"
+#include "raubase_msgs/srv/toggle_line_sensor.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using robotbot_msgs::msg::LineSensorData;
-using robotbot_msgs::srv::SetLineSensor;
-using robotbot_msgs::srv::ToggleLineSensor;
+using raubase_msgs::msg::LineSensorData;
+using raubase_msgs::srv::SetLineSensor;
+using raubase_msgs::srv::ToggleLineSensor;
 
 namespace raubase::teensy::proxy {
 

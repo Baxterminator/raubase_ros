@@ -28,12 +28,12 @@ THE SOFTWARE.
 
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
-#include <robotbot_msgs/msg/detail/encoder_state__struct.hpp>
+#include <raubase_msgs/msg/detail/encoder_state__struct.hpp>
 
-#include "robotbot_msgs/msg/encoder_state.hpp"
+#include "raubase_msgs/msg/encoder_state.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using robotbot_msgs::msg::EncoderState;
+using raubase_msgs::msg::EncoderState;
 
 namespace raubase::teensy::proxy {
 

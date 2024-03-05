@@ -28,12 +28,12 @@ THE SOFTWARE.
 
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
-#include <robotbot_msgs/msg/detail/heart_beat_state__struct.hpp>
+#include <raubase_msgs/msg/detail/heart_beat_state__struct.hpp>
 
-#include "robotbot_msgs/msg/heart_beat_state.hpp"
+#include "raubase_msgs/msg/heart_beat_state.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using robotbot_msgs::msg::HeartBeatState;
+using raubase_msgs::msg::HeartBeatState;
 
 namespace raubase::teensy::proxy {
 

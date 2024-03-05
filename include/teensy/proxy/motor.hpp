@@ -26,10 +26,10 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
-#include "robotbot_msgs/msg/motor_voltage.hpp"
+#include "raubase_msgs/msg/motor_voltage.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using robotbot_msgs::msg::MotorVoltage;
+using raubase_msgs::msg::MotorVoltage;
 
 namespace raubase::teensy::proxy {
 /**

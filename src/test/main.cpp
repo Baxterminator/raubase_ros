@@ -9,16 +9,16 @@
 #include <rclcpp/node_options.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/utilities.hpp>
-#include <robotbot_msgs/srv/detail/ask_camera_image__struct.hpp>
+#include <raubase_msgs/srv/detail/ask_camera_image__struct.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
 using namespace rclcpp;
-using robotbot_msgs::srv::AskCameraImage;
+using raubase_msgs::srv::AskCameraImage;
 using namespace std::chrono_literals;
 
 void test_camera(rclcpp::Node::SharedPtr &node,
                  rclcpp::executors::SingleThreadedExecutor::SharedPtr &exec) {
-  auto client = node->create_client<robotbot_msgs::srv::AskCameraImage>("/camera/get_image");
+  auto client = node->create_client<raubase_msgs::srv::AskCameraImage>("/camera/get_image");
   auto publisher = node->create_publisher<sensor_msgs::msg::Image>("/testing/img", 10);
 
   auto req = std::make_shared<AskCameraImage::Request>();
