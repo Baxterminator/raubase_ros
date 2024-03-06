@@ -29,6 +29,7 @@ Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node("camera", opts) {
   // ------------------------------ Publisher ---------------------------------
   msg.encoding = IMG_ENCODING;
   _img_pub = create_publisher<Image>("camera", QOS);
+  _compr_pub = create_publisher<CompressedImage>("compressed", QOS);
 
   // ------------------------------- Services ---------------------------------
   srv_mode_set = create_service<SetCameraMode>(
@@ -82,10 +83,9 @@ void Camera::try_connect() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-Image::SharedPtr Camera::grabLastImage() {
+void Camera::grabLastImage() {
   _cam.read(msg.image);
   msg.header.stamp = get_clock()->now();
-  return msg.toImageMsg();
 }
 
 void Camera::run() {
@@ -101,9 +101,10 @@ void Camera::run() {
   if (on_demand) return;
 
   // Else extract next image
-  auto img = grabLastImage();
+  grabLastImage();
   if (msg.image.empty()) return;
-  _img_pub->publish(*img.get());
+  _img_pub->publish(*msg.toImageMsg());
+  _compr_pub->publish(*msg.toCompressedImageMsg());
 }
 
 }  // namespace raubase::cam

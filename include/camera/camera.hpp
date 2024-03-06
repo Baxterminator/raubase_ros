@@ -31,18 +31,20 @@ THE SOFTWARE.
 #include <chrono>
 #include <opencv2/videoio.hpp>
 #include <raubase_msgs/srv/ask_camera_image.hpp>
-#include <raubase_msgs/srv/detail/ask_camera_image__struct.hpp>
 #include <raubase_msgs/srv/set_camera_mode.hpp>
 #include <rclcpp/logging.hpp>
+#include <rclcpp/publisher.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/service.hpp>
 #include <sensor_msgs/image_encodings.hpp>
+#include <sensor_msgs/msg/compressed_image.hpp>
 #include <sensor_msgs/msg/image.hpp>
 
 namespace raubase::cam {
 
 using raubase_msgs::srv::AskCameraImage;
 using raubase_msgs::srv::SetCameraMode;
+using sensor_msgs::msg::CompressedImage;
 using sensor_msgs::msg::Image;
 using std::chrono::milliseconds;
 using namespace sensor_msgs::image_encodings;
@@ -87,7 +89,7 @@ class Camera : public rclcpp::Node {
   /**
    * @brief Grab the last image and put it inside the image message
    */
-  Image::SharedPtr grabLastImage();
+  void grabLastImage();
 
   void set_on_demand(SetCameraMode::Request::ConstSharedPtr req,
                      [[maybe_unused]] SetCameraMode::Response::SharedPtr res) {
@@ -95,11 +97,11 @@ class Camera : public rclcpp::Node {
   }
 
   void get_image([[maybe_unused]] AskCameraImage::Request::ConstSharedPtr req,
-                 AskCameraImage::Response::SharedPtr res) {
+                 [[maybe_unused]] AskCameraImage::Response::SharedPtr res) {
     RCLCPP_INFO(get_logger(), "Asking for image ...");
-    auto img = grabLastImage();
-    res->image = *img;
-    _img_pub->publish(*img);
+    grabLastImage();
+    _img_pub->publish(*msg.toImageMsg());
+    _compr_pub->publish(*msg.toCompressedImageMsg());
     RCLCPP_INFO(get_logger(), "Sending it back ...");
   }
 
@@ -129,6 +131,7 @@ class Camera : public rclcpp::Node {
   cv_bridge::CvImage msg;
   rclcpp::TimerBase::SharedPtr runner;
   rclcpp::Publisher<Image>::SharedPtr _img_pub;
+  rclcpp::Publisher<CompressedImage>::SharedPtr _compr_pub;
 
   // ----------------------------- Node service -----------------------------
   static constexpr const char* NODE_NAME{"camera"};

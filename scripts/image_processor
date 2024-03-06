@@ -7,7 +7,7 @@ import cv2 as cv
 import cv2.aruco as ArUco
 import numpy as np
 from cv_bridge.core import CvBridge
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 
 
 def toBGR(hex: str) -> np.ndarray:
@@ -23,21 +23,32 @@ class ImageProcessor(Node):
     DEBUG_HSV = "/camera/ball_mask"
     DATA_OUTPUT = "/"
 
+    USE_COMPRESSED = True
+
     def __init__(self) -> None:
         super().__init__("ImageProcessor")  # type: ignore
-        # self.timer = self.create_timer(0.5, self.request_image)
+        self.timer = self.create_timer(0.5, self.request_image)
         self.rec = True
 
         self.client = self.create_client(
             AskCameraImage,
             ImageProcessor.CAMERA_SERVICE,
         )
-        self.img_sub = self.create_subscription(
-            Image,
-            "/camera",
-            self.image_process,
-            1,
-        )
+        if ImageProcessor.USE_COMPRESSED:
+            self.cimg_sub = self.create_subscription(
+                CompressedImage,
+                "/compressed",
+                self.compressed_image_process,
+                1,
+            )
+        else:
+            self.img_sub = self.create_subscription(
+                Image,
+                "/camera",
+                self.image_process,
+                1,
+            )
+
         self.img_req = AskCameraImage.Request()
         self.bridge = CvBridge()
 
@@ -76,15 +87,22 @@ class ImageProcessor(Node):
         self.rec = False
         self.client.call_async(self.img_req)
 
+    def compressed_image_process(self, img: CompressedImage):
+        self.get_logger().info("Received !")
+        frame = self.bridge.compressed_imgmsg_to_cv2(img, desired_encoding="bgr8")
+        self.process(frame)
+
     def image_process(self, img: Image):
         self.get_logger().info("Received !")
         # Process image
-        frame: cv.typing.MatLike = self.bridge.imgmsg_to_cv2(
+        frame = self.bridge.imgmsg_to_cv2(
             img,
             desired_encoding="bgr8",
         )
-        self.rec = True
+        self.process(frame)
 
+    def process(self, frame: cv.typing.MatLike) -> None:
+        self.rec = True
         bx, by, br = self.detect_golf_ball(frame)
         cnrs, ids, rjcts = self.detect_aruco(frame)
 
