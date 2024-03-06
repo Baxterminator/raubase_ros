@@ -19,12 +19,14 @@ class ImageProcessor(Node):
     KERNEL = np.ones((1, 1), np.uint8)
     BALL_RADIUS = 10
     CAMERA_SERVICE = "/camera/get_image"
-    IMG_OUTPUT = "/camera/debug_img"
+    DEBUG_IMG = "/camera/debug_img"
+    DEBUG_HSV = "/camera/ball_mask"
     DATA_OUTPUT = "/"
 
     def __init__(self) -> None:
         super().__init__("ImageProcessor")  # type: ignore
-        self.timer = self.create_timer(0.01, self.request_image)
+        # self.timer = self.create_timer(0.5, self.request_image)
+        self.rec = True
 
         self.client = self.create_client(
             AskCameraImage,
@@ -34,17 +36,16 @@ class ImageProcessor(Node):
             Image,
             "/camera",
             self.image_process,
-            10,
+            1,
         )
         self.img_req = AskCameraImage.Request()
         self.bridge = CvBridge()
 
-        self._send_draw = (
-            self.declare_parameter("img_result", True).get_parameter_value().bool_value
+        self._debug = (
+            self.declare_parameter("debug", True).get_parameter_value().bool_value
         )
-        self._result_img_pub = self.create_publisher(
-            Image, ImageProcessor.IMG_OUTPUT, 10
-        )
+        self._rslt_img_pub = self.create_publisher(Image, ImageProcessor.DEBUG_IMG, 10)
+        self._msk_img_pub = self.create_publisher(Image, ImageProcessor.DEBUG_HSV, 10)
 
         # OpenCV parameters
         self._lower_ball = toBGR(
@@ -63,25 +64,32 @@ class ImageProcessor(Node):
         )
 
     def request_image(self):
+        if not self.rec:
+            return
+
         # Get image
         if not self.client.wait_for_service(1.0):
             self.get_logger().warn("Waiting for for camera service ...")
             return
 
         self.get_logger().info("Requesting image", throttle_duration_sec=1)
+        self.rec = False
         self.client.call_async(self.img_req)
 
     def image_process(self, img: Image):
+        self.get_logger().info("Received !")
         # Process image
         frame: cv.typing.MatLike = self.bridge.imgmsg_to_cv2(
             img,
-            desired_encoding="rgb8",
+            desired_encoding="bgr8",
         )
+        self.rec = True
 
         bx, by, br = self.detect_golf_ball(frame)
         cnrs, ids, rjcts = self.detect_aruco(frame)
 
-        if self._send_draw:
+        if self._debug:
+            self.get_logger().info("Sending debug !")
             # Draw golf ball
             if br >= 0:
                 cv.circle(frame, (bx, by), br, (0, 255, 255))
@@ -91,8 +99,8 @@ class ImageProcessor(Node):
                 ArUco.drawDetectedMarkers(frame, cnrs, ids)
             ArUco.drawDetectedMarkers(frame, rjcts, None, (255, 255, 20))
 
-            self._result_img_pub.publish(
-                self.bridge.cv2_to_imgmsg(frame, encoding="rgb8")
+            self._rslt_img_pub.publish(
+                self.bridge.cv2_to_imgmsg(frame, encoding="bgr8")
             )
 
     def detect_golf_ball(self, frame: cv.typing.MatLike) -> Tuple[int, int, int]:
@@ -108,6 +116,11 @@ class ImageProcessor(Node):
             ImageProcessor.KERNEL,
             iterations=2,
         )
+
+        # Send debug HSV mask
+        if self._debug:
+            self._msk_img_pub.publish(self.bridge.cv2_to_imgmsg(mask, encoding="8UC1"))
+
         contours, _ = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
         if contours:
             c = max(contours, key=cv.contourArea)

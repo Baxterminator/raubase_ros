@@ -18,7 +18,6 @@
 
 #include "raubase_msgs/srv/test_service.hpp"
 
-
 using namespace rclcpp;
 using raubase_msgs::srv::AskCameraImage;
 using namespace std::chrono_literals;
@@ -47,10 +46,9 @@ void test_camera(rclcpp::Node::SharedPtr &node,
       auto r = result.get();
       publisher->publish(r->image);
 
-      RCLCPP_INFO(node->get_logger(), "Took %.2f ms. Got %ux%u image with encoding %s (%d)",
+      RCLCPP_INFO(node->get_logger(), "Took %.2f ms. Got %ux%u image with encoding %s (%zu)",
                   (end - start).count() * 1E-6, r->image.width, r->image.height,
-                  r->image.encoding.c_str(),
-                  r->image.data.size() == (r->image.width * r->image.height * 3));
+                  r->image.encoding.c_str(), r->image.data.size());
     } else {
       RCLCPP_ERROR(node->get_logger(), "Failed to call service ...");
     }
