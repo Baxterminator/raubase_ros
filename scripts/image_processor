@@ -17,16 +17,24 @@ def toBGR(hex: str) -> np.ndarray:
 class ImageProcessor(Node):
 
     KERNEL = np.ones((1, 1), np.uint8)
+    BALL_RADIUS = 10
     CAMERA_SERVICE = "/camera/get_image"
-    IMG_OUTPUT = "/camera/analysis"
+    IMG_OUTPUT = "/camera/debug_img"
+    DATA_OUTPUT = "/"
 
     def __init__(self) -> None:
         super().__init__("ImageProcessor")  # type: ignore
-        self.timer = self.create_timer(0.5, self.image_process)
+        self.timer = self.create_timer(0.01, self.request_image)
 
         self.client = self.create_client(
             AskCameraImage,
             ImageProcessor.CAMERA_SERVICE,
+        )
+        self.img_sub = self.create_subscription(
+            Image,
+            "/camera",
+            self.image_process,
+            10,
         )
         self.img_req = AskCameraImage.Request()
         self.bridge = CvBridge()
@@ -54,39 +62,38 @@ class ImageProcessor(Node):
             ArUco.DetectorParameters(),
         )
 
-    def image_process(self):
+    def request_image(self):
         # Get image
-        while not self.client.wait_for_service(1.0):
+        if not self.client.wait_for_service(1.0):
             self.get_logger().warn("Waiting for for camera service ...")
-
-        self.get_logger().warn("Call Async ...")
-        f = self.client.call_async(self.img_req)
-        i = 0
-        while not f.done() and i < 2:
-            self.get_logger().info("Waiting for response ...")
-            rclpy.spin_until_future_complete(self, f, timeout_sec=1)
-            self.get_logger().info(f"Result: {f.result()}")
-            i += 1
-        if i >= 2:
-            self.get_logger().error("Tiemout while waiting for response")
             return
-        self.get_logger().info("Receive response")
 
+        self.get_logger().info("Requesting image", throttle_duration_sec=1)
+        self.client.call_async(self.img_req)
+
+    def image_process(self, img: Image):
         # Process image
-        frame: cv.typing.MatLike = self.bridge.imgmsg_to_cv2(f.result().image)
+        frame: cv.typing.MatLike = self.bridge.imgmsg_to_cv2(
+            img,
+            desired_encoding="rgb8",
+        )
+
         bx, by, br = self.detect_golf_ball(frame)
         cnrs, ids, rjcts = self.detect_aruco(frame)
 
         if self._send_draw:
             # Draw golf ball
-            cv.circle(frame, (bx, by), br, (0, 255, 255))
+            if br >= 0:
+                cv.circle(frame, (bx, by), br, (0, 255, 255))
 
             # ArUco
             if ids is not None:
                 ArUco.drawDetectedMarkers(frame, cnrs, ids)
             ArUco.drawDetectedMarkers(frame, rjcts, None, (255, 255, 20))
 
-            self._result_img_pub.publish(self.bridge.cv2_to_imgmsg(frame))
+            self._result_img_pub.publish(
+                self.bridge.cv2_to_imgmsg(frame, encoding="rgb8")
+            )
 
     def detect_golf_ball(self, frame: cv.typing.MatLike) -> Tuple[int, int, int]:
         """
@@ -105,7 +112,7 @@ class ImageProcessor(Node):
         if contours:
             c = max(contours, key=cv.contourArea)
             (x, y), radius = cv.minEnclosingCircle(c)
-            if radius > 10:  # RADIUS OF THE BALL
+            if radius > ImageProcessor.BALL_RADIUS:  # RADIUS OF THE BALL
                 cv.circle(frame, (int(x), int(y)), int(radius), (0, 255, 0), 2)
                 return (int(x), int(y), int(radius))
         return (-1, -1, -1)
@@ -128,7 +135,6 @@ def main(args=None):
     proc = ImageProcessor()
 
     while rclpy.ok():
-        print("Spin once")
         rclpy.spin_once(proc)
 
     proc.destroy_node()
