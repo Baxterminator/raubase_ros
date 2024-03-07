@@ -69,6 +69,14 @@ if (controller_src)
   link_raspberry_libs(controller)
 endif()
 
+########################## Localization ###########################
+file(GLOB localization_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/localization/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/localization/**/**.cpp")
+if (localization_src)
+  ament_auto_add_executable(localization ${localization_src})
+  target_include_directories(localization PRIVATE include)
+  link_raspberry_libs(localization)
+endif()
+
 ############################ Teensy ###############################
 file(GLOB teensy_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/teensy/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/teensy/**/**.cpp")
 if (teensy_src)

@@ -66,10 +66,10 @@ class Controller : public Node {
 
   // ----------------------------- Default values ---------------------------------
   // General parameters
-  static constexpr int DEFAULT_FREQ = 100;           //< Frequency of the controller loop
-  static constexpr float DEFAULT_MAX_V = 10.0;       //< Max voltage for commanding the motors
-  static constexpr float DEFAULT_MAX_TR = 3.0;       //< Max turn rate for the robot (rad/s)
-  static constexpr float DEFAULT_WHEEL_BASE = 0.22;  //< Distance between the wheels
+  static constexpr int DEFAULT_FREQ = 100;            //< Frequency of the controller loop
+  static constexpr float DEFAULT_MAX_V = 10.0;        //< Max voltage for commanding the motors
+  static constexpr float DEFAULT_MAX_TR = 3.0;        //< Max turn rate for the robot (rad/s)
+  static constexpr float DEFAULT_WHEEL_BASE = 0.243;  //< Distance between the wheels
 
   // Velocity PID
   static constexpr float DEFAULT_PID_V_KP = 7.0;   //< Velocity PID: prop. gain (V per (m/s))
