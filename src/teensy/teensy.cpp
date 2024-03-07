@@ -158,6 +158,9 @@ int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
   auto teensy = std::make_shared<raubase::teensy::Teensy>(rclcpp::NodeOptions{});
   teensy->setupProxiesROS();
-  while (rclcpp::ok()) rclcpp::spin_some(teensy);
+  while (rclcpp::ok()) {
+    rclcpp::spin_some(teensy);
+    usleep(10);
+  }
   rclcpp::shutdown();
 }
