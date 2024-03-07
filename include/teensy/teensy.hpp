@@ -41,6 +41,8 @@ THE SOFTWARE.
 namespace raubase::teensy {
 
 using namespace std::chrono_literals;
+using std::chrono::microseconds;
+using std::chrono::milliseconds;
 
 /**
  * @brief ROS Node providing USB connection to the Teensy board.

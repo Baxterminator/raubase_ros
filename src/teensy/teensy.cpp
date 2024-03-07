@@ -29,8 +29,8 @@ Teensy::Teensy(rclcpp::NodeOptions opts) : rclcpp::Node(Teensy::NODE_NAME, opts)
   _connect_timeout = declare_parameter("con_timeout_s", 20.0);
   _activity_timeout = declare_parameter("act_timeout_s", 10.0);
   _max_resend_cnt = declare_parameter("max_resend_num", 50);
-  _timer_period = std::chrono::microseconds(declare_parameter("loop_rate_us", 0));
-  _timer_wait = std::chrono::microseconds(declare_parameter("loop_wait_us", 1000));
+  _timer_period = microseconds(declare_parameter("loop_rate_us", 50));
+  _timer_wait = microseconds(declare_parameter("loop_wait_us", 1000));
   usb_co.name = declare_parameter("usb_device", "/dev/ttyACM0");
 
   _regbotNumber = declare_parameter("regbot_number", -1);
