@@ -78,8 +78,8 @@ void Odometry::computeNewWorldPosition(double dt) {
   // Compute the position displacement with half of the angular displacement to
   // get an average between the two positions.
   odom_msg.heading += odom_msg.turn_rate;
-  odom_msg.x += std::cos(odom_msg.heading) * odom_msg.turn_rate;
-  odom_msg.y += std::sin(odom_msg.heading) * odom_msg.turn_rate;
+  odom_msg.x += std::cos(odom_msg.heading) * odom_msg.v_lin;
+  odom_msg.y += std::sin(odom_msg.heading) * odom_msg.v_lin;
 
   // Complete the angular displacement with the other half
   odom_msg.heading = math::natural_angle(odom_msg.heading + odom_msg.turn_rate);
