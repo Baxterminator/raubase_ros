@@ -1,8 +1,8 @@
 #include "teensy/proxy/line_sensor.hpp"
 
-#include <rclcpp/logging.hpp>
 #include <raubase_msgs/msg/detail/line_sensor_data__struct.hpp>
 #include <raubase_msgs/srv/detail/toggle_line_sensor__struct.hpp>
+#include <rclcpp/logging.hpp>
 #include <sstream>
 
 #include "teensy/interface/message.hpp"
@@ -13,6 +13,7 @@ void LineSensorProxy::setupParams(rclcpp::Node::SharedPtr node) {
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
 
   // Declaring parameters for the encoder
+  _on = node->declare_parameter("liv_on", true);
   _refresh_rate = node->declare_parameter("liv_ms", 25);
 
   // Initializing working components
@@ -32,6 +33,7 @@ void LineSensorProxy::setupParams(rclcpp::Node::SharedPtr node) {
 }
 
 void LineSensorProxy::setupSubscriptions() {
+  if (!_on) return;
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
   subscribeTeensyComponent(TEENSY_COMP, _refresh_rate);
 

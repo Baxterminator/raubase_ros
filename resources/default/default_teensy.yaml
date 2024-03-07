@@ -1,0 +1,69 @@
+# =============================================================================
+#
+#                      Teensy communication configurations
+# 
+#  This file contains the configurations needed for communication with the
+#  Teensy board. You can here enable or disable messages, or configure their
+#  frequence.
+# =============================================================================
+
+# Teensy parameters
+teensy:
+  robobot:
+    name: robobot                  # Robot name
+    hardware: -1                   # Hardware number
+    software: -1                   # Software number
+
+  # Related to USB connection
+  usb:
+    ack_timeout_s: 0.04            # Timeout for acknolegment (in seconds)
+    con_timeout_s: 20.0            # Timeout for connecting (in seconds)
+    act_timeout_s: 10.0            # Timeout for any activity in RX (in seconds)
+    max_resend_num: 50             # Max number of resend before dropping the message
+    usb_device: "/dev/ttyACM0"     # The path to the USB device
+
+  # Main loop configuration
+  loop:
+    loop_rate_us: 50               # Period between two RTX (receive-transmit) loop (in microseconds)
+    loop_wait_us: 1000             # Delay after sending a message (in microseconds)
+
+# Proxies parameters (components plugged in the Teensy Board)
+proxies:
+  # Heartbeat of the Teensy Board, mandatory for keeping an activity
+  # and watching over the battery and others sensors
+  heartbeat:
+    hbt_ms: 500                    # Period between two heartbeat messages (in milliseconds)
+
+  # Main motors encoder messages configurations
+  encoder:
+    enc_on: True                   # Whether we want to receive encoders messages
+    enc_ms: 25                     # Period between two encoders state messages (in milliseconds)
+    enc_rev: true                  # Whether the encoders are reversed (should be true)
+
+  # Line sensor messages configurations
+  line-sensor:
+    liv_on: False                  # Whether we want to receive line-sensors messages
+    liv_ms: 25                     # Period between two line-sensor messages (in milliseconds)
+    liv_def_on: false              # Should the line sensors be on by default ?
+    liv_def_power: true            # Should the line sensors be in high-power mode by default
+
+  # IR Distance sensors configurations
+  distance:
+    ir_on: False                   # Whether we want to receive IR distance sensors messages
+    ir_ms: 80                      # Period between two IR sensors messages (in milliseconds)
+    us_calib: 0.00126953125        # 5.20m / 4096 (m per LSB)
+    sensor1:
+      ir1_min_cm: 70000.0
+      ir1_max_cm: 20000.0
+    sensor2:
+      ir2_min_cm: 70000.0
+      ir2_max_cm: 20000.0
+
+  # Inertial matrix unit configuration
+  imu:
+    imu_on: False                  # Should the IMU messages be received
+    imu_ms: 25                     # Period between two IMU messages (in milliseconds)
+
+  # Motor command
+  motor:
+    mot_max_v: 10                  # Max voltage for commanding the motors

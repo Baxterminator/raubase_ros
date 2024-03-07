@@ -24,7 +24,7 @@ namespace raubase::teensy {
 Teensy::Teensy(rclcpp::NodeOptions opts) : rclcpp::Node(Teensy::NODE_NAME, opts) {
   RCLCPP_INFO(get_logger(), "Initializing the node parameters!");
   // ---------------------------- Configurations ------------------------------
-  _bot_name = declare_parameter("name", "robotbot");
+  _bot_name = declare_parameter("name", "robobot");
   _confirm_timeout = declare_parameter("ack_timeout_s", 0.04);
   _connect_timeout = declare_parameter("con_timeout_s", 20.0);
   _activity_timeout = declare_parameter("act_timeout_s", 10.0);

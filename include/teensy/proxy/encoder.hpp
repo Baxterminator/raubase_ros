@@ -26,9 +26,9 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
+#include <raubase_msgs/msg/detail/encoder_state__struct.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
-#include <raubase_msgs/msg/detail/encoder_state__struct.hpp>
 
 #include "raubase_msgs/msg/encoder_state.hpp"
 #include "teensy/interface/proxy_interface.hpp"
@@ -81,6 +81,7 @@ class EncoderProxy : public TeensyProxy {
   // =================================================================
   //                           Sensor Parameters
   // =================================================================
+  bool _on;           //< Whether the sensor is on
   int _refresh_rate;  //< The refresh rate for the encoders
   bool _reverse_enc;  //< Whether the encoders (A, B) are reversed or not
 };

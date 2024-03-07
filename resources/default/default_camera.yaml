@@ -1,0 +1,13 @@
+# =============================================================================
+#
+#                              Camera configuration
+# 
+#  This file contains the configurations needed for using the camera.
+# =============================================================================
+
+image:
+  width: 1280
+  height: 720
+work:
+  check_s: 1
+  on_demand: true

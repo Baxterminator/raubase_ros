@@ -6,6 +6,7 @@ void IMUProxy::setupParams(rclcpp::Node::SharedPtr node) {
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
 
   // Declaring parameters for the encoder
+  _on = node->declare_parameter("imu_on", true);
   refresh_rate = node->declare_parameter("imu_ms", 25);
 
   // Initializing working components
@@ -14,6 +15,7 @@ void IMUProxy::setupParams(rclcpp::Node::SharedPtr node) {
 }
 
 void IMUProxy::setupSubscriptions() {
+  if (!_on) return;
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
   subscribeTeensyComponent(GYRO_COMP, refresh_rate);
   subscribeTeensyComponent(ACC_COMP, refresh_rate);

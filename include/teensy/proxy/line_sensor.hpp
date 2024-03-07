@@ -26,8 +26,8 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
-#include <rclcpp/service.hpp>
 #include <raubase_msgs/srv/detail/toggle_line_sensor__struct.hpp>
+#include <rclcpp/service.hpp>
 
 #include "raubase_msgs/msg/line_sensor_data.hpp"
 #include "raubase_msgs/srv/set_line_sensor.hpp"
@@ -102,7 +102,8 @@ class LineSensorProxy : public TeensyProxy {
   // =================================================================
   //                           Sensor Parameters
   // =================================================================
-  int _refresh_rate;                                //< The refresh rate for the encoders
+  bool _on;                                         //< Whether the sensor is on
+  int _refresh_rate;                                //< The refresh rate for the line sensors
   SetLineSensor::Request::SharedPtr _internal_req;  //< Internal request for setting modes
 };
 

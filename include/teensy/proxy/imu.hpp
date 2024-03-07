@@ -80,7 +80,8 @@ class IMUProxy : public TeensyProxy {
   // =================================================================
   //                           Sensor Parameters
   // =================================================================
-  int refresh_rate;  //< The refresh rate for the encoders
+  bool _on;          //< Whether the sensor is on
+  int refresh_rate;  //< The refresh rate for the IMU
 };
 
 }  // namespace raubase::teensy::proxy

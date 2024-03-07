@@ -86,7 +86,7 @@ if (teensy_src)
   link_raspberry_libs(teensy)
 endif()
 
-############################ Test ###############################
+############################ Test #################################
 file(GLOB test_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/test/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/test/**/**.cpp")
 if (test_src)
   ament_auto_add_executable(testing ${test_src})
@@ -95,9 +95,17 @@ if (test_src)
 endif()
 
 ############################ Python ###############################
+ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS
 	scripts/image_processor
 	DESTINATION lib/${PROJECT_NAME}
 	)
+
+######################### Launch Files ############################
+install(DIRECTORY 
+        resources/default
+        resources/launch
+        DESTINATION share/${PROJECT_NAME})
+
 
 ament_auto_package()

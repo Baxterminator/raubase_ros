@@ -17,7 +17,8 @@ char strToIRType(const char* msg) {
 void DistanceProxy::setupParams(rclcpp::Node::SharedPtr node) {
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
 
-  // Declaring parameters for the encoder
+  // Declaring parameters for the distance sensor
+  _on = node->declare_parameter("ir_on", true);
   _refresh_rate = node->declare_parameter("ir_ms", 80);
   _sensor1_msg.calib = {node->declare_parameter("ir1_min_cm", 70000.),
                         node->declare_parameter("ir1_max_cm", 20000.)};
@@ -38,6 +39,7 @@ void DistanceProxy::setupParams(rclcpp::Node::SharedPtr node) {
 }
 
 void DistanceProxy::setupSubscriptions() {
+  if (!_on) return;
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
   // Send calibration data
   auto req = std::make_shared<CalibrateDistanceSensor::Request>();
@@ -52,6 +54,7 @@ void DistanceProxy::setupSubscriptions() {
 void DistanceProxy::calibrateSensors(
     const CalibrateDistanceSensor::Request::SharedPtr req,
     [[maybe_unused]] CalibrateDistanceSensor::Response::SharedPtr res) {
+  if (!_on) return;
   RCLCPP_INFO(logger, "Sending calibration data to Teensy!");
   // Send to Teensy
   char cmd[MSG::MBL];

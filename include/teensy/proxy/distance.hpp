@@ -26,8 +26,8 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
-#include <rclcpp/service.hpp>
 #include <raubase_msgs/srv/detail/calibrate_distance_sensor__struct.hpp>
+#include <rclcpp/service.hpp>
 
 #include "raubase_msgs/msg/distance_data.hpp"
 #include "raubase_msgs/srv/calibrate_distance_sensor.hpp"
@@ -93,7 +93,8 @@ class DistanceProxy : public TeensyProxy {
   // =================================================================
   //                           Sensor Parameters
   // =================================================================
-  int _refresh_rate;   //< The refresh rate for the encoders
+  bool _on;            //< Whether the sensor is on
+  int _refresh_rate;   //< The refresh rate for the distance sensors
   double _urm_factor;  //< Calibration value for URM09
 };
 
