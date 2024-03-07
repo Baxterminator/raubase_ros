@@ -10,7 +10,7 @@ void MotorProxy::setupParams(rclcpp::Node::SharedPtr node) {
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
 
   // Declaring parameters for the encoder
-  _max_voltage = node->declare_parameter("mot_max_v", 0);
+  _max_voltage = node->declare_parameter("mot_max_v", 10);
 
   // Initializing working components
   subscriber = node->create_subscription<MotorVoltage>(

@@ -6,6 +6,8 @@
 namespace raubase::loc {
 
 Odometry::Odometry(NodeOptions opts) : Node(NODE_NAME, opts) {
+  RCLCPP_INFO(get_logger(), "Initializing odometry");
+
   // Declare parameters
   gear = declare_parameter("gear_ratio", DEF_GEAR_RATIO);
   wheel_d = declare_parameter("wheel_diameters_m", DEF_WHEEL_D);
@@ -13,7 +15,10 @@ Odometry::Odometry(NodeOptions opts) : Node(NODE_NAME, opts) {
   base = declare_parameter("base_width_m", DEF_BASE);
   dist_per_tick = (wheel_d * M_PI) / gear / tick_per_rev;
 
+  odom_loop_period = microseconds((long)(1E6 / declare_parameter("odom_freq", DEF_ODOM_FREQ)));
+
   // Declare ROS participants
+  RCLCPP_INFO(get_logger(), "Initializing pub/sub");
   encoder_sub = create_subscription<msg::EncoderState>(
       SUB_ENC_TOPIC, 10, [this](const msg::EncoderState::SharedPtr msg) {
         last_enc = msg;
@@ -26,11 +31,15 @@ Odometry::Odometry(NodeOptions opts) : Node(NODE_NAME, opts) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Odometry::updateOdometry() {
+  RCLCPP_INFO(get_logger(), "Odometry loop");
   // Initialize last enc
-  if (last_enc == nullptr) {
+  if (last_enc_used == nullptr) {
     last_enc_used = last_enc;
     return;
   }
+
+  // Sanity check for last_enc value
+  if (last_enc == nullptr) return;
 
   // Prevent from reusing the same one
   if (last_enc_has_been_used) return;
@@ -39,10 +48,12 @@ void Odometry::updateOdometry() {
   double dt = (last_enc->stamp.sec - last_enc_used->stamp.sec) +
               (last_enc->stamp.nanosec - last_enc_used->stamp.nanosec) * 1E-9;
 
+  RCLCPP_INFO(get_logger(), "Computing new values");
   computeNewWheelVelocities(dt);
   computeNewWorldPosition(dt);
 
   // Publish new odometry
+  RCLCPP_INFO(get_logger(), "Publishing results");
   odom_pub->publish(odom_msg);
   last_enc_used = last_enc;
   last_enc_has_been_used = true;
