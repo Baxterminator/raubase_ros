@@ -63,27 +63,27 @@ void Teensy::setupTeensy() {
   RCLCPP_INFO(get_logger(), "Sending to the queue the Teensy configuration messages");
 
   // Launch initialization phase
-  send(std::make_shared<MSG>(INIT_MSG));
+  send(std::make_shared<MSG>(INIT_MSG, false));
   char s[MSG::MBL];
 
   // Regbot number
   if (_regbotNumber >= 0) {
     snprintf(s, MSG::MBL, "%s %d", REG_NUM_MSG, _regbotNumber);
-    send(MSG::make(s));
+    send(MSG::make(s, false));
   }
 
   // Regbot hardware
   if (_regbotHardware > 0) {
     snprintf(s, MSG::MBL, "%s %d", REG_HW_MSG, _regbotHardware);
-    send(MSG::make(s));
+    send(MSG::make(s, false));
   }
 
   // Robot name
   snprintf(s, MSG::MBL, "%s %s", BOT_NAME_MSG, _bot_name.c_str());
-  send(MSG::make(s));
+  send(MSG::make(s, false));
 
   // Flash
-  send(MSG::make(FLASH_MSG));
+  send(MSG::make(FLASH_MSG, false));
 }
 
 void Teensy::setupProxiesROS() {
@@ -111,8 +111,8 @@ void Teensy::stopProxiesTeensy() {
 
 void Teensy::stopTeensy() {
   RCLCPP_INFO(get_logger(), "Stopping communication with the Teensy Board!");
-  sendDirect(std::make_shared<MSG>("leave"));
-  sendDirect(std::make_shared<MSG>("disp stopped"));
+  sendDirect(std::make_shared<MSG>("leave", false));
+  sendDirect(std::make_shared<MSG>("disp stopped", false));
 }
 
 Teensy::~Teensy() {

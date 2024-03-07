@@ -108,7 +108,7 @@ class TeensyProxy {
   void subscribeTeensyComponent(const char *name, int period) {
     char cmd[MSG::MBL];
     snprintf(cmd, MSG::MBL, "sub %s %d", name, period);
-    sendToTeensy(std::make_shared<MSG>(cmd), false);
+    sendToTeensy(std::make_shared<MSG>(cmd, true), false);
   }
 
  protected:

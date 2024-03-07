@@ -50,7 +50,7 @@ class Odometry : public Node {
   static constexpr int MAX_TICK_CHANGE{1000};               //< Max acceptable tick change
 
   // Default values
-  static constexpr int DEF_ODOM_FREQ{30};        //< Default odometry frequency
+  static constexpr int DEF_ODOM_FREQ{100};       //< Default odometry frequency
   static constexpr double DEF_GEAR_RATIO{19.0};  //< Default gear ratio
   static constexpr double DEF_WHEEL_D{0.146};    //< Default wheel diameter (in meters)
   static constexpr int DEF_TICK_PER_REV{68};     //< Default number of ticks per encoder revolution

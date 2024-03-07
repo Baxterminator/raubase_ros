@@ -25,7 +25,7 @@ void MotorProxy::sendCmd(const MotorVoltage::SharedPtr msg, bool direct) {
   char teensy_msg[MSG::MBL];
   snprintf(teensy_msg, MSG::MBL, MOTOR_CMD, std::min(msg->right, _max_voltage),
            std::min(msg->left, _max_voltage));
-  sendToTeensy(MSG::make(teensy_msg), direct);
+  sendToTeensy(MSG::make(teensy_msg, false), direct);
 }
 
 void MotorProxy::closeTeensy() {

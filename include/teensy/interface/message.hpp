@@ -42,9 +42,12 @@ struct MSG {
    * @brief Make a new message object. Return a shared pointer to the message.
    *
    * @param msg the message to send
+   * @param confirm whether this message need a confirmation
    * @return sptr<MSG> a shared point to the message.
    */
-  static sptr<MSG> make(const char* msg) { return std::make_shared<MSG>(msg); }
+  static sptr<MSG> make(const char* msg, bool confirm = true) {
+    return std::make_shared<MSG>(msg, confirm);
+  }
 
   // =================================================================
   //                          Message Struct
@@ -56,7 +59,7 @@ struct MSG {
   bool sent = false;         //< If the message was sent
   short sent_count = 0;      //< The number of time the message was sent
   UTime time_sent;           //< The time at which the messange was last sent
-  MSG(const char* msg);
+  MSG(const char* msg, bool confirm = true);
 
   /**
    * @brief Compare this message with its confirmation

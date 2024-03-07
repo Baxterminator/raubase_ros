@@ -8,7 +8,7 @@
 
 namespace raubase::teensy {
 
-MSG::MSG(const char *message) {
+MSG::MSG(const char *message, bool confirm) {
   // Verifying Message Length
   len = strnlen(message, MML);
   ok = (len + 5) < MML;
@@ -18,8 +18,11 @@ MSG::MSG(const char *message) {
   msg[0] = '0';
   msg[1] = '0';
   msg[2] = '0';
-  msg[MPL - 1] = REQ_CONFIRM;
-  len += MPL;
+  if (confirm) {
+    msg[MPL - 1] = REQ_CONFIRM;
+    len += MPL;
+  } else
+    len += MPL - 1;
   strncpy(&msg[MPL], message, len);
 
   // EOL + End of string verification
