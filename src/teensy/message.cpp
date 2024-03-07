@@ -18,12 +18,9 @@ MSG::MSG(const char *message, bool confirm) {
   msg[0] = '0';
   msg[1] = '0';
   msg[2] = '0';
-  if (confirm) {
-    msg[MPL - 1] = REQ_CONFIRM;
-    len += MPL;
-  } else
-    len += MPL - 1;
-  strncpy(&msg[MPL], message, len);
+  if (confirm) msg[MPL - 1] = REQ_CONFIRM;
+  len += MPL;
+  strncpy(&msg[(confirm) ? MPL : MPL - 1], message, len);
 
   // EOL + End of string verification
   if (msg[len - 1] != EOL) msg[len++] = EOL;

@@ -55,6 +55,7 @@ struct MSG {
   char msg[MML];             //< Message to send
   char _debug_msg[MML - 1];  //< Message to send (DEBUG, no end of line)
   int len;                   //< Length of the message to send
+  bool need_confirm;         //< Need a confirmation from the Teensy Board
   bool ok = false;           //< If the message was correctly computed
   bool sent = false;         //< If the message was sent
   short sent_count = 0;      //< The number of time the message was sent

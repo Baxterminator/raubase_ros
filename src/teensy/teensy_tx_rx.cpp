@@ -127,6 +127,8 @@ void Teensy::sendTX() {
   // If first message non sent, send it
   if (!obj->sent) {
     sendDirect(obj);
+
+    if (!obj->need_confirm) TX_queue.pop();
   }
 }
 
