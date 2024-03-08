@@ -27,7 +27,9 @@ void Teensy::receiveUSB(char* msg) {
 
   // Else if message to process, send it to the right proxy
   char debug_msg[MSG::MML];
-  std::strncpy(debug_msg, msg, std::strlen(msg) - 1);
+  int n = std::strlen(msg);
+  std::strncpy(debug_msg, msg, n - 1);
+  debug_msg[n - 1] = '\0';
   RCLCPP_INFO(get_logger(), "Receiving msg %s", debug_msg);
   for (auto& [sub_prefix, proxy] : _proxies_mapping) {
     if (std::strncmp(sub_prefix, msg, std::strlen(sub_prefix)) == 0) {
@@ -67,6 +69,7 @@ void Teensy::fetchRX() {
   if (n < 0) {
     if (errno == EAGAIN) {
       n = 0;
+      return;
     } else {
       RCLCPP_ERROR(get_logger(), "Teensy port error");
       usleep(100000);  // Sleep for 100ms
