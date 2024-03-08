@@ -68,7 +68,7 @@ void Teensy::openUSB() {
   usb_co.connecting = true;
   usb_co.connectTime.now();
   RCLCPP_INFO(get_logger(), "Connection opened!");
-  setupTeensy();
+  // setupTeensy();
   setupProxiesTeensy();
 }
 

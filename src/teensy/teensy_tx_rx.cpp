@@ -26,7 +26,9 @@ void Teensy::receiveUSB(char* msg) {
   }
 
   // Else if message to process, send it to the right proxy
-  RCLCPP_INFO(get_logger(), "Receiving msg %s", msg);
+  char debug_msg[MSG::MML];
+  std::strncpy(debug_msg, msg, std::strlen(msg) - 1);
+  RCLCPP_INFO(get_logger(), "Receiving msg %s", debug_msg);
   for (auto& [sub_prefix, proxy] : _proxies_mapping) {
     if (std::strncmp(sub_prefix, msg, std::strlen(sub_prefix)) == 0) {
       _proxies[proxy]->decode(msg);
@@ -62,11 +64,15 @@ void Teensy::fetchRX() {
   int n = read(usb_co.port, &usb_co.RX_buffer[usb_co.rxIdx], 1);
 
   // If error and not asked a EAGAIN
-  if (n < 0 && errno != EAGAIN) {
-    RCLCPP_ERROR(get_logger(), "Teensy port error");
-    usleep(100000);  // Sleep for 100ms
-    closeUSB();
-    return;
+  if (n < 0) {
+    if (errno == EAGAIN) {
+      n = 0;
+    } else {
+      RCLCPP_ERROR(get_logger(), "Teensy port error");
+      usleep(100000);  // Sleep for 100ms
+      closeUSB();
+      return;
+    }
   }
   // Had too much data when only requested 1 byte
   else if (n > 1) {
@@ -81,11 +87,11 @@ void Teensy::fetchRX() {
   // Detect cmd beginning byte
   // rxIdx = 0 until a command is found: (char stream starting with a ';')
   // When a command is found, increment rxIdx to fill the next cell
-  if (usb_co.rxIdx == 0 && usb_co.RX_buffer[0] == MSG::SOL) {
-    usb_co.rxIdx = 1;
-    return;
-  } else if (usb_co.rxIdx > 0)
+  if (usb_co.rxIdx > 0)
     usb_co.rxIdx++;
+  else if (usb_co.RX_buffer[0] == MSG::SOL) {
+    usb_co.rxIdx = 1;
+  }
 
   // Detect cmd end and set the command end (with the '\0' character)
   if (usb_co.RX_buffer[usb_co.rxIdx - 1] != MSG::EOL) return;
