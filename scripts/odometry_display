@@ -1,0 +1,47 @@
+#!/usr/bin/python3
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from rclpy import init, shutdown, ok, spin_once
+from rclpy.node import Node
+from raubase_msgs.msg import Odometry
+
+
+class OdometryDisplay(Node):
+    def __init__(self) -> None:
+        super().__init__("OdometryDisplay")
+        self.x = [0]
+        self.y = [0]
+
+        self.odom_sub = self.create_subscription(
+            Odometry, "/odometry", self.odom_update, 1
+        )
+        self.fig = plt.figure()
+        (self.line,) = plt.plot(self.x, self.y, "-")
+        # self.anim = FuncAnimation(self.fig, self.plot_update, interval=200)
+
+    def odom_update(self, msg: Odometry):
+        self.get_logger().info("Odom update")
+        if self.x[-1] != msg.x:
+            self.x.append(msg.x)
+        if self.y[-1] != msg.y:
+            self.y.append(msg.y)
+        self.plot_update()
+        self.fig.canvas.draw()
+
+    def plot_update(self):
+        self.line.set_data(self.x, self.y)
+        self.fig.gca().relim()
+        self.fig.gca().autoscale_view()
+        return (self.line,)
+
+
+if __name__ == "__main__":
+    init()
+    plt.ion()
+    node = OdometryDisplay()
+
+    while ok():
+        spin_once(node)
+        plt.pause(0.0001)
+
+    shutdown()

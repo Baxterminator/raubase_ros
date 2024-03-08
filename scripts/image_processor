@@ -8,6 +8,7 @@ import cv2.aruco as ArUco
 import numpy as np
 from cv_bridge.core import CvBridge
 from sensor_msgs.msg import Image, CompressedImage
+import requests
 
 
 def toBGR(hex: str) -> np.ndarray:
@@ -16,14 +17,24 @@ def toBGR(hex: str) -> np.ndarray:
 
 class ImageProcessor(Node):
 
+    # Calibration coefficients and other constants
+    camera_matrix = np.array(
+        [[1050.6, 0.0, 712.6], [0.0, 1046.7, 430.6], [0.0, 0.0, 1.0]]
+    )
+    dist_coeffs = np.array([-0.397866, 0.173319, 9.58965e-05, -0.000660305, -0.0385043])
+
     KERNEL = np.ones((1, 1), np.uint8)
-    BALL_RADIUS = 10
+    BALL_RADIUS = 5
     CAMERA_SERVICE = "/camera/get_image"
     DEBUG_IMG = "/camera/debug_img"
     DEBUG_HSV = "/camera/ball_mask"
     DATA_OUTPUT = "/"
 
     USE_COMPRESSED = True
+
+    # API credentials and endpoint
+    API_URL = "https://detect.roboflow.com/testobjectdetection-rruyx/1"
+    API_KEY = "9mWH7ZBZWjRiFIqNYfLd"
 
     def __init__(self) -> None:
         super().__init__("ImageProcessor")  # type: ignore
@@ -95,16 +106,19 @@ class ImageProcessor(Node):
     def image_process(self, img: Image):
         self.get_logger().info("Received !")
         # Process image
-        frame = self.bridge.imgmsg_to_cv2(
-            img,
-            desired_encoding="bgr8",
-        )
+        frame = self.bridge.imgmsg_to_cv2(img, desired_encoding="bgr8")
         self.process(frame)
 
     def process(self, frame: cv.typing.MatLike) -> None:
         self.rec = True
         bx, by, br = self.detect_golf_ball(frame)
         cnrs, ids, rjcts = self.detect_aruco(frame)
+        p = self.get_predictions(frame)
+        self.detect_ball_from_predictions(
+            frame, p, ImageProcessor.camera_matrix, ImageProcessor.dist_coeffs
+        )
+
+        print(p)
 
         if self._debug:
             self.get_logger().info("Sending debug !")
@@ -153,6 +167,53 @@ class ImageProcessor(Node):
         Detect an ARuCo code in the frame"""
         gray = cv.cvtColor(frame, cv.COLOR_BGR2GRAY)
         return self._aruco_detector.detectMarkers(gray)
+
+    def get_predictions(self, frame):
+        _, img_encoded = cv.imencode(".jpg", frame)
+        response = requests.post(
+            ImageProcessor.API_URL,
+            files={"file": img_encoded.tobytes()},
+            headers={"Authorization": f"Bearer {ImageProcessor.API_KEY}"},
+        )
+        predictions = response.json().get("predictions", [])
+        return predictions
+
+    def detect_ball_from_predictions(
+        self, frame, predictions, camera_matrix, dist_coeffs, real_ball_diameter_cm=4
+    ):
+        for pred in predictions:
+            # Assuming 'red' is the class for the ball. Adjust if necessary.
+            if pred["class"] == "red":
+                x = int(pred["bbox"]["x"])
+                y = int(pred["bbox"]["y"])
+                width = int(pred["bbox"]["width"])
+                height = int(pred["bbox"]["height"])
+
+                # Calculate diameter in pixels as the average of width and height
+                diameter_in_image_px = (width + height) / 2
+
+                # Correct for camera distortion
+                center_px = np.array(
+                    [[[x + width / 2, y + height / 2]]], dtype=np.float32
+                )
+                undistorted_points = cv.undistortPoints(
+                    center_px, camera_matrix, dist_coeffs
+                )
+                x_corrected, y_corrected = undistorted_points[0, 0, :]
+
+                # Estimate the Z distance
+                focal_length_px = (camera_matrix[0, 0] + camera_matrix[1, 1]) / 2
+                Zc = (focal_length_px * real_ball_diameter_cm) / diameter_in_image_px
+
+                # Estimate X and Y based on Z
+                Xc = (x_corrected - camera_matrix[0, 2]) * Zc / camera_matrix[0, 0]
+                Yc = (y_corrected - camera_matrix[1, 2]) * Zc / camera_matrix[1, 1]
+
+                print(
+                    f"Ball position in camera coordinates (cm): Xc={Xc}, Yc={Yc}, Zc={Zc}"
+                )
+                return (Xc, Yc, Zc)
+        return None
 
 
 # =============================================================================

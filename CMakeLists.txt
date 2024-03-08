@@ -96,10 +96,14 @@ endif()
 
 ############################ Python ###############################
 ament_python_install_package(${PROJECT_NAME})
-install(PROGRAMS
-	scripts/image_processor
-	DESTINATION lib/${PROJECT_NAME}
-	)
+file(GLOB py_scripts RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/scripts/*")
+if (py_scripts)
+  message("${py_scripts}")
+  install(PROGRAMS
+    ${py_scripts}
+    DESTINATION lib/${PROJECT_NAME}
+    )
+endif()
 
 ######################### Launch Files ############################
 install(DIRECTORY 
