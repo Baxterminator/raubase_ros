@@ -8,6 +8,14 @@ namespace raubase::loc {
 Odometry::Odometry(NodeOptions opts) : Node(NODE_NAME, opts) {
   RCLCPP_INFO(get_logger(), "Initializing odometry");
 
+  odom_msg.turn_rate = 0;
+  odom_msg.v_lin = 0;
+  odom_msg.v_left = 0;
+  odom_msg.v_right = 0;
+  odom_msg.heading = 0;
+  odom_msg.x = 0;
+  odom_msg.y = 0;
+
   // Declare parameters
   gear = declare_parameter("gear_ratio", DEF_GEAR_RATIO);
   wheel_d = declare_parameter("wheel_diameters_m", DEF_WHEEL_D);
@@ -61,8 +69,8 @@ void Odometry::updateOdometry() {
 
 void Odometry::computeNewWheelVelocities(double dt) {
   // Compute change in ticks
-  double denc_right = math::saturate(last_enc->right - last_enc_used->right, MAX_TICK_CHANGE);
-  double denc_left = math::saturate(last_enc->left - last_enc_used->left, MAX_TICK_CHANGE);
+  double denc_right = math::cst_outside(last_enc->right - last_enc_used->right, MAX_TICK_CHANGE);
+  double denc_left = math::cst_outside(last_enc->left - last_enc_used->left, MAX_TICK_CHANGE);
 
   // Compute wheel velocity
   odom_msg.v_right = denc_right * dist_per_tick / dt;
@@ -71,8 +79,9 @@ void Odometry::computeNewWheelVelocities(double dt) {
 
 void Odometry::computeNewWorldPosition(double dt) {
   // Compute 2D linear & half of the angular displacement
-  odom_msg.v_lin = (odom_msg.v_left + odom_msg.v_right) / 2.0;
-  odom_msg.turn_rate = (odom_msg.v_left - odom_msg.v_right) / base / 2.0;
+  // Turn Rate is positive for CCV (right wheel going faster)
+  odom_msg.v_lin = (odom_msg.v_left + odom_msg.v_right) / 2.0;             // In meters
+  odom_msg.turn_rate = (odom_msg.v_right - odom_msg.v_left) / base / 2.0;  // In radians
 
   // Integrate for getting positions and heading.
   // Compute the position displacement with half of the angular displacement to
@@ -84,7 +93,7 @@ void Odometry::computeNewWorldPosition(double dt) {
   // Complete the angular displacement with the other half
   odom_msg.heading = math::natural_angle(odom_msg.heading + odom_msg.turn_rate);
 
-  // Compute linear & angular velocities
+  // Compute linear & angular velocities (divide by the time)
   odom_msg.v_lin /= dt;
   odom_msg.turn_rate /= dt;
 }
