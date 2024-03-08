@@ -17,6 +17,9 @@ class OdometryDisplay(Node):
         )
         self.fig = plt.figure()
         (self.line,) = plt.plot(self.x, self.y, "-")
+        plt.xlabel("World x (in m)")
+        plt.ylabel("World y (in m)")
+        plt.title("Robot position in the world (odometry)")
         # self.anim = FuncAnimation(self.fig, self.plot_update, interval=200)
 
     def odom_update(self, msg: Odometry):
