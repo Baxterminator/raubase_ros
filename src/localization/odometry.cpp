@@ -56,7 +56,7 @@ void Odometry::updateOdometry() {
   double dt = (last_enc->stamp.sec - last_enc_used->stamp.sec) +
               (last_enc->stamp.nanosec - last_enc_used->stamp.nanosec) * 1E-9;
 
-  RCLCPP_INFO(get_logger(), "Computing new values");
+  RCLCPP_INFO(get_logger(), "Computing new values {%f}", dt);
   computeNewWheelVelocities(dt);
   computeNewWorldPosition(dt);
 
