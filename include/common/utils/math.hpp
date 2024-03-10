@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include <builtin_interfaces/msg/time.hpp>
 #include <cmath>
 
-using builtin_interfaces::msg::Time;
+using mTime = builtin_interfaces::msg::Time;
 
 namespace raubase::math {
 
@@ -85,7 +85,7 @@ inline T natural_angle(T value) {
  * @param to  the time stamp of the newer message
  * @return the difference of time in seconds
  */
-inline double timeBtwStamps(const Time &from, const Time &to) {
+inline double timeBtwStamps(const mTime &from, const mTime &to) {
   return (to.sec - from.sec + (to.nanosec - from.nanosec) * 1E-9);
 }
 

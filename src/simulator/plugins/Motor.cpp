@@ -13,7 +13,11 @@ void Motor::setup(rclcpp::Node::SharedPtr node) {
   mot_righ_km = node->declare_parameter("mot_right_km", DEFAULT_KM);
   mot_left_km = node->declare_parameter("mot_left_km", DEFAULT_KM);
   sub_motor = node->create_subscription<MotorVoltage>(
-      MOTOR_TOPIC, MOTOR_QOS, [this](MotorVoltage::SharedPtr msg) { _last_motor = msg; });
+      MOTOR_TOPIC, MOTOR_QOS, [node, this](MotorVoltage::SharedPtr msg) {
+        _last_motor = msg;
+        RCLCPP_INFO(node->get_logger(), "New motor command (R %f, L %f)!", _last_motor->right,
+                    _last_motor->left);
+      });
 
   // Encoders
   _enc_msg.left = 0;
@@ -25,8 +29,11 @@ void Motor::setup(rclcpp::Node::SharedPtr node) {
 }
 
 void Motor::update(double dt) {
-  _enc_msg.right += _last_motor->right * mot_righ_km * dt;
-  _enc_msg.left += _last_motor->left * mot_left_km * dt;
+  right_wheel += _last_motor->right * mot_righ_km * dt;
+  left_wheel += _last_motor->left * mot_left_km * dt;
+
+  _enc_msg.right = robot->RW_pos2enc(right_wheel);
+  _enc_msg.left = robot->LW_pos2enc(left_wheel);
 }
 
 void Motor::cleanup() { _clock.reset(); }

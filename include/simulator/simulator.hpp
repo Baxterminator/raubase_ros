@@ -25,6 +25,14 @@ class Simulator : public Node {
   static constexpr const char* NODE_NAME{"simulator"};
   static constexpr int QOS{10};
 
+  // Default values
+  static constexpr int DEF_ODOM_FREQ{100};       //< Default odometry frequency
+  static constexpr double DEF_GEAR_RATIO{19.0};  //< Default gear ratio
+  static constexpr double DEF_WHEEL_D{0.146};    //< Default wheel diameter (in meters)
+  static constexpr int DEF_TICK_PER_REV{68};     //< Default number of ticks per encoder revolution
+  static constexpr double DEF_BASE{0.243};       //< Default wheel base width (in meters)
+  static constexpr int MAX_TICK_CHANGE{1000};    //< Max acceptable tick change
+
   // ==========================================================================
   //                                 Methods
   // ==========================================================================
@@ -51,7 +59,7 @@ class Simulator : public Node {
    * @brief Compute next iteration of the simulation.
    */
   inline void nextIteration() {
-    static Time last_time = get_clock()->now();
+    static rclcpp::Time last_time = get_clock()->now();
 
     // Compute dt
     auto now = get_clock()->now();

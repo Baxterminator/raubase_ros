@@ -5,8 +5,18 @@
 namespace raubase::simu {
 
 Simulator::Simulator(NodeOptions opts) : Node(NODE_NAME, opts) {
+  // Declare robot
+  auto robot = TwoWheeledRoverKinematics::make(
+      Wheel(declare_parameter("right_wheel_diameter_m", DEF_WHEEL_D),
+            declare_parameter("right_gear_ratio", DEF_GEAR_RATIO),
+            declare_parameter("right_tick_per_rev", DEF_TICK_PER_REV)),
+      Wheel(declare_parameter("left_wheel_diameter_m", DEF_WHEEL_D),
+            declare_parameter("left_gear_ratio", DEF_GEAR_RATIO),
+            declare_parameter("left_tick_per_rev", DEF_TICK_PER_REV)),
+      MAX_TICK_CHANGE, declare_parameter("base_width_m", DEF_BASE));
+
   // Declare plugins
-  plugins.push_back(plugins::Motor::make());
+  plugins.push_back(plugins::Motor::make(robot));
 
   // Simulation
   simu_time = microseconds(declare_parameter("simu_ms", SIMU_TIME));

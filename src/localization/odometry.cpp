@@ -24,13 +24,9 @@ Odometry::Odometry(NodeOptions opts) : Node(NODE_NAME, opts) {
       Wheel(declare_parameter("left_wheel_diameter_m", DEF_WHEEL_D),
             declare_parameter("left_gear_ratio", DEF_GEAR_RATIO),
             declare_parameter("left_tick_per_rev", DEF_TICK_PER_REV)),
-      declare_parameter("tick_per_rev", DEF_TICK_PER_REV),
-      declare_parameter("base_width_m", DEF_BASE));
+      MAX_TICK_CHANGE, declare_parameter("base_width_m", DEF_BASE));
 
   // Declare parameters
-  gear = declare_parameter("gear_ratio", DEF_GEAR_RATIO);
-  wheel_d = declare_parameter("wheel_diameters_m", DEF_WHEEL_D);
-  tick_per_rev = declare_parameter("tick_per_rev", DEF_TICK_PER_REV);
   odom_loop_period = microseconds((long)(1E6 / declare_parameter("odom_freq", DEF_ODOM_FREQ)));
 
   // Declare ROS participants

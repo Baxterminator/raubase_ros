@@ -97,6 +97,24 @@ struct TwoWheeledRoverKinematics {
    */
   inline double enc2LWdist(const int delta) const { return enc2Wdist(delta, left.dist_per_tick); }
 
+  /**
+   * @brief Return the encoder value associated to the given right wheel position.
+   *
+   * @param wheel_pos the position in radians
+   */
+  inline int RW_pos2enc(const double wheel_pos) {
+    return wheel_pos * right.gear_ratio * math::M_2PI / right.tick_per_rev;
+  }
+
+  /**
+   * @brief Return the encoder value associated to the given left wheel position.
+   *
+   * @param wheel_pos the position in radians
+   */
+  inline int LW_pos2enc(const double wheel_pos) {
+    return wheel_pos * left.gear_ratio * math::M_2PI / left.tick_per_rev;
+  }
+
   // ==========================================================================
   //                        Linear & Angular  Displacements
   // ==========================================================================
