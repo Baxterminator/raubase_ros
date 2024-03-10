@@ -41,12 +41,12 @@ class MotorProxy : public TeensyProxy {
   //                             Constants
   // =================================================================
  public:
-  static constexpr const char* NODE_NAME{"MotorProxy"};  //< ROS Node name
+  static constexpr const char* NODE_NAME{"MotorProxy"};                   //< ROS Node name
+  static constexpr const char* SUBSCRIBING_TOPIC{"/teensy/set_voltage"};  //< Cmd subscribing topic
+  static constexpr int QOS{10};                                           //< QOS for all components
 
  protected:
-  static constexpr const char* SUBSCRIBING_TOPIC{"set_voltage"};  //< Cmd subscribing topic
   static constexpr const char* MOTOR_CMD{"motv %f %f"};  // Cmd to send to control the motors
-  static constexpr int QOS{10};                          //< QOS for all components
 
   // =================================================================
   //                             Proxy Methods

@@ -86,6 +86,15 @@ if (teensy_src)
   link_raspberry_libs(teensy)
 endif()
 
+############################ Simulator ############################
+file(GLOB simu_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/simulator/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/simulator/**/**.cpp")
+if (simu_src)
+  ament_auto_add_executable(simulator ${simu_src})
+  target_link_libraries(simulator common)
+  target_include_directories(simulator PRIVATE include)
+  link_raspberry_libs(simulator)
+endif()
+
 ############################ Test #################################
 file(GLOB test_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/test/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/test/**/**.cpp")
 if (test_src)
