@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include <mutex>
 #include <string>
 
-#include "common/utime.hpp"
+#include "common/utils/utime.hpp"
 #include "teensy/interface/message.hpp"
 
 namespace raubase::teensy {

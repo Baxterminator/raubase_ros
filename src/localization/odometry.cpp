@@ -1,6 +1,7 @@
 #include <cmath>
 
-#include "common/math.hpp"
+#include "common/robot/kinematics.hpp"
+#include "common/utils/math.hpp"
 #include "localization/localization.hpp"
 
 namespace raubase::loc {
@@ -16,13 +17,20 @@ Odometry::Odometry(NodeOptions opts) : Node(NODE_NAME, opts) {
   odom_msg.x = 0;
   odom_msg.y = 0;
 
+  robot = TwoWheeledRoverKinematics::make(
+      Wheel(declare_parameter("right_wheel_diameter_m", DEF_WHEEL_D),
+            declare_parameter("right_gear_ratio", DEF_GEAR_RATIO),
+            declare_parameter("right_tick_per_rev", DEF_TICK_PER_REV)),
+      Wheel(declare_parameter("left_wheel_diameter_m", DEF_WHEEL_D),
+            declare_parameter("left_gear_ratio", DEF_GEAR_RATIO),
+            declare_parameter("left_tick_per_rev", DEF_TICK_PER_REV)),
+      declare_parameter("tick_per_rev", DEF_TICK_PER_REV),
+      declare_parameter("base_width_m", DEF_BASE));
+
   // Declare parameters
   gear = declare_parameter("gear_ratio", DEF_GEAR_RATIO);
   wheel_d = declare_parameter("wheel_diameters_m", DEF_WHEEL_D);
   tick_per_rev = declare_parameter("tick_per_rev", DEF_TICK_PER_REV);
-  base = declare_parameter("base_width_m", DEF_BASE);
-  dist_per_tick = (wheel_d * M_PI) / gear / tick_per_rev;
-
   odom_loop_period = microseconds((long)(1E6 / declare_parameter("odom_freq", DEF_ODOM_FREQ)));
 
   // Declare ROS participants
@@ -52,50 +60,15 @@ void Odometry::updateOdometry() {
   // Prevent from reusing the same one
   if (last_enc_has_been_used) return;
 
-  // Compute time between messages
-  double dt = (last_enc->stamp.sec - last_enc_used->stamp.sec) +
-              (last_enc->stamp.nanosec - last_enc_used->stamp.nanosec) * 1E-9;
-
-  RCLCPP_INFO(get_logger(), "Computing new values {%f}", dt);
-  computeNewWheelVelocities(dt);
-  computeNewWorldPosition(dt);
+  // Update Odometry
+  RCLCPP_INFO(get_logger(), "Computing new values");
+  robot->updateOdometry(last_enc_used, last_enc, odom_msg);
 
   // Publish new odometry
   RCLCPP_INFO(get_logger(), "Publishing results");
   odom_pub->publish(odom_msg);
   last_enc_used = last_enc;
   last_enc_has_been_used = true;
-}
-
-void Odometry::computeNewWheelVelocities(double dt) {
-  // Compute change in ticks
-  double denc_right = math::cst_outside(last_enc->right - last_enc_used->right, MAX_TICK_CHANGE);
-  double denc_left = math::cst_outside(last_enc->left - last_enc_used->left, MAX_TICK_CHANGE);
-
-  // Compute wheel velocity
-  odom_msg.v_right = denc_right * dist_per_tick / dt;
-  odom_msg.v_left = denc_left * dist_per_tick / dt;
-}
-
-void Odometry::computeNewWorldPosition(double dt) {
-  // Compute 2D linear & half of the angular displacement
-  // Turn Rate is positive for CCV (right wheel going faster)
-  odom_msg.v_lin = (odom_msg.v_left + odom_msg.v_right) / 2.0;             // In meters
-  odom_msg.turn_rate = (odom_msg.v_right - odom_msg.v_left) / base / 2.0;  // In radians
-
-  // Integrate for getting positions and heading.
-  // Compute the position displacement with half of the angular displacement to
-  // get an average between the two positions.
-  odom_msg.heading += odom_msg.turn_rate;
-  odom_msg.x += std::cos(odom_msg.heading) * odom_msg.v_lin;
-  odom_msg.y += std::sin(odom_msg.heading) * odom_msg.v_lin;
-
-  // Complete the angular displacement with the other half
-  odom_msg.heading = math::natural_angle(odom_msg.heading + odom_msg.turn_rate);
-
-  // Compute linear & angular velocities (divide by the time)
-  odom_msg.v_lin /= dt;
-  odom_msg.turn_rate /= dt;
 }
 
 }  // namespace raubase::loc

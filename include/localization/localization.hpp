@@ -34,8 +34,12 @@ THE SOFTWARE.
 #include <rclcpp/subscription.hpp>
 #include <rclcpp/timer.hpp>
 
+#include "common/robot/kinematics.hpp"
+
 using namespace rclcpp;
 using namespace raubase_msgs;
+using raubase::kinematics::TwoWheeledRoverKinematics;
+using raubase::kinematics::Wheel;
 using std::chrono::microseconds;
 
 namespace raubase::loc {
@@ -70,18 +74,6 @@ class Odometry : public Node {
    */
   void updateOdometry();
 
-  /**
-   * @brief Compute both wheels velocities based on encoders values.
-   * @param dt the time between old and new message
-   */
-  void computeNewWheelVelocities(double dt);
-
-  /**
-   * @brief Compute the robot world position based on the encoder values
-   * @param dt the time between old and new message
-   */
-  void computeNewWorldPosition(double dt);
-
   // ==========================================================================
   //                                    Members
   // ==========================================================================
@@ -93,6 +85,7 @@ class Odometry : public Node {
   int tick_per_rev;               //< Number of tick per revolution for the encoder
   double base;                    //< Base width (distance between the wheels, in meters)
   double dist_per_tick;           //< Distance between two wheel ticks
+  TwoWheeledRoverKinematics::SharedPtr robot;
 
   // ---------------------------------- ROS -----------------------------------
   msg::EncoderState::SharedPtr last_enc, last_enc_used;

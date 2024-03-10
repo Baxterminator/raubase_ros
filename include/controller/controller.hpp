@@ -29,14 +29,13 @@ THE SOFTWARE.
 #include <chrono>
 #include <memory>
 #include <raubase_msgs/msg/controller_state.hpp>
-#include <raubase_msgs/msg/detail/controller_state__struct.hpp>
 #include <raubase_msgs/msg/motor_voltage.hpp>
 #include <raubase_msgs/msg/move_cmd.hpp>
 #include <raubase_msgs/msg/odometry.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/subscription.hpp>
 
-#include "common/upid.hpp"
+#include "common/utils/upid.hpp"
 
 using namespace rclcpp;
 using namespace std::chrono;

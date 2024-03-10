@@ -32,7 +32,7 @@ THE SOFTWARE.
 #include <queue>
 #include <rclcpp/rclcpp.hpp>
 
-#include "common/shared_queue.hpp"
+#include "common/utils/shared_queue.hpp"
 #include "teensy/interface/message.hpp"
 #include "teensy/interface/message_queue.hpp"
 #include "teensy/interface/proxy_interface.hpp"

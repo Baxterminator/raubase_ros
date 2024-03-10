@@ -10,7 +10,7 @@
 #include <rclcpp/logging.hpp>
 #include <string>
 
-#include "common/types.hpp"
+#include "common/utils/types.hpp"
 
 namespace raubase::cam {
 

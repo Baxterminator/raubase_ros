@@ -32,7 +32,7 @@ THE SOFTWARE.
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 
-#include "common/types.hpp"
+#include "common/utils/types.hpp"
 #include "teensy/interface/message.hpp"
 
 namespace raubase::teensy {

@@ -1,10 +1,9 @@
-#ifndef RAUBASE_MSG_QUEUE
-#define RAUBASE_MSG_QUEUE
+#ifndef RAUBASE_TYPES
+#define RAUBASE_TYPES
 
 /*
 Copyright (C) 2017-2024 by DTU
 Authors:
-  Christan Andersen: jcan@dtu.dk
   Geoffrey Côte: geoffrey.cote@centraliens-nantes.org
 
 The MIT License (MIT)  https://mit-license.org/
@@ -26,20 +25,17 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
-#include "common/utils/shared_queue.hpp"
-#include "common/utils/types.hpp"
-#include "teensy/interface/message.hpp"
-namespace raubase::teensy {
+#include <memory>
 
-struct MSGQueue : public SharedQueue<sptr<MSG>> {
-  bool firstMSGSent() {
-    lock();
-    bool sent = front()->sent_count > 0;
-    unlock();
-    return sent;
-  }
-};
+namespace raubase {
 
-}  // namespace raubase::teensy
+// Pointers short name
+
+template <typename T>
+using sptr = std::shared_ptr<T>;
+
+typedef unsigned long ulong;
+
+}  // namespace raubase
 
 #endif
