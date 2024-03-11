@@ -1,5 +1,6 @@
 #include <complex>
 
+#include "common/utils/math.hpp"
 #include "controller/controller.hpp"
 
 namespace raubase::motor {
@@ -27,7 +28,7 @@ void Controller::computeTurnRate() {
   state.turnrate_saturation =
       (std::fabs(state.turn_rate) > max_turn_rate || state.voltage_saturation);
   if (state.turnrate_saturation) {
-    state.turn_rate = std::max(std::min(state.turn_rate, max_turn_rate), -max_turn_rate);
+    state.turn_rate = math::saturate(state.turn_rate, max_turn_rate);
   }
 }
 

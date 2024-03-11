@@ -32,6 +32,7 @@ void Motor::update(double dt) {
   right_wheel += _last_motor->right * mot_righ_km * dt;
   left_wheel += _last_motor->left * mot_left_km * dt;
 
+  _enc_msg.stamp = _clock->now();
   _enc_msg.right = robot->RW_pos2enc(right_wheel);
   _enc_msg.left = robot->LW_pos2enc(left_wheel);
 }

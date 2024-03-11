@@ -189,10 +189,10 @@ struct TwoWheeledRoverKinematics {
     pos_odometry(odom_msg.v_lin, odom_msg.turn_rate, odom_msg.x, odom_msg.y, odom_msg.heading);
 
     // Convert to velocities
-    odom_msg.v_lin /= dt;
-    odom_msg.turn_rate /= dt;
-    odom_msg.v_right /= dt;
-    odom_msg.v_left /= dt;
+    odom_msg.v_lin = ((dt > 0) ? odom_msg.v_lin / dt : 0);
+    odom_msg.turn_rate = ((dt > 0) ? odom_msg.turn_rate / dt : 0);
+    odom_msg.v_right = ((dt > 0) ? odom_msg.v_right / dt : 0);
+    odom_msg.v_left = ((dt > 0) ? odom_msg.v_left / dt : 0);
   }
 
   // ==========================================================================
