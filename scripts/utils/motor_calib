@@ -1,0 +1,228 @@
+#!/usr/bin/python3
+from dataclasses import dataclass
+from typing import List
+from rclpy import init, shutdown, spin_once, ok
+from rclpy.node import Node
+import numpy as np
+from raubase_msgs.msg import MotorVoltage, EncoderState
+import matplotlib.pyplot as plt
+
+
+def generate_voltage_sequence(v_sat: float, steps: int) -> List[float]:
+    out = [0.0]
+    dv = v_sat / float(steps)
+
+    # 1 | Increase to Vsat
+    out.extend([float(i) * dv for i in range(1, steps + 1, 1)])
+
+    # 2 | Decrease to -Vsat
+    out.extend([float(i) * dv for i in range(steps - 1, -steps - 1, -1)])
+
+    # 3 | Increase to 0
+    out.extend([float(i) * dv for i in range(-steps + 1, 0, 1)])
+
+    return out
+
+
+@dataclass
+class StepData:
+    voltage = []
+    mean_k = []
+    std_k = []
+    mean_w = []
+    std_w = []
+
+
+class MotorCalib(Node):
+    """
+    This node is to get informations from the motors
+    """
+
+    NODE_NAME = "MotorCalib"
+    DEF_MIN_ENC_PER_STEP = 100
+
+    # Motor voltages
+    DEF_MAX_VOLTAGE = 10.0
+    DEF_N_STEPS = 5  # Actual number of steps = 4*DEF_N_STEPS
+
+    def __init__(self) -> None:
+        super().__init__(MotorCalib.NODE_NAME)
+
+        # Parameters
+        self.max_v = (
+            self.declare_parameter("max_v", MotorCalib.DEF_MAX_VOLTAGE)
+            .get_parameter_value()
+            .double_value
+        )
+        self.n_steps = (
+            self.declare_parameter("steps", MotorCalib.DEF_N_STEPS)
+            .get_parameter_value()
+            .integer_value
+        )
+        self.min_enc_values = (
+            self.declare_parameter("min_enc_number", MotorCalib.DEF_MIN_ENC_PER_STEP)
+            .get_parameter_value()
+            .integer_value
+        )
+        self.tick_per_rev = (
+            self.declare_parameter("tick_per_rev", 68)
+            .get_parameter_value()
+            .integer_value
+        )
+
+        # Plot
+        self.setup_plot()
+
+        # Inner work
+        self.done = False
+        self.data_r, self.data_l = StepData(), StepData()
+        self.seq_index = -1
+        self.enc_buffer = ([], [], [])
+        self.setup_volt_seq()
+
+        self.msg = MotorVoltage()
+        self.enc_sub = self.create_subscription(
+            EncoderState, "teensy/encoders", self.encoder_callback, 10
+        )
+        self.mot_pub = self.create_publisher(MotorVoltage, "/teensy/set_voltage", 10)
+        self.loop = self.create_timer(0.5, self.next_step)
+
+    def setup_volt_seq(self):
+        self.get_logger().info(" Generating voltage sequence ".center(40, "="))
+        self.get_logger().info(f"Max Voltage: {self.max_v}V")
+        self.get_logger().info(f"Number of steps: {4*self.n_steps}")
+        self.sequence = generate_voltage_sequence(self.max_v, self.n_steps)
+        self.len_seq = len(self.sequence)
+        print(self.sequence)
+
+    def setup_plot(self):
+        self._fig1 = plt.figure()
+
+        # Speed vs Voltage graph
+        (self._svplot_r,) = plt.plot([0], [0], "bo", label="Right Wheel")
+        (self._svplot_l,) = plt.plot([0], [0], "ro", label="Left Wheel")
+        plt.xlabel("Motor Voltage (V)")
+        plt.ylabel("Speed (rad/s)")
+        self._fig1.canvas.draw()
+
+        self._fig2 = plt.figure()
+        # Km vs Voltage graph
+        (self._kvplot_r,) = plt.plot(0, 0, "bo", label="Right Wheel")
+        (self._kvplot_l,) = plt.plot(0, 0, "ro", label="Left Wheel")
+        plt.xlabel("Motor Voltage (V)")
+        plt.ylabel("Km (rad/s/V)")
+        self._fig2.canvas.draw()
+
+    def plot_update(self):
+        # Update right wheel
+        self._svplot_r.set_data(self.data_r.voltage, self.data_r.mean_w)
+        self._kvplot_r.set_data(self.data_r.voltage, self.data_r.mean_k)
+        self._fig1.gca().relim()
+        self._fig1.gca().autoscale_view()
+        self._fig1.canvas.draw()
+
+        # Update left wheel
+        self._svplot_l.set_data(self.data_l.voltage, self.data_l.mean_w)
+        self._kvplot_l.set_data(self.data_l.voltage, self.data_l.mean_k)
+        self._fig2.gca().relim()
+        self._fig2.gca().autoscale_view()
+        self._fig2.canvas.draw()
+
+    def encoder_callback(self, msg: EncoderState):
+        self.enc_buffer[0].append(msg.right)
+        self.enc_buffer[1].append(msg.left)
+        self.enc_buffer[2].append(msg.stamp.sec + msg.stamp.nanosec * 1e-9)
+
+    def next_step(self):
+        """
+        Try to launch the next step of the calibration
+        """
+        # Wait for the minimum number of encoders values before continuing
+        if len(self.enc_buffer[0]) < self.min_enc_values:
+            return
+
+        # Process values
+        if self.seq_index != -1:
+            dt = np.diff(self.enc_buffer[2])
+
+            # Compute for right wheel
+            w = np.diff(self.enc_buffer[0]) * 2 * np.pi / self.tick_per_rev / dt
+            K = (
+                w / self.sequence[self.seq_index]
+                if self.sequence[self.seq_index] != 0
+                else 0
+            )
+            self.data_r.voltage.append(self.sequence[self.seq_index])
+            self.data_r.mean_w.append(np.mean(w))
+            self.data_r.std_w.append(np.std(w))
+            self.data_r.mean_k.append(np.mean(K))
+            self.data_r.std_k.append(np.std(K))
+
+            # Compute for left wheel
+            w = np.diff(self.enc_buffer[1]) * 2 * np.pi / self.tick_per_rev / dt
+            K = (
+                w / self.sequence[self.seq_index]
+                if self.sequence[self.seq_index] != 0
+                else 0
+            )
+            self.data_l.voltage.append(self.sequence[self.seq_index])
+            self.data_l.mean_w.append(np.mean(w))
+            self.data_l.std_w.append(np.std(w))
+            self.data_l.mean_k.append(np.mean(K))
+            self.data_l.std_k.append(np.std(K))
+
+            self.plot_update()
+
+        self.seq_index += 1
+
+        # Sending new command
+        if self.seq_index != self.len_seq:
+            self.get_logger().info(
+                f"[{self.seq_index+1:3d}/{self.len_seq:3d}] Next step with {self.sequence[self.seq_index]:.1f}V!"
+            )
+            self.msg.left = self.sequence[self.seq_index]
+            self.msg.right = self.sequence[self.seq_index]
+            self.mot_pub.publish(self.msg)
+
+            self.enc_buffer[0].clear()
+            self.enc_buffer[1].clear()
+            self.enc_buffer[2].clear()
+        else:
+            self.get_logger().warn("Calibration done!")
+            self.done = True
+            self.loop.cancel()
+
+            # Try to fit a linear regression on KM results
+            zero_mask = np.nonzero(self.data_r.voltage)
+            m1, KM_right = np.polyfit(
+                np.array(self.data_r.voltage)[zero_mask],
+                np.array(self.data_r.mean_k)[zero_mask],
+                1,
+            )
+            m2, KM_left = np.polyfit(
+                np.array(self.data_l.voltage)[zero_mask],
+                np.array(self.data_l.mean_k)[zero_mask],
+                1,
+            )
+
+            self.get_logger().info(f"Result of the calibration".center(40, "="))
+            self.get_logger().info(
+                f"Right motor: {KM_right} rad/s/V (with {m1} rad/s/V²)"
+            )
+            self.get_logger().info(
+                f"Left motor: {KM_left} rad/s/V ( with {m2} rad/s/V²)"
+            )
+
+
+if __name__ == "__main__":
+    init()
+
+    plt.ion()
+    node = MotorCalib()
+
+    while ok() and not node.done:
+        spin_once(node)
+        plt.pause(0.0001)
+    input()
+
+    shutdown()
