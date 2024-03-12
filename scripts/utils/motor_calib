@@ -85,7 +85,7 @@ class MotorCalib(Node):
             EncoderState, "teensy/encoders", self.encoder_callback, 10
         )
         self.mot_pub = self.create_publisher(MotorVoltage, "/teensy/set_voltage", 10)
-        self.loop = self.create_timer(0.5, self.next_step)
+        self.loop = self.create_timer(0.05, self.next_step)
 
     def setup_volt_seq(self):
         self.get_logger().info(" Generating voltage sequence ".center(40, "="))
@@ -191,6 +191,10 @@ class MotorCalib(Node):
             self.get_logger().warn("Calibration done!")
             self.done = True
             self.loop.cancel()
+
+            self.msg.left = 0.0
+            self.msg.right = 0.0
+            self.mot_pub.publish(self.msg)
 
             # Try to fit a linear regression on KM results
             zero_mask = np.nonzero(self.data_r.voltage)

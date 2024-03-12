@@ -65,7 +65,7 @@ struct Motor : public PluginInterface {
   // --------------------------------- Motors ---------------------------------
   static constexpr const char* MOTOR_TOPIC = MotorProxy::SUBSCRIBING_TOPIC;
   static constexpr int MOTOR_QOS = MotorProxy::QOS;
-  static constexpr double DEFAULT_KM{2.7052603375};  //< Motor constant in rads/s/V
+  static constexpr double DEFAULT_KM{40.067609};  //< Motor constant in rads/s/V
   double mot_righ_km, mot_left_km;
   MotorVoltage::SharedPtr _last_motor;
   Subscription<MotorVoltage>::SharedPtr sub_motor;
