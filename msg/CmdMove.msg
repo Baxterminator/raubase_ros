@@ -2,11 +2,11 @@
 #   0 = command in position (x, y, heading)
 #   1 = command in velocity + heading angle (v, heading)
 #   2 = command in velocity + turn rate (v, turn rate)
-char CMD_POS=0
-char CMD_V_ANGLE=1
-char CMD_V_TR=2
+char CMD_POS = 0
+char CMD_V_ANGLE = 1
+char CMD_V_TR = 2
 
-char move_type CMD_V_ANGLE
+char move_type 2
 
 # Command in position
 float64 pos_x

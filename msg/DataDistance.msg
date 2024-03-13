@@ -1,11 +1,11 @@
 # This message contains the data of one of the plugged sensor
 builtin_interfaces/Time stamp
 
-char UNKNOWN=0
-char SHARP=1
-char URM09=2
+char UNKNOWN = 0
+char SHARP = 1
+char URM09 = 2
 
-char type SHARP
+char type 1
 
 float64[2] calib
 float64 range

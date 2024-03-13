@@ -2,4 +2,4 @@ string MANUAL = "manual"
 string PLAN = "plan"
 string EDGE = "edge"
 
-string input PLAN
+string input "plan"

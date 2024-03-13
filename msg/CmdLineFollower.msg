@@ -5,4 +5,4 @@ bool RIGHT = true
 bool LEFT = false
 bool follow false
 
-float32 offset
+float32 offset 0
