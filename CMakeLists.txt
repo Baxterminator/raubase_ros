@@ -45,6 +45,7 @@ endmacro()
 # =================================================================
 #                             ROS Nodes
 # =================================================================
+
 ########################## Common Lib #############################
 file(GLOB common_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/common/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/common/**/**.cpp")
 if (common_src)
@@ -67,6 +68,14 @@ if (controller_src)
   ament_auto_add_executable(controller ${controller_src})
   target_include_directories(controller PRIVATE include)
   link_raspberry_libs(controller)
+endif()
+
+######################## Line Follower ############################
+file(GLOB line_controller_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/line_follow/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/line_follow/**/**.cpp")
+if (line_controller_src)
+  ament_auto_add_executable(line_follow ${line_controller_src})
+  target_include_directories(line_follow PRIVATE include)
+  link_raspberry_libs(line_follow)
 endif()
 
 ########################## Localization ###########################
@@ -103,7 +112,9 @@ if (test_src)
   link_raspberry_libs(testing)
 endif()
 
-############################ Python ###############################
+# =================================================================
+#                             Python
+# =================================================================
 ament_python_install_package(${PROJECT_NAME})
 file(GLOB py_scripts LIST_DIRECTORIES false RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/scripts/*" "${CMAKE_CURRENT_LIST_DIR}/scripts/**/*")
 if (py_scripts)
@@ -114,7 +125,9 @@ if (py_scripts)
     )
 endif()
 
-######################### Launch Files ############################
+# =================================================================
+#                      Other files & resources
+# =================================================================
 install(DIRECTORY 
         resources/default
         resources/launch
