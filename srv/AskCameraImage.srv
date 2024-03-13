@@ -1,5 +1,1 @@
 ---
-
-# Return the image from the camera
-std_msgs/Header header
-sensor_msgs/Image image

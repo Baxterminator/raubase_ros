@@ -6,7 +6,7 @@ char CMD_POS=0
 char CMD_V_ANGLE=1
 char CMD_V_TR=2
 
-char move_type 1
+char move_type CMD_V_ANGLE
 
 # Command in position
 float64 pos_x

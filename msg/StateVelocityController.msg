@@ -1,5 +1,6 @@
 # This message is for debug purposes.
 # It share the controller internal state
+builtin_interfaces/Time stamp
 
 float64 max_voltage
 float64 max_turnrate
