@@ -3,127 +3,134 @@ project(raubase_ros)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic -std=c++17)
-endif()
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
 
 find_package(ament_cmake_auto REQUIRED)
 ament_auto_find_build_dependencies()
 
+message("========================= CMake ===========================")
+
 # =================================================================
 #                  Raspberry PI Compilation arguments
 # =================================================================
+# Get CPU
 execute_process(COMMAND uname -m RESULT_VARIABLE IS_OK OUTPUT_VARIABLE CPU1)
 string(STRIP ${CPU1} CPU)
-# works for Raspberry 3 and 4
-if (${CPU} MATCHES "armv7l" OR ${CPU} MATCHES "aarch64")
-   message("# Is a RASPBERRY; CPU=${CPU} (Pi3=armv7l, pi4=aarch64)")
-   #    set(EXTRA_CC_FLAGS " -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s -DRASPBERRY_PI -D${CPU}")
-   set(EXTRA_CC_FLAGS "-D${CPU} -O2 -g0 -DRASPBERRY_PI -I/home/local/git/CLI11/include")
-   #set(EXTRA_CC_FLAGS "-D${CPU} -O0 -g2 -DRASPBERRY_PI")
+
+# Get system
+set(OS_NAME "${CMAKE_SYSTEM_NAME} ${CMAKE_SYSTEM_VERSION}")
+if (${CPU} MATCHES "armv7l")
+  set(RPI "Raspberry Pi 3")
+elseif(${CPU} MATCHES "aarch64")
+  set(RPI "Raspberry Pi 4")
+endif()
+
+# Set extra compilation flags for raspberry pi
+if (RPI)
+  message("Compiling for ${RPI} - ${OS_NAME} [arch=${CPU}]")
+  #set(EXTRA_CC_FLAGS " -mfpu=vfp -mfloat-abi=hard -march=armv6zk -mtune=arm1176jzf-s -DRASPBERRY_PI -D${CPU}")
+  set(EXTRA_CC_FLAGS "-D${CPU} -O2 -g0 -DRASPBERRY_PI -I/home/local/git/CLI11/include")
+  #set(EXTRA_CC_FLAGS "-D${CPU} -O0 -g2 -DRASPBERRY_PI")
 else()
-   message("# Not a RASPBERRY; CPU=${CPU}")
+   message("Compiling for ${OS_NAME} [cpu arch=${CPU}]")
    set(EXTRA_CC_FLAGS "-D${CPU} -O0 -g2")
 endif()
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic \
     -Wno-format-truncation -Wno-return-type \
     -std=c++20 ${EXTRA_CC_FLAGS}")
 set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-pthread")
 
+# =================================================================
+#                     Wrapping compile function
+# =================================================================
+function(glob_sources list src_paths folder extension)
+  set(FOLDER_A "${CMAKE_CURRENT_LIST_DIR}/${folder}/*${extension}")
+  set(FOLDER_B "${CMAKE_CURRENT_LIST_DIR}/${folder}/**/*${extension}")
+
+  # Grab source files
+  file(GLOB src_files LIST_DIRECTORIES false RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${FOLDER_A}" "${FOLDER_B}")
+  set(${list} ${src_files} PARENT_SCOPE)
+  set(${src_paths} "\n\t${FOLDER_A},\n\t${FOLDER_B}" PARENT_SCOPE)
+endfunction()
+
 macro(link_raspberry_libs node_name)
   if (${CPU} MATCHES "armv7l" OR ${CPU} MATCHES "aarch64")
     target_link_libraries(${node_name} ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod rt)
-  elseif(${CPU} MATCHES "x86_64")
+  elseif(${CPU} MATCHES "x86_64") # If personal computer, do not link libs
     target_link_libraries(${node_name} ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS})
   else()
     target_link_libraries(${node_name} ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod)
   endif()
 endmacro()
 
-# =================================================================
-#                             ROS Nodes
-# =================================================================
+function(target_setup target)
+  target_include_directories(${target} PRIVATE include)
+  link_raspberry_libs(${target})
+endfunction()
 
-########################## Common Lib #############################
-file(GLOB common_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/common/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/common/**/**.cpp")
-if (common_src)
-  ament_auto_add_library(common ${common_src})
-  target_include_directories(common PRIVATE include)
-  link_raspberry_libs(common)
-endif()
+function(make_library lib_name lib_folder)
+  glob_sources(lib_src lib_paths "src/${lib_folder}" ".cpp")
+  if (lib_src)
+    message("Making C++ library ${lib_name} with sources at ${lib_paths}")
+    ament_auto_add_library(${lib_name} ${lib_src})
+    target_setup(${lib_name})
+  else()
+    message("No source found for C++ library ${lib_name} with sources at ${lib_paths}")
+  endif()
+endfunction(make_library)
 
-############################ Camera ###############################
-file(GLOB cam_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/camera/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/camera/**/**.cpp")
-if (cam_src)
-  ament_auto_add_executable(camera ${cam_src})
-  target_include_directories(camera PRIVATE include)
-  link_raspberry_libs(camera)
-endif()
+function(make_executable exe_name exe_folder)
+  glob_sources(exe_src exe_paths "src/${exe_folder}" ".cpp")
+  if (exe_src)
+    message("Making C++ executable ${exe_name} with sources at ${exe_paths}")
+    ament_auto_add_executable(${exe_name} ${exe_src})
+    target_setup(${exe_name})
+    if (TARGET common)
+      target_link_libraries(${exe_name} common)
+    endif()
+  else() 
+    message("No source found for C++ executable ${exe_name} with sources at ${exe_paths}")
+  endif()
+endfunction(make_executable)
 
-########################## Controller #############################
-file(GLOB controller_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/controller/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/controller/**/**.cpp")
-if (controller_src)
-  ament_auto_add_executable(controller ${controller_src})
-  target_include_directories(controller PRIVATE include)
-  link_raspberry_libs(controller)
-endif()
+function(make_python_scripts scripts_folder)
+  glob_sources(py_src py_paths ${scripts_folder} "")
+  if (py_src)
+    message("Adding Python scripts in ${py_paths}")
 
-######################## Line Follower ############################
-file(GLOB line_controller_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/line_follow/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/line_follow/**/**.cpp")
-if (line_controller_src)
-  ament_auto_add_executable(line_follow ${line_controller_src})
-  target_include_directories(line_follow PRIVATE include)
-  link_raspberry_libs(line_follow)
-endif()
-
-########################## Localization ###########################
-file(GLOB localization_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/localization/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/localization/**/**.cpp")
-if (localization_src)
-  ament_auto_add_executable(localization ${localization_src})
-  target_include_directories(localization PRIVATE include)
-  link_raspberry_libs(localization)
-endif()
-
-############################ Teensy ###############################
-file(GLOB teensy_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/teensy/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/teensy/**/**.cpp")
-if (teensy_src)
-  ament_auto_add_executable(teensy ${teensy_src})
-  target_link_libraries(teensy common)
-  target_include_directories(teensy PRIVATE include)
-  link_raspberry_libs(teensy)
-endif()
-
-############################ Simulator ############################
-file(GLOB simu_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/simulator/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/simulator/**/**.cpp")
-if (simu_src)
-  ament_auto_add_executable(simulator ${simu_src})
-  target_link_libraries(simulator common)
-  target_include_directories(simulator PRIVATE include)
-  link_raspberry_libs(simulator)
-endif()
-
-############################ Test #################################
-file(GLOB test_src RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/src/test/*.cpp" "${CMAKE_CURRENT_LIST_DIR}/src/test/**/**.cpp")
-if (test_src)
-  ament_auto_add_executable(testing ${test_src})
-  target_include_directories(testing PRIVATE include)
-  link_raspberry_libs(testing)
-endif()
-
-# =================================================================
-#                             Python
-# =================================================================
-ament_python_install_package(${PROJECT_NAME})
-file(GLOB py_scripts LIST_DIRECTORIES false RELATIVE "${CMALE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/scripts/*" "${CMAKE_CURRENT_LIST_DIR}/scripts/**/*")
-if (py_scripts)
-  message("${py_scripts}")
-  install(PROGRAMS
-    ${py_scripts}
-    DESTINATION lib/${PROJECT_NAME}
+    # For debug, print found executable
+    foreach(py_exe ${py_src})
+      string(REGEX MATCH "([a-zA-Z0-9_.]*)$" py_name ${py_exe})
+      message("\t-> Found script ${py_name}")
+    endforeach()
+    
+    # Install them
+    install(PROGRAMS
+      ${py_src}
+      DESTINATION lib/${PROJECT_NAME}
     )
-endif()
+  else()
+    message("No Python script found in ${py_paths}")
+  endif()
+endfunction(make_python_scripts)
+
+# =================================================================
+#                      Targets definitions
+# =================================================================
+# C++ Targets
+make_library(common "common")
+make_executable(camera "camera")
+make_executable(controller "controller")
+make_executable(line_follow "line_follow")
+make_executable(localization "localization")
+make_executable(simulator "simulator")
+make_executable(teensy "teensy")
+make_executable(testing "test")
+
+# Python Targets
+ament_python_install_package(${PROJECT_NAME})
+make_python_scripts("scripts")
 
 # =================================================================
 #                      Other files & resources
@@ -135,3 +142,4 @@ install(DIRECTORY
 
 
 ament_auto_package()
+message("========================== Make ==========================")
