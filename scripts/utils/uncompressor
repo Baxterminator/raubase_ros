@@ -1,0 +1,35 @@
+#!/usr/bin/python3
+
+from rclpy.node import Node
+from sensor_msgs.msg import CompressedImage, Image
+from cv_bridge import CvBridge
+from rclpy import init, ok, shutdown, spin_once
+
+
+class Uncompressor(Node):
+    def __init__(self) -> None:
+        super().__init__("uncompressor")
+
+        self.sub = self.create_subscription(
+            CompressedImage, "/compressed", self.image_clb, 10
+        )
+        self.pub = self.create_publisher(Image, "/uncompressed", 10)
+        self.bridge = CvBridge()
+
+    def image_clb(self, img: CompressedImage) -> None:
+        self.pub.publish(
+            self.bridge.cv2_to_imgmsg(
+                self.bridge.compressed_imgmsg_to_cv2(img, desired_encoding="bgr8"),
+                encoding="bgr8",
+            )
+        )
+
+
+if __name__ == "__main__":
+    init()
+    node = Uncompressor()
+
+    while ok():
+        spin_once(node)
+
+    shutdown()
