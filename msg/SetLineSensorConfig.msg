@@ -5,5 +5,3 @@ bool tilt 0
 bool cross_th 0
 bool wide 0
 bool swap 0
-
----
