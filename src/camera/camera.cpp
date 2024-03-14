@@ -33,9 +33,9 @@ Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node("camera", opts) {
 
   // ------------------------------- Services ---------------------------------
   sub_mode_set = create_subscription<SetCameraMode>(
-      MODE_SET_SRV, QOS, std::bind(&Camera::set_on_demand, this, std::placeholders::_1));
+      MODE_SET_TOPIC, QOS, std::bind(&Camera::set_on_demand, this, std::placeholders::_1));
   sub_ask_img = create_subscription<Empty>(
-      ASK_IMG_SRV, QOS, std::bind(&Camera::get_image, this, std::placeholders::_1));
+      ASK_IMG_TOPIC, QOS, std::bind(&Camera::get_image, this, std::placeholders::_1));
 
   // -------------------------- Camera connection -----------------------------
   checker =

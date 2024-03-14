@@ -6,7 +6,8 @@ import numpy as np
 from cv_bridge.core import CvBridge
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage, Image
-from raubase_msgs.srv import AskCameraImage
+from std_msgs.msg import Empty
+from raubase_ros.wrappers import NodeWrapper
 
 
 def toBGR(hex: str) -> np.ndarray:
@@ -35,24 +36,27 @@ class ImageProcessingUnit:
         pass
 
 
-class ImageProcessorInterface(Node):
+class ImageProcessor(NodeWrapper):
     """
     Description of a image processor node.
     It automatically setup image requesting and definition of callbacks.
     It also implement a compressed image channel decryption if possible.
     """
 
-    CAMERA_SERVICE = "/camera/get_image"
+    CAMERA_TRIGGER = "trigger"
     DEBUG_IMG = "debug"
 
     RAW_IMG_TOPIC = "image"
     COMPRESSED_IMG_TOPIC = "compressed"
     DEFAULT_QOS = 10
 
-    SRV_TIMEOUT = 1.0
-    REQUESTING_THROTTLE_S = 3
+    MESSAGES_THROTTLE_S = 3
 
     IMG_ENCODING = "bgr8"
+
+    # =================================================================
+    #                          Initializations
+    # =================================================================
 
     def __init__(self, name: str) -> None:
         super().__init__(name)  # type: ignore
@@ -71,22 +75,15 @@ class ImageProcessorInterface(Node):
         """
         Declare the parameters of this node
         """
-        self._use_compressed = (
-            self.declare_parameter("use_compressed", True)
-            .get_parameter_value()
-            .bool_value
-        )
-        self.__camera_srv = (
-            self.declare_parameter("camera_srv", ImageProcessorInterface.CAMERA_SERVICE)
-            .get_parameter_value()
-            .string_value
-        )
-        self.__request_s = 1 / float(
-            self.declare_parameter("request_hz", 10).get_parameter_value().integer_value
-        )
-        self.DEBUG = (
-            self.declare_parameter("in_debug", True).get_parameter_value().bool_value
-        )
+        # Mode of operations
+        self._use_compressed = self.declare_parameter("use_compressed", True).get()
+        self.__on_demand = self.declare_parameter("on_demand", False)
+
+        # Request parameters
+        self.__timeout = self.declare_parameter("rqst_timeout", 0.05)
+        self.__request_s = 1.0 / float(self.declare_parameter("request_hz", 10).get())
+
+        self.DEBUG = self.declare_parameter("in_debug", True)
 
     def __subscribe_to_camera(self) -> None:
         """
@@ -97,37 +94,49 @@ class ImageProcessorInterface(Node):
         if self._use_compressed:
             self.__img_sub = self.create_subscription(
                 CompressedImage,
-                ImageProcessorInterface.COMPRESSED_IMG_TOPIC,
+                ImageProcessor.COMPRESSED_IMG_TOPIC,
                 self._compressed_image_callback,
-                ImageProcessorInterface.DEFAULT_QOS,
+                ImageProcessor.DEFAULT_QOS,
             )
         else:
             self.__img_sub = self.create_subscription(
                 Image,
-                ImageProcessorInterface.RAW_IMG_TOPIC,
+                ImageProcessor.RAW_IMG_TOPIC,
                 self._compressed_image_callback,
-                ImageProcessorInterface.DEFAULT_QOS,
+                ImageProcessor.DEFAULT_QOS,
             )
 
     def __define_debug_output(self) -> None:
         """
         Define debug output (e.g. debug image) for the node
         """
-        if self.DEBUG:
-            self.__debug_pub = self.create_publisher(
-                Image,
-                ImageProcessorInterface.DEBUG_IMG,
-                ImageProcessorInterface.DEFAULT_QOS,
-            )
+        self.__debug_pub = self.create_publisher(
+            Image,
+            ImageProcessor.DEBUG_IMG,
+            ImageProcessor.DEFAULT_QOS,
+        )
 
     def __initialize_img_requesting(self) -> None:
         """
         Initialize the image requesting client
         """
-        self.__img_requested = False
-        self.__req_img = AskCameraImage.Request()
-        self.__req_client = self.create_client(AskCameraImage, self.__camera_srv)
-        self.__req_loop = self.create_timer(self.__request_s, self.__request_img)
+        self.__img_rec = True
+        self.__last_t = self.get_clock().now()
+        self.__req_client = self.create_publisher(
+            Empty,
+            ImageProcessor.CAMERA_TRIGGER,
+            ImageProcessor.DEFAULT_QOS,
+        )
+        self.__trigger = self.create_subscription(
+            Empty,
+            ImageProcessor.CAMERA_TRIGGER,
+            lambda m: self.__request_img(True),
+            10,
+        )
+        self.__req_loop = self.create_timer(
+            self.__request_s,
+            lambda: self.__request_img(False),
+        )
 
     def attach_processing_unit(self, unit: ImageProcessingUnit) -> None:
         """
@@ -136,33 +145,52 @@ class ImageProcessorInterface(Node):
         self.__units.append(unit)
         self.__units[-1].setup(self)
 
-    def __request_img(self) -> None:
-        """
-        Ask the camera for a new image
-        """
-        if self.__img_requested:
-            return
+    # ================================================================
+    #                 ROS Image Request & Callbacks
+    # =================================================================
 
-        # Get image
-        if not self.__req_client.wait_for_service(ImageProcessorInterface.SRV_TIMEOUT):
-            self.get_logger().warn("Waiting for for camera service ...")
-            return
+    def __request_img(self, manual_req: bool) -> None:
+        """
+        Ask the camera for a new image. Check whether the last image has been received.
+        """
+        # If "Manual" triggering
+        if self.__on_demand.get():
+            # If the request was not from an external trigger, skip it
+            if not manual_req:
+                return
 
+            # If image not received and timeout not met, skip call (reduce frequency)
+            if not self.__img_rec and self.since(self.__last_t) < self.__timeout.get():
+                return
+
+        # Else if in "continuous"
+        else:
+            # If image not received and timeout not met, skip call (reduce frequency)
+            if not self.__img_rec and self.since(self.__last_t) < self.__timeout.get():
+                return
+
+        # Check for timeout
+        if not self.__img_rec and self.__timeout.get() > self.since(self.__last_t):
+            self.get_logger().warn("Timeout while waiting for image from camera!")
+            self.__img_rec = True
+
+        # If image already requested,
         self.get_logger().info(
             "Requesting image",
-            throttle_duration_sec=ImageProcessorInterface.REQUESTING_THROTTLE_S,
+            throttle_duration_sec=ImageProcessor.MESSAGES_THROTTLE_S,
         )
-        self.__img_requested = True
-        self.__req_client.call_async(self.__req_img)
+        self.__img_rec = False
+        self.__last_t = self.get_clock().now()
+        self.__req_client.publish(Empty())
 
     def _compressed_image_callback(self, img: CompressedImage) -> None:
         """
         Receive a new compressed image and process it
         """
-        self.__img_requested = False
         self.process_img(
             self.cv_bridge.compressed_imgmsg_to_cv2(
-                img, desired_encoding=ImageProcessorInterface.IMG_ENCODING
+                img,
+                desired_encoding=ImageProcessor.IMG_ENCODING,
             )
         )
 
@@ -170,10 +198,11 @@ class ImageProcessorInterface(Node):
         """
         Receive a new image and process it
         """
-        self.__img_requested = False
+        self.__img_rec = True
         self.process_img(
             self.cv_bridge.imgmsg_to_cv2(
-                img, desired_encoding=ImageProcessorInterface.IMG_ENCODING
+                img,
+                desired_encoding=ImageProcessor.IMG_ENCODING,
             )
         )
 
@@ -183,24 +212,34 @@ class ImageProcessorInterface(Node):
         """
         self.__debug_pub.publish(
             self.cv_bridge.cv2_to_imgmsg(
-                img, encoding=ImageProcessorInterface.IMG_ENCODING
+                img,
+                encoding=ImageProcessor.IMG_ENCODING,
             )
         )
+
+    # ================================================================
+    #                 Processing
+    # =================================================================
 
     def process_img(self, img: CVImage) -> None:
         """
         Process the image.
         """
-        self.get_logger().info("Process image")
+        self.get_logger().info(
+            "Process image",
+            throttle_duration_sec=ImageProcessor.MESSAGES_THROTTLE_S,
+        )
 
         # Prepare debug image
         debug_img = None
-        if self.DEBUG:
+        if self.DEBUG.get():
             debug_img = img.copy()
 
         # Run
         for unit in self.__units:
-            unit.run(img, self.DEBUG, debug_img)
+            unit.run(img, self.DEBUG.get(), debug_img)
+
+        self.__img_rec = True
 
         # Send debug image if needed
         if self.DEBUG and debug_img is not None:

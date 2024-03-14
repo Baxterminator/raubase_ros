@@ -133,10 +133,10 @@ class Camera : public rclcpp::Node {
   // ----------------------------- Node service -----------------------------
   static constexpr const char* NODE_NAME{"camera"};
 
-  static constexpr const char* MODE_SET_SRV{"/camera/set_mode"};
+  static constexpr const char* MODE_SET_TOPIC{"set_mode"};
   rclcpp::Subscription<SetCameraMode>::SharedPtr sub_mode_set;
 
-  static constexpr const char* ASK_IMG_SRV{"/camera/get_image"};
+  static constexpr const char* ASK_IMG_TOPIC{"trigger"};
   rclcpp::Subscription<Empty>::SharedPtr sub_ask_img;
 };
 

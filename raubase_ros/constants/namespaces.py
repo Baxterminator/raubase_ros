@@ -1,0 +1,2 @@
+CAMERA_NAMESPACE = "camera"
+IMAGE_NAMESPACE = "image"
