@@ -13,7 +13,7 @@ class ConfigFile:
     def __init__(self, name: str, package: str = "raubase_ros") -> None:
         self.name = name
         self.path = get_config_file_path(name)
-        self.default = get_default_config_file_path(name)
+        self.default = get_default_config_file_path(name, package)
 
         self.params: List[Dict[str, Any]] = [{}]
         self.remaps: List[Tuple[str, str]] = []

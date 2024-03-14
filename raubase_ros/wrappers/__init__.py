@@ -1,2 +1,1 @@
-from .parameters import ParameterWrapper
-from .node import NodeWrapper
+from .node import NodeWrapper, ParameterWrapper

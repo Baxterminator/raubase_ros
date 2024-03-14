@@ -1,12 +1,17 @@
 from abc import abstractmethod
-from typing import List
+from dataclasses import dataclass
+from typing import List, Tuple
 
 import cv2 as cv
 import numpy as np
 from cv_bridge.core import CvBridge
+from geometry_msgs.msg import Vector3
+from rclpy.logging import get_logger
 from rclpy.node import Node
-from sensor_msgs.msg import CompressedImage, Image
+from sensor_msgs.msg import CameraInfo, CompressedImage, Image
 from std_msgs.msg import Empty
+
+from raubase_ros.utils import cam_pos2rob_pos, cam_px2cam_pos, DimType
 from raubase_ros.wrappers import NodeWrapper
 
 
@@ -17,10 +22,26 @@ def toBGR(hex: str) -> np.ndarray:
 CVImage = cv.typing.MatLike
 
 
+@dataclass
+class ProcessingData:
+    cam_info: CameraInfo = CameraInfo()
+    cam_translation: Vector3 = Vector3()
+    cam_rotation: np.ndarray = np.eye(3)
+
+
 class ImageProcessingUnit:
     """
     Processing unit for the image processor
     """
+
+    # =================================================================
+    #                          Initializations
+    # =================================================================
+    def __init__(self, name: str) -> None:
+        self._logger = get_logger(name)
+
+    def setup_unit(self, proc_data: ProcessingData) -> None:
+        self.data = proc_data
 
     @abstractmethod
     def setup(self, node: Node) -> None:
@@ -35,6 +56,47 @@ class ImageProcessingUnit:
     ) -> None:
         pass
 
+    # =================================================================
+    #                           Methods
+    # =================================================================
+    def in_camera_frame(
+        self,
+        x_px,
+        y_px,
+        dim_px,
+        dim_m,
+        dim_type: DimType = DimType.WIDTH,
+    ) -> np.ndarray:
+        """
+        Get the position of the given point in the camera frame (Xc, Yc, Zc).
+        """
+        return cam_px2cam_pos(self.data.cam_info, x_px, y_px, dim_px, dim_m, dim_type)
+
+    def in_robot_frame(
+        self,
+        x_px,
+        y_py,
+        dim_px,
+        dim_m,
+        dim_type: DimType = DimType.WIDTH,
+        as_ndarray: bool = False,
+    ) -> Tuple[float, float, float] | np.ndarray:
+        """
+        Get the position of the given point in the ro   bot frame (Xr, Yr, Zr)
+        Parameters:
+            - x_px, y_px: the position of the center of the object in the image
+            - width_px: the width of the object in the image
+            - width_m: the width of the object in the real world
+        """
+        Xr = cam_pos2rob_pos(
+            self.data.cam_translation,
+            self.data.cam_rotation,
+            cam_px2cam_pos(self.data.cam_info, x_px, y_py, dim_px, dim_m, dim_type),
+        )
+        if as_ndarray:
+            return Xr
+        return (Xr[0], Xr[1], Xr[2])
+
 
 class ImageProcessor(NodeWrapper):
     """
@@ -45,12 +107,12 @@ class ImageProcessor(NodeWrapper):
 
     CAMERA_TRIGGER = "trigger"
     DEBUG_IMG = "debug"
-
+    CAM_INFO_TOPIC = "camera_info"
     RAW_IMG_TOPIC = "image"
     COMPRESSED_IMG_TOPIC = "compressed"
     DEFAULT_QOS = 10
 
-    MESSAGES_THROTTLE_S = 3
+    MESSAGES_THROTTLE_S = 1
 
     IMG_ENCODING = "bgr8"
 
@@ -63,6 +125,7 @@ class ImageProcessor(NodeWrapper):
 
         # Initialize all parameters
         self.__parameters_declaration()
+        self.__set_default_proc_data()
 
         # Camera subscriptions
         self.__subscribe_to_camera()
@@ -71,19 +134,24 @@ class ImageProcessor(NodeWrapper):
 
         self.__units: List[ImageProcessingUnit] = []
 
+    def __set_default_proc_data(self) -> None:
+        self.processing_data = ProcessingData()
+        self.processing_data.cam_info.k[0] = 1
+        self.processing_data.cam_info.k[4] = 1
+
     def __parameters_declaration(self) -> None:
         """
         Declare the parameters of this node
         """
         # Mode of operations
-        self._use_compressed = self.declare_parameter("use_compressed", True).get()
-        self.__on_demand = self.declare_parameter("on_demand", False)
+        self._use_compressed = self.declare_wparameter("use_compressed", True).get()
+        self.__on_demand = self.declare_wparameter("on_demand", False)
 
         # Request parameters
-        self.__timeout = self.declare_parameter("rqst_timeout", 0.05)
-        self.__request_s = 1.0 / float(self.declare_parameter("request_hz", 10).get())
+        self.__timeout = self.declare_wparameter("rqst_timeout", 0.05)
+        self.__request_s = 1.0 / float(self.declare_wparameter("request_hz", 10).get())
 
-        self.DEBUG = self.declare_parameter("in_debug", True)
+        self.DEBUG = self.declare_wparameter("in_debug", True)
 
     def __subscribe_to_camera(self) -> None:
         """
@@ -95,16 +163,22 @@ class ImageProcessor(NodeWrapper):
             self.__img_sub = self.create_subscription(
                 CompressedImage,
                 ImageProcessor.COMPRESSED_IMG_TOPIC,
-                self._compressed_image_callback,
+                self.__compressed_image_callback,
                 ImageProcessor.DEFAULT_QOS,
             )
         else:
             self.__img_sub = self.create_subscription(
                 Image,
                 ImageProcessor.RAW_IMG_TOPIC,
-                self._compressed_image_callback,
+                self.__compressed_image_callback,
                 ImageProcessor.DEFAULT_QOS,
             )
+        self.__cam_info_sub = self.create_subscription(
+            CameraInfo,
+            ImageProcessor.CAM_INFO_TOPIC,
+            self.__cam_info_callback,
+            10,
+        )
 
     def __define_debug_output(self) -> None:
         """
@@ -143,6 +217,7 @@ class ImageProcessor(NodeWrapper):
         Attach a new processing unit to the processor
         """
         self.__units.append(unit)
+        self.__units[-1].setup_unit(self.processing_data)
         self.__units[-1].setup(self)
 
     # ================================================================
@@ -170,20 +245,24 @@ class ImageProcessor(NodeWrapper):
                 return
 
         # Check for timeout
-        if not self.__img_rec and self.__timeout.get() > self.since(self.__last_t):
-            self.get_logger().warn("Timeout while waiting for image from camera!")
+        if not self.__img_rec and self.__timeout.get() < self.since(self.__last_t):
+            self.get_logger().warn(
+                "Timeout while waiting for image from camera!",
+                throttle_duration_sec=ImageProcessor.MESSAGES_THROTTLE_S,
+            )
             self.__img_rec = True
 
-        # If image already requested,
-        self.get_logger().info(
-            "Requesting image",
-            throttle_duration_sec=ImageProcessor.MESSAGES_THROTTLE_S,
-        )
-        self.__img_rec = False
-        self.__last_t = self.get_clock().now()
-        self.__req_client.publish(Empty())
+        # If previous has been received, ask for another
+        if self.__img_rec:
+            self.get_logger().info(
+                "Requesting image",
+                throttle_duration_sec=ImageProcessor.MESSAGES_THROTTLE_S,
+            )
+            self.__img_rec = False
+            self.__last_t = self.get_clock().now()
+            self.__req_client.publish(Empty())
 
-    def _compressed_image_callback(self, img: CompressedImage) -> None:
+    def __compressed_image_callback(self, img: CompressedImage) -> None:
         """
         Receive a new compressed image and process it
         """
@@ -205,6 +284,12 @@ class ImageProcessor(NodeWrapper):
                 desired_encoding=ImageProcessor.IMG_ENCODING,
             )
         )
+
+    def __cam_info_callback(self, info: CameraInfo) -> None:
+        """
+        Receive the camera info
+        """
+        self.__cam_info = info
 
     def publish_debug(self, img: cv.typing.MatLike) -> None:
         """
