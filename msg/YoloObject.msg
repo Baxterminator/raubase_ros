@@ -1,7 +1,7 @@
-float64 xmin
-float64 xmax
-float64 ymin
-float64 ymax
+int32 xmin
+int32 xmax
+int32 ymin
+int32 ymax
 
-int32 classifier
+string classifier
 float64 confidence
