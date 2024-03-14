@@ -24,13 +24,13 @@ Controller::Controller(NodeOptions opts) : Node("controller", opts) {
   state.voltage_saturation = false;
   state.turnrate_saturation = false;
 
-  last_odometry = std::make_shared<Odometry>();
+  last_odometry = std::make_shared<ResultOdometry>();
   last_odometry->v_left = 0;
   last_odometry->v_right = 0;
   last_odometry->heading = 0;
 
-  last_cmd = std::make_shared<MoveCmd>();
-  last_cmd->move_type = MoveCmd::CMD_V_TR;
+  last_cmd = std::make_shared<CmdMove>();
+  last_cmd->move_type = CmdMove::CMD_V_TR;
   last_cmd->turn_rate = 0;
   last_cmd->velocity = 0;
 
@@ -61,12 +61,12 @@ Controller::Controller(NodeOptions opts) : Node("controller", opts) {
   // Initiate ROS components
   RCLCPP_INFO(get_logger(), "Launching controller unit with a period of %zuµs",
               loop_period.count());
-  cmd_sub = create_subscription<MoveCmd>(SUB_CMD_TOPIC, QOS,
-                                         [this](const MoveCmd::SharedPtr cmd) { last_cmd = cmd; });
-  odom_sub = create_subscription<Odometry>(
-      SUB_ODOMETRY, QOS, [this](const Odometry::SharedPtr odm) { last_odometry = odm; });
-  voltage_pub = create_publisher<MotorVoltage>(PUB_CMD_TOPIC, QOS);
-  if (debug) state_pub = create_publisher<ControllerState>(PUB_STATE_TOPIC, QOS);
+  cmd_sub = create_subscription<CmdMove>(SUB_CMD_TOPIC, QOS,
+                                         [this](const CmdMove::SharedPtr cmd) { last_cmd = cmd; });
+  odom_sub = create_subscription<ResultOdometry>(
+      SUB_ODOMETRY, QOS, [this](const ResultOdometry::SharedPtr odm) { last_odometry = odm; });
+  voltage_pub = create_publisher<CmdMotorVoltage>(PUB_CMD_TOPIC, QOS);
+  if (debug) state_pub = create_publisher<StateVelocityController>(PUB_STATE_TOPIC, QOS);
   fixed_loop = create_wall_timer(loop_period, std::bind(&Controller::loop, this));
 }
 

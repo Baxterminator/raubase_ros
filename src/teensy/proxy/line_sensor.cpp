@@ -1,10 +1,5 @@
 #include "teensy/proxy/line_sensor.hpp"
 
-#include <raubase_msgs/msg/detail/line_sensor_data__struct.hpp>
-#include <raubase_msgs/srv/detail/toggle_line_sensor__struct.hpp>
-#include <rclcpp/logging.hpp>
-#include <sstream>
-
 #include "teensy/interface/message.hpp"
 
 namespace raubase::teensy::proxy {
@@ -17,17 +12,17 @@ void LineSensorProxy::setupParams(rclcpp::Node::SharedPtr node) {
   _refresh_rate = node->declare_parameter("liv_ms", 25);
 
   // Initializing working components
-  publisher = node->create_publisher<LineSensorData>(PUBLISHING_TOPIC, QOS);
-  setting_srv = node->create_service<SetLineSensor>(
-      SETTING_SERVICE, std::bind(&LineSensorProxy::setLineSensorMode, this, std::placeholders::_1,
-                                 std::placeholders::_2));
+  publisher = node->create_publisher<DataLineSensor>(PUBLISHING_TOPIC, QOS);
+  setting_sub = node->create_subscription<SetLineSensorConfig>(
+      SETTING_SERVICE, QOS,
+      std::bind(&LineSensorProxy::setLineSensorMode, this, std::placeholders::_1));
   toggling_srv = node->create_service<ToggleLineSensor>(
       TOGGLE_SERVICE, std::bind(&LineSensorProxy::setSensorOnOff, this, std::placeholders::_1,
                                 std::placeholders::_2));
   clock = node->get_clock();
 
   // Initializing internal state
-  _internal_req = std::make_shared<SetLineSensor::Request>();
+  _internal_req = std::make_shared<SetLineSensorConfig>();
   _internal_req->on = node->declare_parameter("liv_def_on", false);
   _internal_req->high_power = node->declare_parameter("liv_def_power", true);
 }
@@ -49,8 +44,7 @@ void LineSensorProxy::closeTeensy() {
   setLineSensorMode(_internal_req);
 }
 
-void LineSensorProxy::setLineSensorMode(const SetLineSensor::Request::SharedPtr req,
-                                        [[maybe_unused]] SetLineSensor::Response::SharedPtr res) {
+void LineSensorProxy::setLineSensorMode(const SetLineSensorConfig::SharedPtr req) {
   char msg[MSG::MBL];
   snprintf(msg, MSG::MBL, LineSensorProxy::SENSOR_CONFIG, req->on, req->white, req->high_power,
            req->tilt, req->cross_th, req->wide, req->swap);
@@ -81,14 +75,14 @@ void LineSensorProxy::decode(char* msg) {
   if (strlen(msg) <= 4) return;
   const char* p1 = msg + 4;
   _msg.stamp = clock->now();
-  _msg.l1 = strtoll(p1, (char**)&p1, 10);
-  _msg.l2 = strtoll(p1, (char**)&p1, 10);
-  _msg.l3 = strtoll(p1, (char**)&p1, 10);
-  _msg.l4 = strtoll(p1, (char**)&p1, 10);
-  _msg.l5 = strtoll(p1, (char**)&p1, 10);
-  _msg.l6 = strtoll(p1, (char**)&p1, 10);
-  _msg.l7 = strtoll(p1, (char**)&p1, 10);
-  _msg.l8 = strtoll(p1, (char**)&p1, 10);
+  _msg.data[0] = strtoll(p1, (char**)&p1, 10);
+  _msg.data[1] = strtoll(p1, (char**)&p1, 10);
+  _msg.data[2] = strtoll(p1, (char**)&p1, 10);
+  _msg.data[3] = strtoll(p1, (char**)&p1, 10);
+  _msg.data[4] = strtoll(p1, (char**)&p1, 10);
+  _msg.data[5] = strtoll(p1, (char**)&p1, 10);
+  _msg.data[6] = strtoll(p1, (char**)&p1, 10);
+  _msg.data[7] = strtoll(p1, (char**)&p1, 10);
 
   publisher->publish(_msg);
 }

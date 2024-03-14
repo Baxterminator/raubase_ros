@@ -28,10 +28,10 @@ THE SOFTWARE.
 
 #include <chrono>
 #include <memory>
-#include <raubase_msgs/msg/controller_state.hpp>
-#include <raubase_msgs/msg/motor_voltage.hpp>
-#include <raubase_msgs/msg/move_cmd.hpp>
-#include <raubase_msgs/msg/odometry.hpp>
+#include <raubase_msgs/msg/cmd_motor_voltage.hpp>
+#include <raubase_msgs/msg/cmd_move.hpp>
+#include <raubase_msgs/msg/result_odometry.hpp>
+#include <raubase_msgs/msg/state_velocity_controller.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/subscription.hpp>
 
@@ -40,10 +40,10 @@ THE SOFTWARE.
 using namespace rclcpp;
 using namespace std::chrono;
 using namespace std::chrono_literals;
-using raubase_msgs::msg::ControllerState;
-using raubase_msgs::msg::MotorVoltage;
-using raubase_msgs::msg::MoveCmd;
-using raubase_msgs::msg::Odometry;
+using raubase_msgs::msg::CmdMotorVoltage;
+using raubase_msgs::msg::CmdMove;
+using raubase_msgs::msg::ResultOdometry;
+using raubase_msgs::msg::StateVelocityController;
 
 namespace raubase::motor {
 
@@ -130,19 +130,19 @@ class Controller : public Node {
   bool debug;                //< Whether the node run on debug
 
   // ----------------------------- ROS Members --------------------------------
-  TimerBase::SharedPtr fixed_loop;                  //< Controller loop
-  Subscription<MoveCmd>::SharedPtr cmd_sub;         //< Command subscriber
-  Subscription<Odometry>::SharedPtr odom_sub;       //< Odometry subscriber
-  Publisher<MotorVoltage>::SharedPtr voltage_pub;   //< Motor voltage command publisher
-  Publisher<ControllerState>::SharedPtr state_pub;  //< Internal state publisher
+  TimerBase::SharedPtr fixed_loop;                          //< Controller loop
+  Subscription<CmdMove>::SharedPtr cmd_sub;                 //< Command subscriber
+  Subscription<ResultOdometry>::SharedPtr odom_sub;         //< ResultOdometry subscriber
+  Publisher<CmdMotorVoltage>::SharedPtr voltage_pub;        //< Motor voltage command publisher
+  Publisher<StateVelocityController>::SharedPtr state_pub;  //< Internal state publisher
 
   // -------------------------------- Messages --------------------------------
-  MoveCmd::SharedPtr last_cmd;        //< Last command received
-  Odometry::SharedPtr last_odometry;  //< Last odometry received
-  MotorVoltage voltage_cmd;           //< Command voltage message
+  CmdMove::SharedPtr last_cmd;              //< Last command received
+  ResultOdometry::SharedPtr last_odometry;  //< Last odometry received
+  CmdMotorVoltage voltage_cmd;              //< Command voltage message
 
   // ----------------------------------- PIDs ---------------------------------
-  ControllerState state;  //< Internal state of the controller (as msg for debug publishing)
+  StateVelocityController state;  //< Internal state of the controller (as msg for debug publishing)
   PID vel_pid_right, vel_pid_left;  //< PIDs for controlling the motors velocity
   PID heading_pid;                  //< PID for controlling the heading
 };

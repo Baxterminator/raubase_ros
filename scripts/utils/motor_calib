@@ -4,7 +4,7 @@ from typing import List
 from rclpy import init, shutdown, spin_once, ok
 from rclpy.node import Node
 import numpy as np
-from raubase_msgs.msg import MotorVoltage, EncoderState
+from raubase_msgs.msg import CmdMotorVoltage, DataEncoder
 import matplotlib.pyplot as plt
 
 
@@ -80,11 +80,11 @@ class MotorCalib(Node):
         self.enc_buffer = ([], [], [])
         self.setup_volt_seq()
 
-        self.msg = MotorVoltage()
+        self.msg = CmdMotorVoltage()
         self.enc_sub = self.create_subscription(
-            EncoderState, "teensy/encoders", self.encoder_callback, 10
+            DataEncoder, "teensy/encoders", self.encoder_callback, 10
         )
-        self.mot_pub = self.create_publisher(MotorVoltage, "/teensy/set_voltage", 10)
+        self.mot_pub = self.create_publisher(CmdMotorVoltage, "/teensy/set_voltage", 10)
         self.loop = self.create_timer(0.05, self.next_step)
 
     def setup_volt_seq(self):
@@ -128,7 +128,7 @@ class MotorCalib(Node):
         self._fig2.gca().autoscale_view()
         self._fig2.canvas.draw()
 
-    def encoder_callback(self, msg: EncoderState):
+    def encoder_callback(self, msg: DataEncoder):
         self.enc_buffer[0].append(msg.right)
         self.enc_buffer[1].append(msg.left)
         self.enc_buffer[2].append(msg.stamp.sec + msg.stamp.nanosec * 1e-9)

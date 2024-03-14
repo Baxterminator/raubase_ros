@@ -31,12 +31,12 @@ Odometry::Odometry(NodeOptions opts) : Node(NODE_NAME, opts) {
 
   // Declare ROS participants
   RCLCPP_INFO(get_logger(), "Initializing pub/sub");
-  encoder_sub = create_subscription<msg::EncoderState>(
-      SUB_ENC_TOPIC, 10, [this](const msg::EncoderState::SharedPtr msg) {
+  encoder_sub = create_subscription<msg::DataEncoder>(
+      SUB_ENC_TOPIC, 10, [this](const msg::DataEncoder::SharedPtr msg) {
         last_enc = msg;
         last_enc_has_been_used = false;
       });
-  odom_pub = create_publisher<msg::Odometry>(PUB_ODOM_TOPIC, QOS);
+  odom_pub = create_publisher<msg::ResultOdometry>(PUB_ODOM_TOPIC, QOS);
   odom_loop = create_wall_timer(odom_loop_period, std::bind(&Odometry::updateOdometry, this));
 }
 

@@ -2,8 +2,8 @@
 #define RAUBASE_SIMULATOR_MOTOR
 
 #include <chrono>
-#include <raubase_msgs/msg/encoder_state.hpp>
-#include <raubase_msgs/msg/motor_voltage.hpp>
+#include <raubase_msgs/msg/cmd_motor_voltage.hpp>
+#include <raubase_msgs/msg/data_encoder.hpp>
 #include <rclcpp/logger.hpp>
 
 #include "common/robot/kinematics.hpp"
@@ -14,8 +14,8 @@
 using namespace raubase::teensy::proxy;
 using raubase::kinematics::TwoWheeledRoverKinematics;
 using raubase::kinematics::Wheel;
-using raubase_msgs::msg::EncoderState;
-using raubase_msgs::msg::MotorVoltage;
+using raubase_msgs::msg::CmdMotorVoltage;
+using raubase_msgs::msg::DataEncoder;
 
 namespace raubase::simu::plugins {
 
@@ -67,8 +67,8 @@ struct Motor : public PluginInterface {
   static constexpr int MOTOR_QOS = MotorProxy::QOS;
   static constexpr double DEFAULT_KM{40.067609};  //< Motor constant in rads/s/V
   double mot_righ_km, mot_left_km;
-  MotorVoltage::SharedPtr _last_motor;
-  Subscription<MotorVoltage>::SharedPtr sub_motor;
+  CmdMotorVoltage::SharedPtr _last_motor;
+  Subscription<CmdMotorVoltage>::SharedPtr sub_motor;
 
   // --------------------------------- Encoders -------------------------------
   static constexpr const char* ENC_TOPIC = EncoderProxy::PUBLISHING_TOPIC;
@@ -76,9 +76,9 @@ struct Motor : public PluginInterface {
   double right_wheel = 0, left_wheel = 0;
   int enc_per_rev = 68;
   double gear_ratio = 19;
-  EncoderState _enc_msg;
+  DataEncoder _enc_msg;
   TimerBase::SharedPtr enc_loop;
-  Publisher<EncoderState>::SharedPtr pub_enc;
+  Publisher<DataEncoder>::SharedPtr pub_enc;
 };
 
 }  // namespace raubase::simu::plugins

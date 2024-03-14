@@ -13,15 +13,15 @@ void MotorProxy::setupParams(rclcpp::Node::SharedPtr node) {
   _max_voltage = node->declare_parameter("mot_max_v", 10);
 
   // Initializing working components
-  subscriber = node->create_subscription<MotorVoltage>(
+  subscriber = node->create_subscription<CmdMotorVoltage>(
       SUBSCRIBING_TOPIC, QOS,
-      [this](const MotorVoltage::SharedPtr msg) { this->sendCmd(msg, false); });
+      [this](const CmdMotorVoltage::SharedPtr msg) { this->sendCmd(msg, false); });
   clock = node->get_clock();
 }
 
 void MotorProxy::setupSubscriptions() { RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME); }
 
-void MotorProxy::sendCmd(const MotorVoltage::SharedPtr msg, bool direct) {
+void MotorProxy::sendCmd(const CmdMotorVoltage::SharedPtr msg, bool direct) {
   char teensy_msg[MSG::MBL];
   snprintf(teensy_msg, MSG::MBL, MOTOR_CMD, std::min(msg->right, _max_voltage),
            std::min(msg->left, _max_voltage));
@@ -30,7 +30,7 @@ void MotorProxy::sendCmd(const MotorVoltage::SharedPtr msg, bool direct) {
 
 void MotorProxy::closeTeensy() {
   RCLCPP_INFO(logger, "Cleaning-up ...");
-  auto msg = std::make_shared<MotorVoltage>();
+  auto msg = std::make_shared<CmdMotorVoltage>();
   msg->left = 0;
   msg->right = 0;
   sendCmd(msg, true);

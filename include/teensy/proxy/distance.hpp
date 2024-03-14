@@ -26,14 +26,14 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
-#include <raubase_msgs/srv/detail/calibrate_distance_sensor__struct.hpp>
+#include <raubase_msgs/msg/detail/data_distance__struct.hpp>
 #include <rclcpp/service.hpp>
 
-#include "raubase_msgs/msg/distance_data.hpp"
+#include "raubase_msgs/msg/data_distance.hpp"
 #include "raubase_msgs/srv/calibrate_distance_sensor.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using raubase_msgs::msg::DistanceData;
+using raubase_msgs::msg::DataDistance;
 using raubase_msgs::srv::CalibrateDistanceSensor;
 
 namespace raubase::teensy::proxy {
@@ -83,10 +83,10 @@ class DistanceProxy : public TeensyProxy {
   //                             ROS Members
   // =================================================================
  protected:
-  DistanceData _sensor1_msg;
-  DistanceData _sensor2_msg;
-  rclcpp::Publisher<DistanceData>::SharedPtr sensor1_pub;
-  rclcpp::Publisher<DistanceData>::SharedPtr sensor2_pub;
+  DataDistance _sensor1_msg;
+  DataDistance _sensor2_msg;
+  rclcpp::Publisher<DataDistance>::SharedPtr sensor1_pub;
+  rclcpp::Publisher<DataDistance>::SharedPtr sensor2_pub;
   rclcpp::Service<CalibrateDistanceSensor>::SharedPtr calib_srv;
   rclcpp::Clock::SharedPtr clock;  //< ROS clock for stamping the messages
 

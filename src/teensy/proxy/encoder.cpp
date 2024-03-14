@@ -16,7 +16,7 @@ void EncoderProxy::setupParams(rclcpp::Node::SharedPtr node) {
   _reverse_enc = node->declare_parameter("enc_rev", true);
 
   // Initializing working components
-  publisher = node->create_publisher<EncoderState>(PUBLISHING_TOPIC, QOS);
+  publisher = node->create_publisher<DataEncoder>(PUBLISHING_TOPIC, QOS);
   clock = node->get_clock();
 }
 

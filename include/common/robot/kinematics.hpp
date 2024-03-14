@@ -26,14 +26,14 @@ THE SOFTWARE.
 */
 
 #include <memory>
-#include <raubase_msgs/msg/encoder_state.hpp>
-#include <raubase_msgs/msg/odometry.hpp>
+#include <raubase_msgs/msg/data_encoder.hpp>
+#include <raubase_msgs/msg/result_odometry.hpp>
 
 #include "common/utils/math.hpp"
 #include "common/utils/types.hpp"
 
-using raubase_msgs::msg::EncoderState;
-using raubase_msgs::msg::Odometry;
+using raubase_msgs::msg::DataEncoder;
+using raubase_msgs::msg::ResultOdometry;
 
 namespace raubase::kinematics {
 
@@ -174,8 +174,8 @@ struct TwoWheeledRoverKinematics {
    * @param newest the newest encoder state
    * @param odom_msg the last odometry message
    */
-  inline void updateOdometry(const EncoderState::SharedPtr last_used,
-                             const EncoderState::SharedPtr newest, Odometry &odom_msg) const {
+  inline void updateOdometry(const DataEncoder::SharedPtr last_used,
+                             const DataEncoder::SharedPtr newest, ResultOdometry &odom_msg) const {
     double dt = math::timeBtwStamps(last_used->stamp, newest->stamp);
 
     // Compute wheels displacement

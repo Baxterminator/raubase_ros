@@ -27,8 +27,8 @@ THE SOFTWARE.
 */
 
 #include <chrono>
-#include <raubase_msgs/msg/encoder_state.hpp>
-#include <raubase_msgs/msg/odometry.hpp>
+#include <raubase_msgs/msg/data_encoder.hpp>
+#include <raubase_msgs/msg/result_odometry.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/subscription.hpp>
@@ -88,11 +88,11 @@ class Odometry : public Node {
   TwoWheeledRoverKinematics::SharedPtr robot;
 
   // ---------------------------------- ROS -----------------------------------
-  msg::EncoderState::SharedPtr last_enc, last_enc_used;
+  msg::DataEncoder::SharedPtr last_enc, last_enc_used;
   bool last_enc_has_been_used = false;
-  msg::Odometry odom_msg;
-  Subscription<msg::EncoderState>::SharedPtr encoder_sub;
-  Publisher<msg::Odometry>::SharedPtr odom_pub;
+  msg::ResultOdometry odom_msg;
+  Subscription<msg::DataEncoder>::SharedPtr encoder_sub;
+  Publisher<msg::ResultOdometry>::SharedPtr odom_pub;
   TimerBase::SharedPtr odom_loop;
 };
 

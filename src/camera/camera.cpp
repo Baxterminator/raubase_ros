@@ -6,7 +6,7 @@
 #include <cmath>
 #include <memory>
 #include <opencv2/videoio.hpp>
-#include <raubase_msgs/srv/detail/set_camera_mode__struct.hpp>
+#include <rclcpp/create_subscription.hpp>
 #include <rclcpp/logging.hpp>
 #include <string>
 
@@ -32,12 +32,10 @@ Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node("camera", opts) {
   _compr_pub = create_publisher<CompressedImage>("compressed", QOS);
 
   // ------------------------------- Services ---------------------------------
-  srv_mode_set = create_service<SetCameraMode>(
-      MODE_SET_SRV,
-      std::bind(&Camera::set_on_demand, this, std::placeholders::_1, std::placeholders::_2));
-  srv_ask_img = create_service<AskCameraImage>(
-      ASK_IMG_SRV,
-      std::bind(&Camera::get_image, this, std::placeholders::_1, std::placeholders::_2));
+  sub_mode_set = create_subscription<SetCameraMode>(
+      MODE_SET_SRV, QOS, std::bind(&Camera::set_on_demand, this, std::placeholders::_1));
+  sub_ask_img = create_subscription<Empty>(
+      ASK_IMG_SRV, QOS, std::bind(&Camera::get_image, this, std::placeholders::_1));
 
   // -------------------------- Camera connection -----------------------------
   checker =

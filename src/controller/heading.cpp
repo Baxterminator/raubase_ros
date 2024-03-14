@@ -7,11 +7,11 @@ namespace raubase::motor {
 
 void Controller::computeHeadingRef(double dt) {
   switch (last_cmd->move_type) {
-    case MoveCmd::CMD_POS:
-    case MoveCmd::CMD_V_ANGLE:
+    case CmdMove::CMD_POS:
+    case CmdMove::CMD_V_ANGLE:
       state.heading_ref = last_cmd->heading;
       break;
-    case MoveCmd::CMD_V_TR:
+    case CmdMove::CMD_V_TR:
       state.heading_ref = last_odometry->heading + last_cmd->turn_rate * dt;
       break;
     default:

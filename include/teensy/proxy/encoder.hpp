@@ -26,14 +26,13 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
-#include <raubase_msgs/msg/detail/encoder_state__struct.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
 
-#include "raubase_msgs/msg/encoder_state.hpp"
+#include "raubase_msgs/msg/data_encoder.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using raubase_msgs::msg::EncoderState;
+using raubase_msgs::msg::DataEncoder;
 
 namespace raubase::teensy::proxy {
 
@@ -75,8 +74,8 @@ class EncoderProxy : public TeensyProxy {
   //                             ROS Members
   // =================================================================
  protected:
-  EncoderState _msg;
-  rclcpp::Publisher<EncoderState>::SharedPtr publisher;
+  DataEncoder _msg;
+  rclcpp::Publisher<DataEncoder>::SharedPtr publisher;
   rclcpp::Clock::SharedPtr clock;  //< ROS clock for stamping the messages
 
   // =================================================================

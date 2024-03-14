@@ -3,7 +3,6 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/time.hpp>
-#include <std_msgs/msg/detail/empty__struct.hpp>
 #include <std_msgs/msg/empty.hpp>
 
 #include "simulator/plugins/PluginInterface.hpp"

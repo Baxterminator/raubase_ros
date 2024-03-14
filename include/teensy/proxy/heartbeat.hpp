@@ -28,12 +28,11 @@ THE SOFTWARE.
 
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/subscription.hpp>
-#include <raubase_msgs/msg/detail/heart_beat_state__struct.hpp>
 
-#include "raubase_msgs/msg/heart_beat_state.hpp"
+#include "raubase_msgs/msg/state_teensy.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using raubase_msgs::msg::HeartBeatState;
+using raubase_msgs::msg::StateTeensy;
 
 namespace raubase::teensy::proxy {
 
@@ -72,9 +71,9 @@ class HeartBeatProxy : public TeensyProxy {
   //                             ROS Members
   // =================================================================
  protected:
-  HeartBeatState _msg;                                     //< Message to send
-  rclcpp::Publisher<HeartBeatState>::SharedPtr publisher;  //< Heartbeat publisher
-  rclcpp::Clock::SharedPtr clock;                          //< ROS clock for stamping the messages
+  StateTeensy _msg;                                     //< Message to send
+  rclcpp::Publisher<StateTeensy>::SharedPtr publisher;  //< Heartbeat publisher
+  rclcpp::Clock::SharedPtr clock;                       //< ROS clock for stamping the messages
 
   // =================================================================
   //                           Sensor Parameters

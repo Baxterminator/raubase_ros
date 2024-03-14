@@ -30,8 +30,7 @@ THE SOFTWARE.
 
 #include <chrono>
 #include <opencv2/videoio.hpp>
-#include <raubase_msgs/srv/ask_camera_image.hpp>
-#include <raubase_msgs/srv/set_camera_mode.hpp>
+#include <raubase_msgs/msg/set_camera_mode.hpp>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/publisher.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -39,15 +38,17 @@ THE SOFTWARE.
 #include <sensor_msgs/image_encodings.hpp>
 #include <sensor_msgs/msg/compressed_image.hpp>
 #include <sensor_msgs/msg/image.hpp>
+#include <std_msgs/msg/detail/empty__struct.hpp>
+#include <std_msgs/msg/empty.hpp>
 
 namespace raubase::cam {
 
-using raubase_msgs::srv::AskCameraImage;
-using raubase_msgs::srv::SetCameraMode;
+using raubase_msgs::msg::SetCameraMode;
 using sensor_msgs::msg::CompressedImage;
 using sensor_msgs::msg::Image;
 using std::chrono::milliseconds;
 using namespace sensor_msgs::image_encodings;
+using std_msgs::msg::Empty;
 
 using namespace std::chrono_literals;
 
@@ -91,13 +92,9 @@ class Camera : public rclcpp::Node {
    */
   void grabLastImage();
 
-  void set_on_demand(SetCameraMode::Request::ConstSharedPtr req,
-                     [[maybe_unused]] SetCameraMode::Response::SharedPtr res) {
-    on_demand = req->on_demand;
-  }
+  void set_on_demand(SetCameraMode::ConstSharedPtr msg) { on_demand = msg->on_demand; }
 
-  void get_image([[maybe_unused]] AskCameraImage::Request::ConstSharedPtr req,
-                 [[maybe_unused]] AskCameraImage::Response::SharedPtr res) {
+  void get_image(Empty::SharedPtr) {
     RCLCPP_INFO(get_logger(), "Asking for image ...");
     grabLastImage();
     _img_pub->publish(*msg.toImageMsg());
@@ -137,10 +134,10 @@ class Camera : public rclcpp::Node {
   static constexpr const char* NODE_NAME{"camera"};
 
   static constexpr const char* MODE_SET_SRV{"/camera/set_mode"};
-  rclcpp::Service<SetCameraMode>::SharedPtr srv_mode_set;
+  rclcpp::Subscription<SetCameraMode>::SharedPtr sub_mode_set;
 
   static constexpr const char* ASK_IMG_SRV{"/camera/get_image"};
-  rclcpp::Service<AskCameraImage>::SharedPtr srv_ask_img;
+  rclcpp::Subscription<Empty>::SharedPtr sub_ask_img;
 };
 
 }  // namespace raubase::cam

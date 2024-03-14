@@ -9,7 +9,7 @@ void HeartBeatProxy::setupParams(rclcpp::Node::SharedPtr node) {
   refresh_rate = node->declare_parameter("hbt_ms", 500);
 
   // Initializing working components
-  publisher = node->create_publisher<HeartBeatState>(PUBLISHING_TOPIC, QOS);
+  publisher = node->create_publisher<StateTeensy>(PUBLISHING_TOPIC, QOS);
   clock = node->get_clock();
 }
 

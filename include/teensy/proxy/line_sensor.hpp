@@ -26,16 +26,15 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
-#include <raubase_msgs/srv/detail/toggle_line_sensor__struct.hpp>
 #include <rclcpp/service.hpp>
 
-#include "raubase_msgs/msg/line_sensor_data.hpp"
-#include "raubase_msgs/srv/set_line_sensor.hpp"
+#include "raubase_msgs/msg/data_line_sensor.hpp"
+#include "raubase_msgs/msg/set_line_sensor_config.hpp"
 #include "raubase_msgs/srv/toggle_line_sensor.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using raubase_msgs::msg::LineSensorData;
-using raubase_msgs::srv::SetLineSensor;
+using raubase_msgs::msg::DataLineSensor;
+using raubase_msgs::msg::SetLineSensorConfig;
 using raubase_msgs::srv::ToggleLineSensor;
 
 namespace raubase::teensy::proxy {
@@ -80,8 +79,7 @@ class LineSensorProxy : public TeensyProxy {
   /**
    * @brief Set the line sensors with the given options (on/off, high/low power ...).
    */
-  void setLineSensorMode(const SetLineSensor::Request::SharedPtr,
-                         SetLineSensor::Response::SharedPtr = nullptr);
+  void setLineSensorMode(const SetLineSensorConfig::SharedPtr);
 
   /**
    * @brief Turn the sensor on / off
@@ -93,18 +91,19 @@ class LineSensorProxy : public TeensyProxy {
   //                             ROS Members
   // =================================================================
  protected:
-  LineSensorData _msg;                                     //< Message to send
-  rclcpp::Publisher<LineSensorData>::SharedPtr publisher;  //< Data publisher
-  rclcpp::Service<SetLineSensor>::SharedPtr setting_srv;   //< Service for setting the sensor params
+  DataLineSensor _msg;                                     //< Message to send
+  rclcpp::Publisher<DataLineSensor>::SharedPtr publisher;  //< Data publisher
+  rclcpp::Subscription<SetLineSensorConfig>::SharedPtr
+      setting_sub;  //< Service for setting the sensor params
   rclcpp::Service<ToggleLineSensor>::SharedPtr toggling_srv;  //< Servive for on/off
   rclcpp::Clock::SharedPtr clock;  //< ROS clock for stamping the messages
 
   // =================================================================
   //                           Sensor Parameters
   // =================================================================
-  bool _on;                                         //< Whether the sensor is on
-  int _refresh_rate;                                //< The refresh rate for the line sensors
-  SetLineSensor::Request::SharedPtr _internal_req;  //< Internal request for setting modes
+  bool _on;                                      //< Whether the sensor is on
+  int _refresh_rate;                             //< The refresh rate for the line sensors
+  SetLineSensorConfig::SharedPtr _internal_req;  //< Internal request for setting modes
 };
 
 }  // namespace raubase::teensy::proxy

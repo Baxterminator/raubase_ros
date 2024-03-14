@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 from rclpy import init, shutdown, ok, spin_once
 from rclpy.node import Node
-from raubase_msgs.msg import Odometry
+from raubase_msgs.msg import ResultOdometry
 
 
 class OdometryDisplay(Node):
@@ -12,7 +12,7 @@ class OdometryDisplay(Node):
         self.y = [0]
 
         self.odom_sub = self.create_subscription(
-            Odometry, "/odometry", self.odom_update, 1
+            ResultOdometry, "/odometry", self.odom_update, 1
         )
         self.fig = plt.figure()
         (self.line,) = plt.plot(self.x, self.y, "-")
@@ -21,7 +21,7 @@ class OdometryDisplay(Node):
         plt.title("Robot position in the world (odometry)")
         # self.anim = FuncAnimation(self.fig, self.plot_update, interval=200)
 
-    def odom_update(self, msg: Odometry):
+    def odom_update(self, msg: ResultOdometry):
         self.get_logger().info("Odom update")
         if self.x[-1] != msg.x:
             self.x.append(msg.x)

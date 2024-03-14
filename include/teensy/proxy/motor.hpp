@@ -21,15 +21,15 @@ or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
 PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
-FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHSetLineSensorER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#include "raubase_msgs/msg/motor_voltage.hpp"
+#include "raubase_msgs/msg/cmd_motor_voltage.hpp"
 #include "teensy/interface/proxy_interface.hpp"
 
-using raubase_msgs::msg::MotorVoltage;
+using raubase_msgs::msg::CmdMotorVoltage;
 
 namespace raubase::teensy::proxy {
 /**
@@ -63,15 +63,15 @@ class MotorProxy : public TeensyProxy {
   //                          Component Methods
   // =================================================================
  private:
-  void sendCmd(const MotorVoltage::SharedPtr, bool direct = false);
+  void sendCmd(const CmdMotorVoltage::SharedPtr, bool direct = false);
 
   // =================================================================
   //                             ROS Members
   // =================================================================
  protected:
-  rclcpp::Subscription<MotorVoltage>::SharedPtr subscriber;  //< Heartbeat publisher
-  rclcpp::Clock::SharedPtr clock;                            //< ROS clock for stamping the messages
-  double _max_voltage;  //< Maximum voltage allowed by the motors
+  rclcpp::Subscription<CmdMotorVoltage>::SharedPtr subscriber;  //< Heartbeat publisher
+  rclcpp::Clock::SharedPtr clock;  //< ROS clock for stamping the messages
+  double _max_voltage;             //< Maximum voltage allowed by the motors
 };
 }  // namespace raubase::teensy::proxy
 
