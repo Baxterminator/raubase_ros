@@ -1,1 +1,2 @@
-from . import namespaces
+from .namespaces import *
+from .rmw import *

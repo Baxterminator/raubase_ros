@@ -6,6 +6,7 @@ import cv2 as cv
 import numpy as np
 from cv_bridge.core import CvBridge
 from geometry_msgs.msg import Vector3
+from ..constants.rmw import TRANSIENT_QOS
 from rclpy.logging import get_logger
 from rclpy.node import Node
 from sensor_msgs.msg import CameraInfo, CompressedImage, Image
@@ -108,7 +109,7 @@ class ImageProcessor(NodeWrapper):
     CAMERA_TRIGGER = "trigger"
     PROC_TRIGGER = "trigger_analysis"
     DEBUG_IMG = "debug"
-    CAM_INFO_TOPIC = "camera_info"
+    CAM_INFO_TOPIC = "cam_info"
     RAW_IMG_TOPIC = "image"
     COMPRESSED_IMG_TOPIC = "compressed"
     DEFAULT_QOS = 10
@@ -178,7 +179,7 @@ class ImageProcessor(NodeWrapper):
             CameraInfo,
             ImageProcessor.CAM_INFO_TOPIC,
             self.__cam_info_callback,
-            10,
+            TRANSIENT_QOS,
         )
 
     def __define_debug_output(self) -> None:
@@ -290,7 +291,8 @@ class ImageProcessor(NodeWrapper):
         """
         Receive the camera info
         """
-        self.__cam_info = info
+        self.get_logger().info("Got an update on the camera info!")
+        self.processing_data.cam_info = info
 
     def publish_debug(self, img: cv.typing.MatLike) -> None:
         """
