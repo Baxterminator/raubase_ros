@@ -1,1 +1,1 @@
-BallObject[] detected
+ObjectBall[] detected

@@ -1,1 +1,1 @@
-YoloObject[] detected
+ObjectYolo[] detected

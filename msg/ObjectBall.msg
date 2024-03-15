@@ -1,4 +1,5 @@
 # Ball Object description
+std_msgs/Header header
 
 # Position in image
 int32 x

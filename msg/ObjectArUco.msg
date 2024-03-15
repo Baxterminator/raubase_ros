@@ -1,4 +1,5 @@
 # ArUco object description
+std_msgs/Header header
 
 int32 id
 
@@ -7,6 +8,8 @@ float32[4] corners_x
 float32[4] corners_y
 
 # Real world position
-float64 x
-float64 y
-float64 z
+geometry_msgs/Point x
+geometry_msgs/Vector3 rx
+geometry_msgs/Vector3 ry
+geometry_msgs/Vector3 rz
+
