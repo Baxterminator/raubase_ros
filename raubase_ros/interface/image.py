@@ -106,6 +106,7 @@ class ImageProcessor(NodeWrapper):
     """
 
     CAMERA_TRIGGER = "trigger"
+    PROC_TRIGGER = "trigger_analysis"
     DEBUG_IMG = "debug"
     CAM_INFO_TOPIC = "camera_info"
     RAW_IMG_TOPIC = "image"
@@ -203,7 +204,7 @@ class ImageProcessor(NodeWrapper):
         )
         self.__trigger = self.create_subscription(
             Empty,
-            ImageProcessor.CAMERA_TRIGGER,
+            ImageProcessor.PROC_TRIGGER,
             lambda m: self.__request_img(True),
             10,
         )
