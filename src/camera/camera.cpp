@@ -1,50 +1,55 @@
 #include "camera/camera.hpp"
 
-#include <cv_bridge/cv_bridge.h>
-
-#include <chrono>
-#include <cmath>
-#include <memory>
-#include <opencv2/videoio.hpp>
-#include <rclcpp/create_subscription.hpp>
 #include <rclcpp/logging.hpp>
-#include <string>
+#include <vector>
 
 #include "common/utils/types.hpp"
 
 namespace raubase::cam {
 
-Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node("camera", opts) {
+Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node(NODE_NAME, opts) {
+  RCLCPP_INFO(get_logger(), "Starting %s node!", NODE_NAME);
+  RCLCPP_INFO(get_logger(), "Initializing parameters ...");
   // ---------------------------- Configurations ------------------------------
-  _checking_s = declare_parameter("check_s", 1);
-  device = "/dev/video" + std::to_string(declare_parameter("device", 0));
+  _co_timeout =
+      milliseconds((int)(declare_parameter(Params::CO_TIMEOUT, Default::CO_TIMEOUT_S) * 1000));
+  device =
+      Default::DEVICE_PREFIX + std::to_string(declare_parameter(Params::DEVICE, Default::DEVICE));
 
-  img_width = declare_parameter("width", 1280);
-  img_height = declare_parameter("height", 720);
-  img_fps = declare_parameter("fps", 25);
-  on_demand = declare_parameter("on_demand", true);
+  img_width = declare_parameter(Params::WIDTH, Default::WIDTH);
+  img_height = declare_parameter(Params::HEIGHT, Default::HEIGHT);
+  on_trigger = declare_parameter(Params::ON_TRIGGER, Default::ON_TRIGGER);
 
   CC4 = cv::VideoWriter::fourcc(VIDEO_FORMAT[0], VIDEO_FORMAT[1], VIDEO_FORMAT[2], VIDEO_FORMAT[3]);
 
   // ------------------------------ Publisher ---------------------------------
+  RCLCPP_INFO(get_logger(), "Initializing Publishers / Subscribers ...");
   msg.encoding = IMG_ENCODING;
-  _img_pub = create_publisher<Image>("camera", QOS);
-  _compr_pub = create_publisher<CompressedImage>("compressed", QOS);
+  _img_pub = create_publisher<Image>(Topics::OUT_RAW, QOS);
+  _compr_pub = create_publisher<CompressedImage>(Topics::OUT_COMPRESSED, QOS);
 
-  // ------------------------------- Services ---------------------------------
+  // --------------------------------- Works ----------------------------------
   sub_mode_set = create_subscription<SetCameraMode>(
-      MODE_SET_TOPIC, QOS, std::bind(&Camera::set_on_demand, this, std::placeholders::_1));
+      Topics::IN_SET_MODE, QOS, std::bind(&Camera::set_on_demand, this, std::placeholders::_1));
   sub_ask_img = create_subscription<Empty>(
-      ASK_IMG_TOPIC, QOS, std::bind(&Camera::get_image, this, std::placeholders::_1));
+      Topics::IN_TRIGGER, QOS, std::bind(&Camera::get_image, this, std::placeholders::_1));
 
   // -------------------------- Camera connection -----------------------------
-  checker =
-      create_wall_timer(milliseconds(_checking_s * 1000), std::bind(&Camera::try_connect, this));
+  RCLCPP_INFO(get_logger(), "Initializing Wall Timers ...");
+  checker = create_wall_timer(_co_timeout, std::bind(&Camera::try_connect, this));
   runner = create_wall_timer(0ms, std::bind(&Camera::run, this));
   runner->cancel();
+
+  setup_actions();
+  RCLCPP_INFO(get_logger(), "The node has been successfully initialized!");
 }
 
-void Camera::terminate() { _cam.release(); }
+void Camera::terminate() {
+  if (_cam.isOpened()) {
+    _cam.release();
+    RCLCPP_INFO(get_logger(), "Closed camera %s!", device.c_str());
+  }
+}
 
 Camera::~Camera() { terminate(); }
 
@@ -67,14 +72,19 @@ void Camera::try_connect() {
 
   // Configure it
   RCLCPP_INFO(get_logger(), "Camera %s opened!", device.c_str());
-
   _cam.set(cv::CAP_PROP_FOURCC, CC4);
-  _cam.set(cv::CAP_PROP_FRAME_WIDTH, img_width);
-  _cam.set(cv::CAP_PROP_FRAME_HEIGHT, img_height);
-  _cam.set(cv::CAP_PROP_FPS, img_fps);
-  _cam.set(cv::CAP_PROP_BUFFERSIZE, 2);
+  if (img_width != -1)
+    _cam.set(cv::CAP_PROP_FRAME_WIDTH, img_width);
+  else
+    img_width = _cam.get(cv::CAP_PROP_FRAME_WIDTH);
+  if (img_height != -1)
+    _cam.set(cv::CAP_PROP_FRAME_HEIGHT, img_height);
+  else
+    img_height = _cam.get(cv::CAP_PROP_FRAME_HEIGHT);
 
-  RCLCPP_INFO(get_logger(), "Configuring camera to prop: %dx%d@%f", img_width, img_height, img_fps);
+  _cam.set(cv::CAP_PROP_BUFFERSIZE, BUFFER_SIZE);
+
+  RCLCPP_INFO(get_logger(), "Configuring camera to prop: %dx%d", img_width, img_height);
   checker->cancel();
   runner->reset();
 }
@@ -96,11 +106,10 @@ void Camera::run() {
   }
 
   // Test if on demand
-  if (on_demand) return;
+  if (on_trigger) return;
 
   // Else extract next image
   grabLastImage();
-  if (msg.image.empty()) return;
   _img_pub->publish(*msg.toImageMsg());
   _compr_pub->publish(*msg.toCompressedImageMsg());
 }

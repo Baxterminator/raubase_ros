@@ -6,8 +6,14 @@
 # =============================================================================
 
 image:
-  width: 1280
-  height: 720
-work:
-  check_s: 1
-  on_demand: true
+  width: -1                # Custom width for the image
+  height: -1               # Custom height for the image
+mode:
+  device: 0                # The index of the camera (e.g. 0 for /dev/video0)
+  co_s: 1.0                # The timeout before retrying to connect to the camera
+  on_trigger: true         # True if the camera needs to be trigger for an image to be published
+calibration:
+  calib_width: 1080              # The width at which the calibration has been done
+  calib_height: 720              # The height at which the calibration has been done
+  calib_K: [1.0, 1.0, 540, 360]  # Matrix K coeffs (fx, fy, cx, cy) = transformation to camera frame
+  calib_d: [0,0,0,0,0]           # Vector d coeffs = distortion (5 elems)
