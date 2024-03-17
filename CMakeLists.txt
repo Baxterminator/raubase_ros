@@ -140,6 +140,13 @@ install(DIRECTORY
         resources/launch
         DESTINATION share/${PROJECT_NAME})
 
+if (RPI)
+  install(FILES
+    resources/ON_RASPBERRY
+    DESTINATION share/${PROJECT_NAME}
+  )
+endif()
+
 
 ament_auto_package()
 message("========================== Make ==========================")

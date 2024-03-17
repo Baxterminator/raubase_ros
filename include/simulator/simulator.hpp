@@ -1,14 +1,19 @@
 #ifndef RAUBASE_SIMULATOR
 #define RAUBASE_SIMULATOR
 
+#include <raubase_msgs/msg/state_teensy.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/time.hpp>
 #include <std_msgs/msg/empty.hpp>
 
 #include "simulator/plugins/PluginInterface.hpp"
+#include "teensy/proxy/heartbeat.hpp"
+#include "teensy/teensy.hpp"
 
 using namespace rclcpp;
 using std::chrono::microseconds;
+using namespace raubase::teensy::proxy;
+using raubase_msgs::msg::StateTeensy;
 
 namespace raubase::simu {
 
@@ -69,6 +74,7 @@ class Simulator : public Node {
                          ((dt < 1E-5) ? -1 : 1 / dt));
 
     // Running update
+    activity_msg.stamp = get_clock()->now();
     activity->publish(activity_msg);
     for (auto& plugin : plugins) plugin->update(dt);
   }
@@ -95,10 +101,10 @@ class Simulator : public Node {
   TimerBase::SharedPtr simu_loop;
   std::vector<plugins::PluginInterface::SharedPtr> plugins;
 
-  static constexpr const char* ACTIVITY_TOPIC{"/teensy/activity"};
-  static constexpr int ACTIVITY_QOS{10};
-  std_msgs::msg::Empty activity_msg;
-  Publisher<std_msgs::msg::Empty>::SharedPtr activity;
+  static constexpr const char* ACTIVITY_TOPIC = HeartBeatProxy::PUBLISHING_TOPIC;
+  static constexpr int ACTIVITY_QOS = HeartBeatProxy::QOS;
+  StateTeensy activity_msg;
+  Publisher<StateTeensy>::SharedPtr activity;
 };
 
 }  // namespace raubase::simu

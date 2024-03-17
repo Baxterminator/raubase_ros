@@ -3,7 +3,7 @@ from launch.actions import IncludeLaunchDescription, GroupAction
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import PushRosNamespace
-from raubase_ros.constants.namespaces import DRIVE_NAMESPACE
+from raubase_ros.config import get_top_namespace
 
 # =============================================================================
 #                         Full Raubase stack Launcher
@@ -17,7 +17,7 @@ def generate_launch_description():
         [
             GroupAction(
                 [
-                    PushRosNamespace("theo"),
+                    PushRosNamespace(get_top_namespace()),
                     IncludeLaunchDescription(
                         PythonLaunchDescriptionSource(
                             [

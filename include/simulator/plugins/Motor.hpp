@@ -74,8 +74,6 @@ struct Motor : public PluginInterface {
   static constexpr const char* ENC_TOPIC = EncoderProxy::PUBLISHING_TOPIC;
   static constexpr int ENC_QOS = EncoderProxy::QOS;
   double right_wheel = 0, left_wheel = 0;
-  int enc_per_rev = 68;
-  double gear_ratio = 19;
   DataEncoder _enc_msg;
   TimerBase::SharedPtr enc_loop;
   Publisher<DataEncoder>::SharedPtr pub_enc;

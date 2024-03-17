@@ -23,7 +23,7 @@ Simulator::Simulator(NodeOptions opts) : Node(NODE_NAME, opts) {
   simu_loop = create_wall_timer(simu_time, std::bind(&Simulator::nextIteration, this));
 
   // Activity checker
-  activity = create_publisher<std_msgs::msg::Empty>(ACTIVITY_TOPIC, ACTIVITY_QOS);
+  activity = create_publisher<StateTeensy>(ACTIVITY_TOPIC, ACTIVITY_QOS);
 }
 
 }  // namespace raubase::simu

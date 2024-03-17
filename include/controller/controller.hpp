@@ -57,7 +57,7 @@ class Controller : public Node {
   //                                 Constants
   // ==========================================================================
  private:
-  static constexpr const char* SUB_CMD_TOPIC{"move"};
+  static constexpr const char* SUB_CMD_TOPIC{"control/move"};
   static constexpr const char* SUB_ODOMETRY{"state/odometry"};
   static constexpr const char* PUB_CMD_TOPIC{"control/set_voltage"};
   static constexpr const char* PUB_STATE_TOPIC{"state/vcontroller"};

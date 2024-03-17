@@ -47,8 +47,6 @@ class HeartBeatProxy : public TeensyProxy {
   static constexpr const char* NODE_NAME{"HeartBeatProxy"};  //< ROS Node name
   static constexpr const char* TEENSY_COMP{"hbt"};           //< Teensy component to subscribe from
   static constexpr const char* TEENSY_MSG = TEENSY_COMP;     //< Teensy board receiving prefix
-
- protected:
   static constexpr const char* PUBLISHING_TOPIC{"state/teensy"};  //< Encoder state topic
   static constexpr int QOS{10};                                   //< QOS for all components
 

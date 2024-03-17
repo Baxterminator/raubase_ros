@@ -27,9 +27,9 @@ class Mixer(Node):
     Quality of Server publisher.
     """
 
-    DECLARE_INPUT_TOPIC = "declare_input"
-    INPUT_MODE_TOPIC = "set_input"
-    OUTPUT_TOPIC = "move"
+    DECLARE_INPUT_TOPIC = "control/declare_input"
+    INPUT_MODE_TOPIC = "control/set_input"
+    OUTPUT_TOPIC = "control/move"
     DEFAULT_QOS = 1
 
     def __init__(self):
