@@ -125,11 +125,11 @@ class Camera : public rclcpp::Node {
   };
 
   struct Topics {
-    static constexpr const char* OUT_RAW{"camera"};
-    static constexpr const char* OUT_COMPRESSED{"compressed"};
-    static constexpr const char* IN_TRIGGER{"trigger"};
-    static constexpr const char* IN_SET_MODE{"set_mode"};
-    static constexpr const char* OUT_CAM_INFO{"cam_info"};
+    static constexpr const char* OUT_RAW{"camera/raw"};
+    static constexpr const char* OUT_COMPRESSED{"camera/compressed"};
+    static constexpr const char* IN_TRIGGER{"camera/trigger"};
+    static constexpr const char* IN_SET_MODE{"camera/set_mode"};
+    static constexpr const char* OUT_CAM_INFO{"camera/cam_info"};
   };
 
   struct Actions {

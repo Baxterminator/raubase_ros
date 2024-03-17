@@ -75,7 +75,7 @@ class Mixer(Node):
 
         self.inputs[msg.input] = self.create_subscription(
             CmdMove,
-            f"move_{msg.input}",
+            f"control/move_{msg.input}",
             input_callback,
             Mixer.DEFAULT_QOS,
         )

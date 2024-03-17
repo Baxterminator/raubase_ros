@@ -106,12 +106,12 @@ class ImageProcessor(NodeWrapper):
     It also implement a compressed image channel decryption if possible.
     """
 
-    CAMERA_TRIGGER = "trigger"
-    PROC_TRIGGER = "trigger_analysis"
-    DEBUG_IMG = "debug"
-    CAM_INFO_TOPIC = "cam_info"
-    RAW_IMG_TOPIC = "image"
-    COMPRESSED_IMG_TOPIC = "compressed"
+    CAMERA_TRIGGER = "camera/trigger"
+    PROC_TRIGGER = "processor/trigger"
+    DEBUG_IMG = "processor/debug"
+    CAM_INFO_TOPIC = "camera/cam_info"
+    RAW_IMG_TOPIC = "camera/raw"
+    COMPRESSED_IMG_TOPIC = "camera/compressed"
     DEFAULT_QOS = 10
 
     MESSAGES_THROTTLE_S = 1

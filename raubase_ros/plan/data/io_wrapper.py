@@ -7,6 +7,7 @@ from raubase_msgs.msg import (
     ResultArUco,
     ResultOdometry,
 )
+from raubase_ros.constants import TRANSIENT_QOS
 from sensor_msgs.msg import CompressedImage
 from raubase_msgs.msg import CmdMove, CmdLineFollower, SetControllerInput
 from rclpy.qos import QoSProfile
@@ -153,13 +154,21 @@ class IOWrapper:
         """
         Setup for selecting the input source in the velocity controller.
         """
-        self.__control.set_cmd = self._pub(node, SetControllerInput, Topics.CONTROLLER)
+        self.__control.set_cmd = self._pub(
+            node, SetControllerInput, Topics.CONTROLLER, TRANSIENT_QOS
+        )
 
     def __init_move(self, node: NodeWrapper) -> None:
         """
         Setup for moving the robot.
         """
         self.__control.set_vel = self._pub(node, CmdMove, Topics.MOVE)
+
+        # Initialize "plan" input method for the mixer
+        pub = node.create_publisher(SetControllerInput, Topics.DECLARE_INPUT, 10)
+        msg = SetControllerInput()
+        msg.input = SetControllerInput.PLAN
+        pub.publish(msg)
 
     def __init_line_follow(self, node: NodeWrapper) -> None:
         """

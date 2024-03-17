@@ -1,15 +1,16 @@
 class Topics:
     # Sensors data
-    ENCODERS = "encoders"
-    DISTANCE = "dist{}"
-    ODOMETRY = "odometry"
+    ENCODERS = "sensor/encoders"
+    DISTANCE = "sensor/dist_{}"
+    ODOMETRY = "state/odometry"
 
     # Camera / Images
-    COMP_IMG = "compressed"
-    YOLO = "yolo"
-    ARUCO = "aruco"
+    COMP_IMG = "camera/compressed"
+    YOLO = "result/yolo"
+    ARUCO = "camera/aruco"
 
     # Control
-    CONTROLLER = "controller_input"
-    MOVE = "move"
+    DECLARE_INPUT = "control/declare_input"
+    CONTROLLER = "control/set_input"
+    MOVE = "control/move_plan"
     LINE = "line"
