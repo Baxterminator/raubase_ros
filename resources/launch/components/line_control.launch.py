@@ -15,11 +15,11 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            # Node(
-            #     package="raubase_ros",
-            #     executable="line_follow",
-            #     parameters=config.get_parameters(),
-            #     remappings=config.get_remaps(),
-            # )
+            Node(
+                package="raubase_ros",
+                executable="line_follow",
+                parameters=config.get_parameters(),
+                remappings=config.get_remaps(),
+            )
         ]
     )

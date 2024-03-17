@@ -2,6 +2,7 @@
 
 #include <rclcpp/logging.hpp>
 
+#include "common/utils/types.hpp"
 #include "common/utils/utime.hpp"
 
 /**========================================================================
@@ -79,7 +80,7 @@ void Controller::terminate() {
 void Controller::loop() {
   static UTime loop_time("now");
 
-  RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 500, "Loop");
+  RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR, "Loop");
 
   // Compute the Turn Rate to apply
   computeHeadingRef(loop_time.getTimePassed());

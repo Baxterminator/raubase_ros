@@ -36,6 +36,11 @@ using sptr = std::shared_ptr<T>;
 
 typedef unsigned long ulong;
 
+#define constchar static constexpr const char*
+#define constval static constexpr
+
+constexpr long THROTTLE_DUR{500};
+
 }  // namespace raubase
 
 #endif

@@ -1,7 +1,9 @@
 #include <cmath>
+#include <rclcpp/logging.hpp>
 
 #include "common/robot/kinematics.hpp"
 #include "common/utils/math.hpp"
+#include "common/utils/types.hpp"
 #include "localization/localization.hpp"
 
 namespace raubase::loc {
@@ -43,7 +45,8 @@ Odometry::Odometry(NodeOptions opts) : Node(NODE_NAME, opts) {
 ///////////////////////////////////////////////////////////////////////////////
 
 void Odometry::updateOdometry() {
-  RCLCPP_INFO(get_logger(), "Odometry loop");
+  RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR, "Odometry loop");
+
   // Initialize last enc
   if (last_enc_used == nullptr) {
     last_enc_used = last_enc;

@@ -6,6 +6,7 @@
 #include <rclcpp/time.hpp>
 #include <std_msgs/msg/empty.hpp>
 
+#include "common/utils/types.hpp"
 #include "simulator/plugins/PluginInterface.hpp"
 #include "teensy/proxy/heartbeat.hpp"
 #include "teensy/teensy.hpp"
@@ -70,8 +71,8 @@ class Simulator : public Node {
     double dt = (now - last_time).seconds();
     last_time = now;
 
-    RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 500, "Running simulation ... [%.3f Hz]",
-                         ((dt < 1E-5) ? -1 : 1 / dt));
+    RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR,
+                         "Running simulation ... [%.3f Hz]", ((dt < 1E-5) ? -1 : 1 / dt));
 
     // Running update
     activity_msg.stamp = get_clock()->now();

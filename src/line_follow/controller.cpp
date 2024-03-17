@@ -1,25 +1,193 @@
+#include <algorithm>
+#include <raubase_msgs/msg/detail/set_controller_input__struct.hpp>
+
+#include "common/utils/math.hpp"
+#include "common/utils/rmw.hpp"
+#include "common/utils/types.hpp"
 #include "controller/edge_controller.hpp"
 
 namespace raubase::control {
 
 LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
-  loop_period =
-      microseconds((long)std::fabs(1. / declare_parameter("pid_freq", DEFAULT_FREQ) * 1E6));
-  pid.setup(loop_period.count() * 1E-6, declare_parameter("pid_kp", DEFAULT_PID_KP),
-            declare_parameter("pid_td", DEFAULT_PID_TD),
-            declare_parameter("pid_ad", DEFAULT_PID_AD),
-            declare_parameter("pid_ti", DEFAULT_PID_TI));
-  max_turn_rate = declare_parameter("max_turn_rate", DEFAULT_MAX_TR);
-  n_sensors = declare_parameter("n_sensors", DEFAULT_N_SENSORS);
-  space_btwn = declare_parameter("space_btwn_m", DEFAULT_SENSOR_SPACED);
+  // Declare parameters
+  int freq = declare_parameter(Params::PID_FREQ, Default::FREQ);
+  loop_period = microseconds((long)std::fabs(1. / freq * 1E6));
 
-  RCLCPP_INFO(get_logger(), "Launching line follower unit with a period of %zuµs",
+  pid.setup(loop_period.count() * 1E-6, declare_parameter(Params::PID_KP, Default::PID_KP),
+            declare_parameter(Params::PID_TD, Default::PID_TD),
+            declare_parameter(Params::PID_AD, Default::PID_AD),
+            declare_parameter(Params::PID_TI, Default::PID_TI));
+  max_turn_rate = declare_parameter(Params::MAX_TR, Default::MAX_TR);
+  n_sensors = declare_parameter(Params::N_SENSORS, Default::N_SENSORS);
+  half_n_sensors = float(n_sensors - 1) / 2.;
+  float width = declare_parameter(Params::WIDTH, Default::WIDTH);
+  btwn_m = width / (n_sensors - 1);
+  center_m = width / 2.0;
+
+  white_calibration = declare_parameter(Params::WHITE_CALIB, calib(n_sensors, Default::WHITE));
+  black_calibration = declare_parameter(Params::BLACK_CALIB, calib(n_sensors, Default::BLACK));
+  white_threshold = declare_parameter(Params::WHITE_THRES, Default::W_THRESHOLD);
+  check_calib();
+
+  // Register ROS components
+  RCLCPP_INFO(get_logger(), "Launching edge controller with a period of %zuµs",
               loop_period.count());
-
-  move_pub = create_publisher<CmdMove>(PUB_CMD_TOPIC, QOS);
+  move_cmd.move_type = CmdMove::CMD_V_TR;
+  move_pub = create_publisher<CmdMove>(Topics::PUB_CMD, QOS);
   fixed_loop = create_wall_timer(loop_period, std::bind(&LineFollower::loop, this));
+  sensor_sub = create_subscription<DataLineSensor>(Topics::SUB_LINE, QOS,
+                                                   [this](DataLineSensor::SharedPtr msg) {
+                                                     last_data = msg;
+                                                     last_data_has_been_used = false;
+                                                   });
+  ref_sub = create_subscription<CmdLineFollower>(
+      Topics::SUB_REF, QOS, [this](CmdLineFollower::SharedPtr ref) { last_cmd = ref; });
+  result_pub = create_publisher<ResultEdge>(Topics::PUB_RESULT, QOS);
+  declare_controller();
+
+  controller_state = create_subscription<StateVelocityController>(
+      Topics::SUB_CONTROLLER_STATE, QOS,
+      [this](StateVelocityController::SharedPtr msg) { last_control_state = msg; });
+  fixed_loop = create_wall_timer(loop_period, std::bind(&LineFollower::loop, this));
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void LineFollower::declare_controller() {
+  input_declaration = create_publisher<SetControllerInput>(Topics::PUB_DECLARE, TRANSIENT_QOS);
+  SetControllerInput declaration;
+  declaration.input = SetControllerInput::EDGE;
+  input_declaration->publish(declaration);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void LineFollower::check_calib() {
+  ulong white_size = white_calibration.size();
+  ulong black_size = black_calibration.size();
+
+  // Check vector sizes
+  if (calib_valid = (white_size == black_size) && (white_size = n_sensors); !calib_valid) return;
+
+  // Check calibration spacing
+  factor.reserve(n_sensors);
+  for (ulong i = 0; i < n_sensors; i++) {
+    calib_valid = (white_calibration[i] - black_calibration[i]) > MIN_DIFF_W_B;
+    factor[i] = 1000.0 / (white_calibration[i] - black_calibration[i]);
+    if (!calib_valid) return;
+  }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void LineFollower::compute_edge() {
+  result.valid_edge = false;
+
+  // Iterate of the values of the sensor to find the edge
+  std::vector<int> normalized(n_sensors);
+  ulong i, j;
+  bool found_left = false, found_right = false;
+  for (i = 0; (i < n_sensors) && (!found_left || !found_right); i++) {
+    j = n_sensors - 1 - i;
+
+    // Compute normalized value (compute only once)
+    if (i < j) {
+      normalized[i] = (last_data->data[i] - black_calibration[i]) * factor[i];
+      normalized[j] = (last_data->data[j] - black_calibration[j]) * factor[j];
+    }
+
+    // Look for left edge
+    if (!found_left && normalized[i] > white_threshold) {
+      result.left_edge = (i == 0) ? 0
+                                  : (float(i) + float(white_threshold - normalized[i - 1]) /
+                                                    float(normalized[i] - normalized[i - 1]));
+      found_left = true;
+    }
+
+    // Look for right edge
+    if (!found_right && normalized[j] > white_threshold) {
+      result.right_edge = (j == n_sensors - 1)
+                              ? n_sensors - 1
+                              : (float(j) - float(white_threshold - normalized[j + 1]) /
+                                                float(normalized[j] - normalized[j + 1]));
+      found_right = true;
+    }
+  }
+
+  // Found edge if found left or right
+  if (result.valid_edge = found_left || found_right; !result.valid_edge) {
+    result.left_edge = half_n_sensors;
+    result.right_edge = half_n_sensors;
+  }
+
+  // Scale to meters (positive is left)
+  result.left_edge = center_m - (result.left_edge * btwn_m);
+  result.right_edge = center_m - (result.right_edge * btwn_m);
+
+  result_pub->publish(result);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void LineFollower::update_controller() {
+  float u;
+
+  if (result.valid_edge) {
+    u = -pid.pid(last_cmd->offset, ((last_cmd->follow) ? result.right_edge : result.left_edge),
+                 limited);
+    if (limited = std::fabs(u) > max_turn_rate; limited)
+      u = math::saturate(u, max_turn_rate);
+    else
+      limited = last_control_state->voltage_saturation || last_control_state->turnrate_saturation;
+  } else {
+    u = 0.0;
+    limited = last_control_state->voltage_saturation || last_control_state->turnrate_saturation;
+  }
+
+  move_cmd.turn_rate = u;
+  move_cmd.velocity = last_cmd->speed;
+  move_pub->publish(move_cmd);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+void LineFollower::loop() {
+  // If calib not valid, don't continue
+  if (!calib_valid) {
+    RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR, "Calibration is not good!");
+    return;
+  }
+
+  RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR, "Edge loop");
+  // Initialize last enc
+  if (last_data_used == nullptr) {
+    last_data_used = last_data;
+    return;
+  }
+
+  // Sanity check for last_enc value
+  if (last_data == nullptr || last_cmd == nullptr) return;
+
+  // Prevent from reusing the same one
+  if (last_data_has_been_used) return;
+
+  // Compute edge
+  compute_edge();
+  update_controller();
+  last_data_has_been_used = true;
 }
 
 }  // namespace raubase::control
 
-int main(int argc, char** argv) { return 0; }
+int main(int argc, char **argv) {
+  rclcpp::init(argc, argv);
+
+  auto node = std::make_shared<raubase::control::LineFollower>(rclcpp::NodeOptions{});
+
+  while (rclcpp::ok()) {
+    rclcpp::spin(node);
+  }
+
+  rclcpp::shutdown();
+  return 0;
+}
