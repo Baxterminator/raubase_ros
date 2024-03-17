@@ -1,6 +1,12 @@
 from dataclasses import dataclass
 from enum import unique
-from raubase_msgs.msg import DataDistance, DataEncoder, ResultYolo, ResultArUco
+from raubase_msgs.msg import (
+    DataDistance,
+    DataEncoder,
+    ResultYolo,
+    ResultArUco,
+    ResultOdometry,
+)
 from sensor_msgs.msg import CompressedImage
 from raubase_msgs.msg import CmdMove, CmdLineFollower, SetControllerInput
 from rclpy.qos import QoSProfile
@@ -99,6 +105,7 @@ class IOWrapper:
         # Sensors
         self.add_req(Requirement.ENCODERS, self.__init_encoders)
         self.add_req(Requirement.DISTANCE, self.__init_all_distance)
+        self.add_req(Requirement.ODOMETRY, self.__init_odometry)
 
         # Camera
         self.add_req(Requirement.CAMERA, self.__init_camera)
@@ -165,7 +172,7 @@ class IOWrapper:
         for req, init_func in self.__req_mapping.items():
             if (req & new_group) != 0:
                 node.get_logger().info(
-                    f"Initializing requirement #{int(req)} {req.name}!"
+                    f"⊛ Initializing requirement #{int(req)} {req.name}!"
                 )
                 init_func(node)
                 group_val -= int(req)
@@ -183,9 +190,9 @@ class IOWrapper:
                 if (item & group_val) != 0:
                     kls, enum = BaseRequirement.find_in_subclasses(item)
                     if kls == "" or enum == "":
-                        node.get_logger().warn(f"-> No candidate found for #{item}")
+                        node.get_logger().warn(f"⊛ No candidate found for #{item}")
                     else:
-                        node.get_logger().warn(f"-> Candidate {kls}.{enum} for #{item}")
+                        node.get_logger().warn(f"⊛ Candidate {kls}.{enum} for #{item}")
                 max_n -= 1
 
         node.get_logger().info("Done for requirements initialization!")
@@ -219,6 +226,19 @@ class IOWrapper:
             self.state.distance[sensor_idx] = msg
 
         self._sub(node, DataEncoder, Topics.DISTANCE.format(sensor_idx), distance_clbk)
+
+    # =========================================================================
+    # State
+    # =========================================================================
+    def __init_odometry(self, node: NodeWrapper) -> None:
+        """
+        Setup for receiving the estimated position and speed.
+        """
+
+        def clbk(msg: ResultOdometry):
+            pass
+
+        self._sub(node, ResultOdometry, Topics.ODOMETRY, clbk)
 
     # =========================================================================
     # Camera

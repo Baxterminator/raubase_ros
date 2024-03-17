@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict
 from raubase_msgs.msg import DataEncoder, DataDistance
-from raubase_msgs.msg import ResultYolo, ResultArUco
+from raubase_msgs.msg import ResultYolo, ResultArUco, ResultOdometry
 from sensor_msgs.msg import CompressedImage
 
 
@@ -16,6 +16,7 @@ class SharedData:
     distance: Dict[int, DataDistance] = field(
         default_factory=lambda: {1: DataDistance(), 2: DataDistance()}
     )
+    odometry: ResultOdometry = ResultOdometry()
 
     # Camera / Images
     last_img: CompressedImage = CompressedImage()

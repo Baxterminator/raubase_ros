@@ -14,7 +14,7 @@ class BehaviourPlan(NodeWrapper):
         super().__init__("behaviour")  # type: ignore
         self.__io = IOWrapper()
         self.__tasks: List[BaseTask] = []
-        self._requirements: Requirement = Requirement.NONE
+        self._requirements: int = Requirement.NONE
         self.__task_id = 0
         self.__task_started = False
         self.__done = False

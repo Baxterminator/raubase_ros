@@ -2,6 +2,7 @@ class Topics:
     # Sensors data
     ENCODERS = "encoders"
     DISTANCE = "dist{}"
+    ODOMETRY = "odometry"
 
     # Camera / Images
     COMP_IMG = "compressed"
