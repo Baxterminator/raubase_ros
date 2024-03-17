@@ -1,3 +1,4 @@
+from time import perf_counter
 from typing import List
 
 from raubase_ros.wrappers import NodeWrapper
@@ -20,9 +21,12 @@ class BehaviourPlan(NodeWrapper):
         self.__done = False
         self.__initialized = False
 
+        # Extra variables
+        self.__task_time_origin = 0
+
         # Declare loop runner
         self.__timer = self.create_timer(
-            self.declare_wparameter("loop_s", 0.1).get(),
+            self.declare_wparameter("loop_s", 0.01).get(),
             self.loop,
         )
 
@@ -60,6 +64,8 @@ class BehaviourPlan(NodeWrapper):
 
         # Update task
         if self.__task_started:
+            self.__io.state.task_time = perf_counter() - self.__task_time_origin
+            self.__io.state.time_elapsed = perf_counter() - self.__io.state.time_origin
             self.__tasks[self.__task_id].loop()
 
             # Test for task end
@@ -68,6 +74,10 @@ class BehaviourPlan(NodeWrapper):
                 self.__task_started = False
         elif self.__tasks[self.__task_id].can_start():
             self.__task_started = True
+            self.__io.state.task_time = perf_counter()
+            self.__task_time_origin = perf_counter()
+            self.__io.state.time_origin = 0
+            self.__io.state.time_elapsed = 0
 
         # If done, reset state
         if self.__task_id >= len(self.__tasks):

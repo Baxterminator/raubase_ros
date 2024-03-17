@@ -90,7 +90,7 @@ class IOWrapper:
         """
 
         def distance_clbk(msg: DataDistance):
-            self.state.distance[sensor_idx] = msg
+            self.state.ir[sensor_idx] = msg
 
         self._sub(node, DataEncoder, Topics.DISTANCE.format(sensor_idx), distance_clbk)
 
@@ -103,7 +103,13 @@ class IOWrapper:
         """
 
         def clbk(msg: ResultOdometry):
-            pass
+            # Update elapsed distance
+            dx = msg.x - self.state.odometry.x
+            dy = msg.y - self.state.odometry.y
+            self.state.distance += np.sqrt(dx * dx + dy * dy)
+
+            # Update odometry message
+            self.state.odometry = msg
 
         self._sub(node, ResultOdometry, Topics.ODOMETRY, clbk)
 
