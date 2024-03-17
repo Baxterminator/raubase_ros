@@ -21,8 +21,8 @@ or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
 INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
 PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
-FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHSetLineSensorER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHSetLineSensorER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
@@ -41,9 +41,9 @@ class MotorProxy : public TeensyProxy {
   //                             Constants
   // =================================================================
  public:
-  static constexpr const char* NODE_NAME{"MotorProxy"};                   //< ROS Node name
-  static constexpr const char* SUBSCRIBING_TOPIC{"/teensy/set_voltage"};  //< Cmd subscribing topic
-  static constexpr int QOS{10};                                           //< QOS for all components
+  static constexpr const char* NODE_NAME{"MotorProxy"};           //< ROS Node name
+  static constexpr const char* SUBSCRIBING_TOPIC{"set_voltage"};  //< Cmd subscribing topic
+  static constexpr int QOS{10};                                   //< QOS for all components
 
  protected:
   static constexpr const char* MOTOR_CMD{"motv %f %f"};  // Cmd to send to control the motors
