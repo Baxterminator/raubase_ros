@@ -43,8 +43,131 @@ class IOWrapper:
     RequirementDependency = Dict[BaseRequirement, List[BaseRequirement]]
 
     # =========================================================================
-    # Class methods
+    # Methods of interest (for adding new default mappings)
     # =========================================================================
+    def __define_requirement_mappings(self) -> None:
+        """
+        Define the requirement mapping for the Raubase environnement.
+        """
+        # Sensors
+        self.add_req(Requirement.ENCODERS, self.__init_encoders)
+        self.add_req(Requirement.DISTANCE, self.__init_all_distance)
+        self.add_req(Requirement.ODOMETRY, self.__init_odometry)
+
+        # Camera
+        self.add_req(Requirement.CAMERA, self.__init_camera)
+        self.add_req(Requirement.ARUCO, self.__init_aruco)
+        self.add_req(Requirement.YOLO, self.__init_yolo)
+
+        # Control
+        self.add_req(InternalReq.CONTROLLER, self.__init_controller_mode)
+        self.add_req(Requirement.MOVE, self.__init_move, InternalReq.CONTROLLER)
+        self.add_req(Requirement.LINE, self.__init_line_follow, InternalReq.CONTROLLER)
+
+    # -------------------------
+    # Sensors
+    # -------------------------
+    def __init_encoders(self, node: NodeWrapper) -> None:
+        """
+        Intitialize what is needed for the encoders data to be accessible.
+        """
+
+        def encoder_callback(msg: DataEncoder):
+            self.state.encoders = msg
+
+        self._sub(node, DataEncoder, Topics.ENCODERS, encoder_callback)
+
+    def __init_all_distance(self, node: NodeWrapper) -> None:
+        """
+        Initialize all distance sensors
+        """
+        for i in range(1, self.__conf.n_distance + 1):
+            self.__init_distance(node, i)
+
+    def __init_distance(self, node: NodeWrapper, sensor_idx: int) -> None:
+        """
+        Intitialize what is needed for the IR distances sensors data to be accessible.
+        """
+
+        def distance_clbk(msg: DataDistance):
+            self.state.distance[sensor_idx] = msg
+
+        self._sub(node, DataEncoder, Topics.DISTANCE.format(sensor_idx), distance_clbk)
+
+    # -------------------------
+    # State
+    # -------------------------
+    def __init_odometry(self, node: NodeWrapper) -> None:
+        """
+        Setup for receiving the estimated position and speed.
+        """
+
+        def clbk(msg: ResultOdometry):
+            pass
+
+        self._sub(node, ResultOdometry, Topics.ODOMETRY, clbk)
+
+    # -------------------------
+    # Camera
+    # -------------------------
+    def __init_camera(self, node: NodeWrapper) -> None:
+        """
+        Setup for receiving the last img
+        """
+
+        def clbk(msg: CompressedImage):
+            self.state.last_img = msg
+
+        self._sub(node, CompressedImage, Topics.COMP_IMG, clbk)
+
+    def __init_yolo(self, node: NodeWrapper) -> None:
+        """
+        Setup for receiving the YOLO processing data
+        """
+
+        def clbk(msg: ResultYolo):
+            self.state.last_yolo = msg
+
+        self._sub(node, ResultYolo, Topics.YOLO, clbk)
+
+    def __init_aruco(self, node: NodeWrapper) -> None:
+        """
+        Setup for receiving the Aruco processing data
+        """
+
+        def clbk(msg: ResultArUco):
+            self.state.last_aruco = msg
+
+        self._sub(node, ResultArUco, Topics.ARUCO, clbk)
+
+    # -------------------------
+    # Controls
+    # -------------------------
+    def __init_controller_mode(self, node: NodeWrapper) -> None:
+        """
+        Setup for selecting the input source in the velocity controller.
+        """
+        self.__control.set_cmd = self._pub(node, SetControllerInput, Topics.CONTROLLER)
+
+    def __init_move(self, node: NodeWrapper) -> None:
+        """
+        Setup for moving the robot.
+        """
+        self.__control.set_vel = self._pub(node, CmdMove, Topics.MOVE)
+
+    def __init_line_follow(self, node: NodeWrapper) -> None:
+        """
+        Setup for following the line
+        """
+        self.__control.follow_edge = self._pub(node, CmdLineFollower, Topics.LINE)
+
+    # =========================================================================
+    # Internal work methods (should not be modified)
+    # =========================================================================
+
+    # -------------------------
+    # Class methods
+    # -------------------------
     def __init__(
         self,
         mapping: RequirementMapping = {},
@@ -63,9 +186,9 @@ class IOWrapper:
         self.__req_deps: IOWrapper.RequirementDependency = {}
         self.__define_requirement_mappings()
 
-    # =========================================================================
+    # -------------------------
     # Utils
-    # =========================================================================
+    # -------------------------
     def _sub(
         self,
         node: NodeWrapper,
@@ -94,28 +217,9 @@ class IOWrapper:
 
         return self.__pubs[-1].publish
 
-    # =========================================================================
+    # -------------------------
     # Requirement handling
-    # =========================================================================
-
-    def __define_requirement_mappings(self) -> None:
-        """
-        Define the requirement mapping for the Raubase environnement.
-        """
-        # Sensors
-        self.add_req(Requirement.ENCODERS, self.__init_encoders)
-        self.add_req(Requirement.DISTANCE, self.__init_all_distance)
-        self.add_req(Requirement.ODOMETRY, self.__init_odometry)
-
-        # Camera
-        self.add_req(Requirement.CAMERA, self.__init_camera)
-        self.add_req(Requirement.ARUCO, self.__init_aruco)
-        self.add_req(Requirement.YOLO, self.__init_yolo)
-
-        # Control
-        self.add_req(InternalReq.CONTROLLER, self.__init_controller_mode)
-        self.add_req(Requirement.MOVE, self.__init_move, InternalReq.CONTROLLER)
-        self.add_req(Requirement.LINE, self.__init_line_follow, InternalReq.CONTROLLER)
+    # -------------------------
 
     def add_req(
         self,
@@ -196,100 +300,3 @@ class IOWrapper:
                 max_n -= 1
 
         node.get_logger().info("Done for requirements initialization!")
-
-    # =========================================================================
-    # Sensors
-    # =========================================================================
-    def __init_encoders(self, node: NodeWrapper) -> None:
-        """
-        Intitialize what is needed for the encoders data to be accessible.
-        """
-
-        def encoder_callback(msg: DataEncoder):
-            self.state.encoders = msg
-
-        self._sub(node, DataEncoder, Topics.ENCODERS, encoder_callback)
-
-    def __init_all_distance(self, node: NodeWrapper) -> None:
-        """
-        Initialize all distance sensors
-        """
-        for i in range(1, self.__conf.n_distance + 1):
-            self.__init_distance(node, i)
-
-    def __init_distance(self, node: NodeWrapper, sensor_idx: int) -> None:
-        """
-        Intitialize what is needed for the IR distances sensors data to be accessible.
-        """
-
-        def distance_clbk(msg: DataDistance):
-            self.state.distance[sensor_idx] = msg
-
-        self._sub(node, DataEncoder, Topics.DISTANCE.format(sensor_idx), distance_clbk)
-
-    # =========================================================================
-    # State
-    # =========================================================================
-    def __init_odometry(self, node: NodeWrapper) -> None:
-        """
-        Setup for receiving the estimated position and speed.
-        """
-
-        def clbk(msg: ResultOdometry):
-            pass
-
-        self._sub(node, ResultOdometry, Topics.ODOMETRY, clbk)
-
-    # =========================================================================
-    # Camera
-    # =========================================================================
-    def __init_camera(self, node: NodeWrapper) -> None:
-        """
-        Setup for receiving the last img
-        """
-
-        def clbk(msg: CompressedImage):
-            self.state.last_img = msg
-
-        self._sub(node, CompressedImage, Topics.COMP_IMG, clbk)
-
-    def __init_yolo(self, node: NodeWrapper) -> None:
-        """
-        Setup for receiving the YOLO processing data
-        """
-
-        def clbk(msg: ResultYolo):
-            self.state.last_yolo = msg
-
-        self._sub(node, ResultYolo, Topics.YOLO, clbk)
-
-    def __init_aruco(self, node: NodeWrapper) -> None:
-        """
-        Setup for receiving the Aruco processing data
-        """
-
-        def clbk(msg: ResultArUco):
-            self.state.last_aruco = msg
-
-        self._sub(node, ResultArUco, Topics.ARUCO, clbk)
-
-    # =========================================================================
-    # Controls
-    # =========================================================================
-    def __init_controller_mode(self, node: NodeWrapper) -> None:
-        """
-        Setup for selecting the input source in the velocity controller.
-        """
-        self.__control.set_cmd = self._pub(node, SetControllerInput, Topics.CONTROLLER)
-
-    def __init_move(self, node: NodeWrapper) -> None:
-        """
-        Setup for moving the robot.
-        """
-        self.__control.set_vel = self._pub(node, CmdMove, Topics.MOVE)
-
-    def __init_line_follow(self, node: NodeWrapper) -> None:
-        """
-        Setup for following the line
-        """
-        self.__control.follow_edge = self._pub(node, CmdLineFollower, Topics.LINE)
