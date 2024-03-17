@@ -6,3 +6,4 @@ bool LEFT = false
 bool follow false
 
 float32 offset 0
+float32 speed 0
