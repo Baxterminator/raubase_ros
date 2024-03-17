@@ -15,6 +15,8 @@ from .shared_control import ControlWrapper, SharedControl
 from .shared_data import SharedData
 from .topics import Topics
 
+import numpy as np
+
 
 @dataclass
 class IOWrapperConf:
@@ -138,11 +140,11 @@ class IOWrapper:
         Fetch all needed dependencies recursively.
         """
         if need not in self.__req_deps.keys():
-            return Requirement.NONE
+            return int(Requirement.NONE)
         out = previous
         for r in self.__req_deps[need]:
-            if (r and out) == 0:
-                out += r + self.__recursive_dep_fetching(out, r)
+            if (r & out) == 0:
+                out |= r | self.__recursive_dep_fetching(out, r)
         return out
 
     def init_requirements(
@@ -154,24 +156,38 @@ class IOWrapper:
         # Compute all requirements with their dependencies
         new_group = req_group
         for req in self.__req_deps.keys():
-            if (req and req_group) != 0:
+            if (req & req_group) != 0:
                 new_group = self.__recursive_dep_fetching(new_group, req)
 
         # Setup requirements
         group_val = int(new_group)
-        node.get_logger().info(
-            f"Initializing requirements (code={int(req_group)} / {group_val})!"
-        )
+        node.get_logger().info(f"Initializing requirements (code={int(req_group)})!")
         for req, init_func in self.__req_mapping.items():
-            if (req and req_group) != 0:
+            if (req & new_group) != 0:
+                node.get_logger().info(
+                    f"Initializing requirement #{int(req)} {req.name}!"
+                )
                 init_func(node)
                 group_val -= int(req)
 
         # Check if requirements has not been made
         if group_val != int(Requirement.NONE):
             node.get_logger().warn(
-                f"All asked requirements couldn't be made (left: {group_val})!"
+                f"All asked requirements are not implemented (left: {group_val})!"
             )
+
+            # Split in power of 2 and test them
+            max_n = int(np.floor(np.log2(group_val)))
+            while max_n > -1:
+                item = np.power(2, max_n)
+                if (item & group_val) != 0:
+                    kls, enum = BaseRequirement.find_in_subclasses(item)
+                    if kls == "" or enum == "":
+                        node.get_logger().warn(f"-> No candidate found for #{item}")
+                    else:
+                        node.get_logger().warn(f"-> Candidate {kls}.{enum} for #{item}")
+                max_n -= 1
+
         node.get_logger().info("Done for requirements initialization!")
 
     # =========================================================================
@@ -181,7 +197,6 @@ class IOWrapper:
         """
         Intitialize what is needed for the encoders data to be accessible.
         """
-        node.get_logger().info("Initializing DataEncoders callback!")
 
         def encoder_callback(msg: DataEncoder):
             self.state.encoders = msg
@@ -199,7 +214,6 @@ class IOWrapper:
         """
         Intitialize what is needed for the IR distances sensors data to be accessible.
         """
-        node.get_logger().info(f"Initializing DataDistance {sensor_idx} callback!")
 
         def distance_clbk(msg: DataDistance):
             self.state.distance[sensor_idx] = msg
@@ -213,7 +227,6 @@ class IOWrapper:
         """
         Setup for receiving the last img
         """
-        node.get_logger().info("Initializing Camera callback!")
 
         def clbk(msg: CompressedImage):
             self.state.last_img = msg
@@ -224,7 +237,6 @@ class IOWrapper:
         """
         Setup for receiving the YOLO processing data
         """
-        node.get_logger().info("Initializing ResultYolo callback!")
 
         def clbk(msg: ResultYolo):
             self.state.last_yolo = msg
@@ -235,7 +247,6 @@ class IOWrapper:
         """
         Setup for receiving the Aruco processing data
         """
-        node.get_logger().info("Initializing ResultAruco callback!")
 
         def clbk(msg: ResultArUco):
             self.state.last_aruco = msg
@@ -249,19 +260,16 @@ class IOWrapper:
         """
         Setup for selecting the input source in the velocity controller.
         """
-        node.get_logger().info("Initializing ControllerMode callback!")
         self.__control.set_cmd = self._pub(node, SetControllerInput, Topics.CONTROLLER)
 
     def __init_move(self, node: NodeWrapper) -> None:
         """
         Setup for moving the robot.
         """
-        node.get_logger().info("Initializing Move callback!")
         self.__control.set_vel = self._pub(node, CmdMove, Topics.MOVE)
 
     def __init_line_follow(self, node: NodeWrapper) -> None:
         """
         Setup for following the line
         """
-        node.get_logger().info("Initializing LineFollow callback!")
         self.__control.follow_edge = self._pub(node, CmdLineFollower, Topics.LINE)
