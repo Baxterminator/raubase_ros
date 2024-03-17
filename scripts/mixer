@@ -1,0 +1,101 @@
+#!/usr/bin/python3
+from raubase_msgs.msg import CmdMove, SetControllerInput
+from raubase_ros.constants.rmw import TRANSIENT_QOS
+from rclpy import init, ok, shutdown, spin
+from rclpy.node import Node
+from rclpy.subscription import Subscription
+from typing import Dict
+
+
+class Mixer(Node):
+    """
+    This node only serves as a hub to gather and send the move command
+    to the velocity controller. It only allows one input at the time
+    but can accept as many input as you may need.
+
+    One topic is allocated to each input with the name "move_<input name>".
+    For example:
+        - for input "plan", the topic will be "move_plan"
+        - for input "line", the topic will be "move_line"
+        - ...
+
+    Before sending any command to the mixer, you have to declare the input
+    name on the controller startup. This declaration should be made on a
+    transient topic (in case the mixer start late).
+
+    Then you can send the move command on the dedicated topic with a default
+    Quality of Server publisher.
+    """
+
+    DECLARE_INPUT_TOPIC = "declare_input"
+    INPUT_MODE_TOPIC = "set_input"
+    OUTPUT_TOPIC = "move"
+    DEFAULT_QOS = 1
+
+    def __init__(self):
+        super().__init__("mixer")
+
+        self.inputs: Dict[str, Subscription] = {}
+        self.input_mode: str = ""
+        self.input_declare = self.create_subscription(
+            SetControllerInput,
+            Mixer.DECLARE_INPUT_TOPIC,
+            self.set_input,
+            TRANSIENT_QOS,
+        )
+        self.input_set = self.create_subscription(
+            SetControllerInput,
+            Mixer.INPUT_MODE_TOPIC,
+            self.set_input,
+            Mixer.DEFAULT_QOS,
+        )
+        self.output = self.create_publisher(
+            CmdMove,
+            Mixer.OUTPUT_TOPIC,
+            Mixer.DEFAULT_QOS,
+        )
+
+    # =========================================================================
+    # Input management
+    # =========================================================================
+    def declare_input(self, msg: SetControllerInput) -> None:
+        """
+        Setup a new topic and subscription for the given input if he doesn't have one.
+        """
+        # If input already declared, do nothing
+        if msg.input in self.inputs.keys():
+            self.get_logger().warn(
+                f"Declaring already existing input method {msg.input}"
+            )
+            return
+
+        def input_callback(cmd: CmdMove) -> None:
+            if self.input_mode == msg.input:
+                self.output.publish(cmd)
+
+        self.inputs[msg.input] = self.create_subscription(
+            CmdMove,
+            f"move_{msg.input}",
+            input_callback,
+            Mixer.DEFAULT_QOS,
+        )
+
+    def set_input(self, msg: SetControllerInput) -> None:
+        """
+        Change the input method to the given input.
+        """
+        # Check if the input method is already registered, else create the subscription
+        if msg.input not in self.inputs.keys():
+            self.get_logger().warn(f"Using undeclared input method {msg.input}")
+            self.declare_input(msg)
+
+        self.input_mode = msg.input
+
+
+if __name__ == "__main__":
+    init()
+    node = Mixer()
+
+    while ok():
+        spin(node)
+    shutdown()

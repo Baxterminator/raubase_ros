@@ -40,7 +40,7 @@ Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node(NODE_NAME, opts) {
   runner = create_wall_timer(0ms, std::bind(&Camera::run, this));
   runner->cancel();
 
-  setup_actions();
+  // setup_actions();
   RCLCPP_INFO(get_logger(), "The node has been successfully initialized!");
 }
 

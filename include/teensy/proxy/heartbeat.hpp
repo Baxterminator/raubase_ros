@@ -49,8 +49,8 @@ class HeartBeatProxy : public TeensyProxy {
   static constexpr const char* TEENSY_MSG = TEENSY_COMP;     //< Teensy board receiving prefix
 
  protected:
-  static constexpr const char* PUBLISHING_TOPIC{"heartbeat"};  //< Encoder state topic
-  static constexpr int QOS{10};                                //< QOS for all components
+  static constexpr const char* PUBLISHING_TOPIC{"state/teensy"};  //< Encoder state topic
+  static constexpr int QOS{10};                                   //< QOS for all components
 
   // =================================================================
   //                             Proxy Methods

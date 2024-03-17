@@ -49,11 +49,11 @@ class EncoderProxy : public TeensyProxy {
       "encrev"};  //< Command to set whether components are reversed or not
 
  public:
-  static constexpr const char* NODE_NAME{"EncoderProxy"};     //< ROS Node name
-  static constexpr const char* PUBLISHING_TOPIC{"encoders"};  //< Encoder state topic
-  static constexpr int QOS{10};                               //< QOS for all components
-  static constexpr const char* TEENSY_MSG = TEENSY_COMP;      //< Teensy board receiving prefix
-  static constexpr int DEFAULT_ENC_MS{8};                     //< Default value for loop time
+  static constexpr const char* NODE_NAME{"EncoderProxy"};            //< ROS Node name
+  static constexpr const char* PUBLISHING_TOPIC{"sensor/encoders"};  //< Encoder state topic
+  static constexpr int QOS{10};                                      //< QOS for all components
+  static constexpr const char* TEENSY_MSG = TEENSY_COMP;  //< Teensy board receiving prefix
+  static constexpr int DEFAULT_ENC_MS{8};                 //< Default value for loop time
 
   // =================================================================
   //                             Proxy Methods

@@ -51,8 +51,8 @@ class DistanceProxy : public TeensyProxy {
   static constexpr const char* TEENSY_MSG = TEENSY_COMP;    //< Teensy board receiving prefix
 
  protected:
-  static constexpr const char* SENSOR_1_PUB_TOPIC{"dist_1"};  //< Sensor1 data topic
-  static constexpr const char* SENSOR2_PUB_TOPIC{"dist_2"};   //< Sensor2 data topic
+  static constexpr const char* SENSOR_1_PUB_TOPIC{"sensor/dist_1"};  //< Sensor1 data topic
+  static constexpr const char* SENSOR2_PUB_TOPIC{"sensor/dist_2"};   //< Sensor2 data topic
   static constexpr const char* CALIB_CMD{
       "irc %f %f %f %f 1"};  //< Calibration message for the Teensy
   static constexpr const char* CALIBRATE_SRV{

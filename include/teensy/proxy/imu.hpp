@@ -48,8 +48,8 @@ class IMUProxy : public TeensyProxy {
   static constexpr const char* ACC_MSG = ACC_COMP;     //< Accelerometer message (receive)
 
  protected:
-  static constexpr const char* PUBLISHING_TOPIC{"imu"};  //< Encoder state topic
-  static constexpr int QOS{10};                          //< QOS for all components
+  static constexpr const char* PUBLISHING_TOPIC{"sensor/imu"};  //< Encoder state topic
+  static constexpr int QOS{10};                                 //< QOS for all components
 
   // =================================================================
   //                             Proxy Methods

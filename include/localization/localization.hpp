@@ -47,11 +47,11 @@ class Odometry : public Node {
   // ==========================================================================
   //                                 Constants
   // ==========================================================================
-  static constexpr const char* NODE_NAME{"odometry"};       //< Name of the node
-  static constexpr const char* SUB_ENC_TOPIC{"encoders"};   //< Topics of the encoders state
-  static constexpr const char* PUB_ODOM_TOPIC{"odometry"};  //< Topic for sharing the odometry
-  static constexpr int QOS{10};                             //< QoS for all participants
-  static constexpr int MAX_TICK_CHANGE{1000};               //< Max acceptable tick change
+  static constexpr const char* NODE_NAME{"odometry"};             //< Name of the node
+  static constexpr const char* SUB_ENC_TOPIC{"sensor/encoders"};  //< Topics of the encoders state
+  static constexpr const char* PUB_ODOM_TOPIC{"state/odometry"};  //< Topic for sharing the odometry
+  static constexpr int QOS{10};                                   //< QoS for all participants
+  static constexpr int MAX_TICK_CHANGE{1000};                     //< Max acceptable tick change
 
   // Default values
   static constexpr int DEF_ODOM_FREQ{100};       //< Default odometry frequency
