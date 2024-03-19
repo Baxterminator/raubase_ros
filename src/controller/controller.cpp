@@ -121,6 +121,7 @@ void VelocityController::loop() {
   computeRLVelocities(dt);
 
   // Publish the message
+  state.stamp = get_clock()->now();
   voltage_pub->publish(voltage_cmd);
   if (debug) state_pub->publish(state);
   loop_time.now();

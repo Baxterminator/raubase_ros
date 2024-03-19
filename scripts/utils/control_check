@@ -1,0 +1,284 @@
+#!/usr/bin/python3
+from time import perf_counter
+from rclpy import init, shutdown, spin_once, ok
+from rclpy.node import Node
+import numpy as np
+from raubase_msgs.msg import CmdMove, StateVelocityController, ResultOdometry
+import matplotlib.pyplot as plt
+
+
+class ControlCheck(Node):
+    """
+    This node is to get informations from the motors
+    """
+
+    NODE_NAME = "ControlCheck"
+    TIME_PER_STEP = 2.0
+
+    # Motor voltages
+    DEF_MAX_SPEED = 2.0
+
+    MAX_HISTORY = 75
+
+    def __init__(self) -> None:
+        super().__init__(ControlCheck.NODE_NAME)
+
+        # Parameters
+        self.max_v = (
+            self.declare_parameter("max_v", ControlCheck.DEF_MAX_SPEED)
+            .get_parameter_value()
+            .double_value
+        )
+        self.min_time = (
+            self.declare_parameter("time_per_step", ControlCheck.TIME_PER_STEP)
+            .get_parameter_value()
+            .double_value
+        )
+
+        # Plot
+        self.turn_rate = [[], [], [], []]
+        self.heading = [[], [], [], []]
+        self.vlin = [[], [], [], []]
+        self.vright = [[], [], [], []]
+        self.vleft = [[], [], [], []]
+        self.setup_plot()
+
+        # Inner work
+        self.start_time = [-1, -1]
+        self.state_sub = self.create_subscription(
+            StateVelocityController,
+            "state/vcontroller",
+            self.state_callback,
+            10,
+        )
+        self.odo_sub = self.create_subscription(
+            ResultOdometry, "state/odometry", self.odom_callback, 10
+        )
+        self.move_msg = CmdMove()
+        self.move_msg.move_type = CmdMove.CMD_V_ANGLE
+        self.move_pub = self.create_publisher(CmdMove, "control/move", 10)
+        self.step = 0
+        self.last_step_time = perf_counter() - 5
+        self.loop = self.create_timer(0.03, self.next_step)
+
+    def setup_plot(self):
+        self._fig1, self._ax1 = plt.subplots(ncols=1, nrows=2, sharex=True)
+
+        # Turn Rate
+        (self._tr_c,) = self._ax1[0].plot(
+            self.turn_rate[0], self.turn_rate[1], "b-", label="Command"
+        )
+        (self._tr_o,) = self._ax1[0].plot(
+            self.turn_rate[2], self.turn_rate[2], "r-", label="Odometry"
+        )
+        self._ax1[0].set_ylabel("Turn rate (rad/s)")
+        self._ax1[0].set_ylim([-1.1 * 3.0, 1.1 * 3.0])
+        self._ax1[0].grid(which="both")
+        self._ax1[0].legend()
+
+        # Heading
+        (self._h_c,) = self._ax1[1].plot(
+            self.heading[0], self.heading[1], "b-", label="Command"
+        )
+        (self._h_o,) = self._ax1[1].plot(
+            self.heading[2], self.heading[2], "r-", label="Odometry"
+        )
+        self._ax1[1].set_xlabel("Time (s)")
+        self._ax1[1].set_ylabel("Heading (rad)")
+        self._ax1[1].set_ylim([-1.1 * np.pi / 2, 1.1 * np.pi / 2])
+        self._fig1.canvas.draw()
+        self._ax1[1].grid(which="both")
+
+        # Km vs Voltage graph
+        self._fig2, self._ax2 = plt.subplots(ncols=1, nrows=3, sharex=True)
+        (self._vlin_c,) = self._ax2[0].plot(
+            self.vlin[0], self.vlin[1], "b-", label="Command"
+        )
+        (self._vlin_o,) = self._ax2[0].plot(
+            self.vlin[2], self.vlin[3], "r-", label="Odometry"
+        )
+        self._ax2[0].set_ylabel("Vlin (m/s)")
+        self._ax2[0].set_ylim(
+            [-1.1 * ControlCheck.DEF_MAX_SPEED, 1.1 * ControlCheck.DEF_MAX_SPEED]
+        )
+        self._ax2[0].grid(which="both")
+        self._ax2[0].legend()
+
+        (self._vright_c,) = self._ax2[1].plot(
+            self.vlin[0], self.vright[1], "b-", label="Command"
+        )
+        (self._vright_o,) = self._ax2[1].plot(
+            self.vlin[2], self.vright[3], "r-", label="Odometry"
+        )
+        self._ax2[1].set_ylabel("Vright (m/s)")
+        self._ax2[1].set_ylim(
+            [-1.1 * ControlCheck.DEF_MAX_SPEED, 1.1 * ControlCheck.DEF_MAX_SPEED]
+        )
+        self._ax2[1].grid(which="both")
+
+        (self._vleft_c,) = self._ax2[2].plot(
+            self.vlin[0], self.vleft[1], "b-", label="Command"
+        )
+        (self._vleft_o,) = self._ax2[2].plot(
+            self.vlin[2], self.vleft[3], "r-", label="Odometry"
+        )
+        self._ax2[2].set_xlabel("Time (s)")
+        self._ax2[2].set_ylabel("Vleft (m/s)")
+        self._ax2[2].set_ylim(
+            [-1.1 * ControlCheck.DEF_MAX_SPEED, 1.1 * ControlCheck.DEF_MAX_SPEED]
+        )
+        self._ax2[2].grid(which="both")
+        self._fig2.canvas.draw()
+
+    def plot_update(self):
+        if len(self.turn_rate[0]) != 0:
+            major_ticks = np.arange(
+                np.floor(np.min(self.turn_rate[0]) / self.min_time) * self.min_time,
+                np.max(self.turn_rate[0]),
+                4 * self.min_time,
+            )
+            minor_ticks = np.arange(
+                np.floor(np.min(self.turn_rate[0]) / self.min_time) * self.min_time,
+                np.max(self.turn_rate[0]),
+                self.min_time,
+            )
+        else:
+            major_ticks = np.arange(
+                0,
+                self.min_time,
+                4 * self.min_time,
+            )
+            minor_ticks = np.arange(
+                0,
+                self.min_time,
+                self.min_time,
+            )
+
+        # Update turn rate / heading
+        self._tr_c.set_data(self.turn_rate[0], self.turn_rate[1])
+        self._tr_o.set_data(self.turn_rate[2], self.turn_rate[3])
+        self._h_c.set_data(self.heading[0], self.heading[1])
+        self._h_o.set_data(self.heading[2], self.heading[3])
+        self._ax1[0].set_xticks(major_ticks)
+        self._ax1[1].set_xticks(major_ticks)
+        self._ax1[0].set_xticks(minor_ticks, minor=True)
+        self._ax1[1].set_xticks(minor_ticks, minor=True)
+        self._fig1.gca().relim()
+        self._fig1.gca().autoscale_view()
+        self._fig1.canvas.draw()
+
+        # Update velocities
+        self._vlin_c.set_data(self.vlin[0], self.vlin[1])
+        self._vlin_o.set_data(self.vlin[2], self.vlin[3])
+        self._vright_c.set_data(self.vright[0], self.vright[1])
+        self._vright_o.set_data(self.vright[2], self.vright[3])
+        self._vleft_c.set_data(self.vleft[0], self.vleft[1])
+        self._vleft_o.set_data(self.vleft[2], self.vleft[3])
+        self._ax2[0].set_xticks(major_ticks)
+        self._ax2[1].set_xticks(major_ticks)
+        self._ax2[2].set_xticks(major_ticks)
+        self._ax2[0].set_xticks(minor_ticks, minor=True)
+        self._ax2[1].set_xticks(minor_ticks, minor=True)
+        self._ax2[2].set_xticks(minor_ticks, minor=True)
+        self._fig2.gca().relim()
+        self._fig2.gca().autoscale_view()
+        self._fig2.canvas.draw()
+
+    def prune_data(self) -> None:
+        for i in range(4):
+            if len(self.turn_rate[i]) > ControlCheck.MAX_HISTORY:
+                self.turn_rate[i].pop(0)
+            if len(self.heading[i]) > ControlCheck.MAX_HISTORY:
+                self.heading[i].pop(0)
+            if len(self.vlin[i]) > ControlCheck.MAX_HISTORY:
+                self.vlin[i].pop(0)
+            if len(self.vleft[i]) > ControlCheck.MAX_HISTORY:
+                self.vleft[i].pop(0)
+            if len(self.vright[i]) > ControlCheck.MAX_HISTORY:
+                self.vright[i].pop(0)
+
+    def state_callback(self, msg: StateVelocityController):
+        if self.start_time[0] == -1:
+            self.start_time[0] = msg.stamp.sec
+            self.start_time[1] = msg.stamp.nanosec
+        dt = (
+            float(msg.stamp.sec - self.start_time[0])
+            + (msg.stamp.nanosec - self.start_time[1]) * 1e-9
+        )
+        self.turn_rate[0].append(dt)
+        self.turn_rate[1].append(msg.turn_rate)
+        self.heading[0].append(dt)
+        self.heading[1].append(msg.heading_ref)
+        # self.vlin[0].append(msg.stamp.sec + msg.stamp.nanosec * 1e-9)
+        # TODO: missing vlin
+        self.vright[0].append(dt)
+        self.vright[1].append(msg.vright_ref)
+        self.vleft[0].append(dt)
+        self.vleft[1].append(msg.vleft_ref)
+        self.prune_data()
+
+    def odom_callback(self, msg: ResultOdometry) -> None:
+        if self.start_time[0] == -1:
+            self.start_time[0] = msg.stamp.sec
+            self.start_time[1] = msg.stamp.nanosec
+        dt = (
+            float(msg.stamp.sec - self.start_time[0])
+            + (msg.stamp.nanosec - self.start_time[1]) * 1e-9
+        )
+        self.turn_rate[2].append(dt)
+        self.turn_rate[3].append(msg.turn_rate)
+        self.heading[2].append(dt)
+        self.heading[3].append(msg.heading)
+        self.vlin[2].append(dt)
+        self.vlin[3].append(msg.v_lin)
+        self.vright[2].append(dt)
+        self.vright[3].append(msg.v_right)
+        self.vleft[2].append(dt)
+        self.vleft[3].append(msg.v_left)
+        self.prune_data()
+
+    def next_step(self):
+        """
+        Try to launch the next step of the calibration
+        """
+        self.plot_update()
+        if perf_counter() - self.last_step_time < self.min_time:
+            return
+
+        # Launch next step
+        if (self.step // 4) % 3 == 2:
+            self.move_msg.velocity = 0.0
+        else:
+            self.move_msg.velocity = (self.step % 2) * self.max_v
+            if (self.step // 2) % 2 == 0:
+                self.move_msg.velocity *= -1.0
+
+        if (self.step // 4) % 3 == 0:
+            self.move_msg.heading = 0.0
+            self.move_msg.turn_rate = 0.0
+        else:
+            self.move_msg.heading = (self.step % 2) * np.pi / 2
+            if (self.step // 2) % 2 == 0:
+                self.move_msg.heading *= -1.0
+
+        self.get_logger().info(
+            f"Step v={self.move_msg.velocity} | h={self.move_msg.heading} ({len(self.heading[0])})"
+        )
+
+        self.move_pub.publish(self.move_msg)
+        self.last_step_time = perf_counter()
+        self.step += 1
+
+
+if __name__ == "__main__":
+    init()
+
+    plt.ion()
+    node = ControlCheck()
+
+    while ok():
+        spin_once(node)
+        plt.pause(0.0001)
+    input("Press [enter]")
+
+    shutdown()

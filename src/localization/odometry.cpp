@@ -62,6 +62,7 @@ void Odometry::updateOdometry() {
   // Update Odometry
   RCLCPP_INFO(get_logger(), "Computing new values");
   robot->updateOdometry(last_enc_used, last_enc, odom_msg);
+  odom_msg.stamp = get_clock()->now();
 
   // Publish new odometry
   RCLCPP_INFO(get_logger(), "Publishing results");
