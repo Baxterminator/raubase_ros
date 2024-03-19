@@ -37,6 +37,8 @@ template <typename R, typename Y>
 struct ControllerInterface {
   typedef sptr<ControllerInterface<R, Y>> SharedPtr;
 
+  virtual ~ControllerInterface() {}
+
   /**
    * @brief Reset the internal state of the controller.
    *

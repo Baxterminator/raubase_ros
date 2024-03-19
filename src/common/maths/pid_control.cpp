@@ -7,13 +7,10 @@ namespace raubase::math {
 PILeadController::PILeadController(control_val Kp, control_val td, control_val alpha_d,
                                    control_val ti)
     : kp(Kp),
-      td(td),
-      ad(alpha_d),
-      ti(ti),
       use_integrator(ti > MIN_TAU),
       use_lead(td > MIN_TAU),
       le0((use_lead) ? 2 * td : 0),
-      lu0((use_lead) ? le0 * ad : 0),
+      lu0((use_lead) ? le0 * alpha_d : 0),
       ie((use_integrator) ? 1 / (2 * ti) : 0.0) {
   reset_history();
 }

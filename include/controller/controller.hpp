@@ -149,9 +149,11 @@ class VelocityController : public Node {
   // ==========================================================================
  private:
   // ------------------------ Parameters of the node --------------------------
-  double max_turn_rate;  //< Maximum turn rate allowed by the robot
-  double wheel_base;     //< Distance between the two wheels
-  bool debug;            //< Whether the node run on debug
+  bool consuming = false;  //< If the controller is in consuming mode, it computes as soon as the
+                           // data is received, else it updates at a precise frequency
+  double max_turn_rate;    //< Maximum turn rate allowed by the robot
+  double wheel_base;       //< Distance between the two wheels
+  bool debug;              //< Whether the node run on debug
 
   // ----------------------------- ROS Members --------------------------------
   TimerBase::SharedPtr fixed_loop;                          //< Controller loop

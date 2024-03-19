@@ -12,8 +12,8 @@
 #include <rclcpp/subscription.hpp>
 #include <vector>
 
+#include "common/math/controller.hpp"
 #include "common/utils/types.hpp"
-#include "common/utils/upid.hpp"
 
 using namespace rclcpp;
 using raubase_msgs::msg::CmdLineFollower;
@@ -60,7 +60,7 @@ class LineFollower : public Node {
     constchar WHITE_THRES{"white_threshold"};  //< White threshold of normalized (in [0-1000])
   };
   struct Default {
-    constval int FREQ{500};         //< Frequency of the controller loop
+    constval int FREQ{-1};          //< Frequency of the controller loop
     constval float PID_KP{40};      //< PID: prop. gain (V per (m/s))
     constval float PID_TD{0.3};     //< PID: lead time constant (sec)
     constval float PID_AD{1.5};     //< PID: lead alpha value
@@ -88,7 +88,13 @@ class LineFollower : public Node {
   // ----------------------------- Life Cycle ---------------------------------
   LineFollower(NodeOptions);
 
+  // -------------------------------- Setup -----------------------------------
  private:
+  /**
+   * @brief Set the up the controller to make the commands.
+   */
+  void setup_controller();
+
   /**
    * @brief Declare this controller as input for the mixer.
    */
@@ -99,6 +105,7 @@ class LineFollower : public Node {
    */
   void check_calib();
 
+  // ----------------------------- Edge computing -----------------------------
   /**
    * @brief Compute the edge
    */
@@ -107,7 +114,7 @@ class LineFollower : public Node {
   /**
    * @brief Update the controller value based on the computed result.
    */
-  void update_controller();
+  void update_controller(double dt);
 
   /**
    * @brief Loop for launching the several PID computations and export the command.
@@ -119,13 +126,13 @@ class LineFollower : public Node {
   // ==========================================================================
  private:
   // ------------------------ Parameters of the node --------------------------
-  microseconds loop_period;             //< Duration between two loop runs
-  float max_turn_rate;                  //< Maximum acceptable turn rate
-  unsigned int n_sensors;               //< Number of sensors,
-  float half_n_sensors;                 //< Half of the number of sensors
-  float btwn_m, center_m;               //< Space between and middle of the sensor board
-  bool debug;                           //< Whether the node run on debug
-  bool calib_valid = true;              //< Whether the calibration is good
+  bool consuming = false;   //< If the controller is in consuming mode, it computes as soon as the
+                            // data is received, else it updates at a precise frequency
+  float max_turn_rate;      //< Maximum acceptable turn rate
+  unsigned int n_sensors;   //< Number of sensors,
+  float half_n_sensors;     //< Half of the number of sensors
+  float btwn_m, center_m;   //< Space between and middle of the sensor board
+  bool calib_valid = true;  //< Whether the calibration is good
   std::vector<long> white_calibration;  //< Calibration of the line sensor for white
   std::vector<long> black_calibration;  //< Calibration of the line sensor for black
   std::vector<float> factor;            //< Factor for converting raw value between 0 and 1000
@@ -154,7 +161,7 @@ class LineFollower : public Node {
   Publisher<ResultEdge>::SharedPtr result_pub;
 
   // ----------------------------------- PIDs ---------------------------------
-  PID pid;  //< PID for controlling the heading
+  math::ControlInterface::SharedPtr pid;  //< PID for controlling the heading
 };
 
 }  // namespace raubase::control

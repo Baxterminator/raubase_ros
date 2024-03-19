@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include <raubase_msgs/msg/data_encoder.hpp>
 #include <raubase_msgs/msg/result_odometry.hpp>
 
-#include "common/utils/math.hpp"
+#include "common/math/math.hpp"
 #include "common/utils/types.hpp"
 
 using raubase_msgs::msg::DataEncoder;

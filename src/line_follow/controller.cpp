@@ -1,22 +1,20 @@
 #include <algorithm>
 #include <raubase_msgs/msg/detail/set_controller_input__struct.hpp>
 
-#include "common/utils/math.hpp"
+#include "common/math/fixed_pid_control.hpp"
+#include "common/math/math.hpp"
+#include "common/math/pid_control.hpp"
 #include "common/utils/rmw.hpp"
 #include "common/utils/types.hpp"
+#include "common/utils/utime.hpp"
 #include "controller/edge_controller.hpp"
 
 namespace raubase::control {
 
 LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
   // Declare parameters
-  int freq = declare_parameter(Params::PID_FREQ, Default::FREQ);
-  loop_period = microseconds((long)std::fabs(1. / freq * 1E6));
 
-  pid.setup(loop_period.count() * 1E-6, declare_parameter(Params::PID_KP, Default::PID_KP),
-            declare_parameter(Params::PID_TD, Default::PID_TD),
-            declare_parameter(Params::PID_AD, Default::PID_AD),
-            declare_parameter(Params::PID_TI, Default::PID_TI));
+  setup_controller();
   max_turn_rate = declare_parameter(Params::MAX_TR, Default::MAX_TR);
   n_sensors = declare_parameter(Params::N_SENSORS, Default::N_SENSORS);
   half_n_sensors = float(n_sensors - 1) / 2.;
@@ -30,15 +28,13 @@ LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
   check_calib();
 
   // Register ROS components
-  RCLCPP_INFO(get_logger(), "Launching edge controller with a period of %zuµs",
-              loop_period.count());
   move_cmd.move_type = CmdMove::CMD_V_TR;
   move_pub = create_publisher<CmdMove>(Topics::PUB_CMD, QOS);
-  fixed_loop = create_wall_timer(loop_period, std::bind(&LineFollower::loop, this));
   sensor_sub = create_subscription<DataLineSensor>(Topics::SUB_LINE, QOS,
                                                    [this](DataLineSensor::SharedPtr msg) {
                                                      last_data = msg;
                                                      last_data_has_been_used = false;
+                                                     if (consuming) loop();
                                                    });
   ref_sub = create_subscription<CmdLineFollower>(
       Topics::SUB_REF, QOS, [this](CmdLineFollower::SharedPtr ref) { last_cmd = ref; });
@@ -48,10 +44,36 @@ LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
   controller_state = create_subscription<StateVelocityController>(
       Topics::SUB_CONTROLLER_STATE, QOS,
       [this](StateVelocityController::SharedPtr msg) { last_control_state = msg; });
-  fixed_loop = create_wall_timer(loop_period, std::bind(&LineFollower::loop, this));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+void LineFollower::setup_controller() {
+  int freq = declare_parameter(Params::PID_FREQ, Default::FREQ);
+
+  // If controller works on "as soon as we have the odometry"
+  if (freq == -1) {
+    RCLCPP_INFO(get_logger(), "Launching edge controller unit in consuming mode");
+    consuming = true;
+    pid = math::PILeadController::make(declare_parameter(Params::PID_KP, Default::PID_KP),
+                                       declare_parameter(Params::PID_TD, Default::PID_TD),
+                                       declare_parameter(Params::PID_AD, Default::PID_AD),
+                                       declare_parameter(Params::PID_TI, Default::PID_TI));
+  }
+  // Else the controller is at a fixed speed
+  else {
+    RCLCPP_INFO(get_logger(), "Launching edge controller unit with a period of %zuµs",
+                (long)std::floor(1.0 / freq * 1E6));
+    pid = math::FixedPILeadController::make(declare_parameter(Params::PID_KP, Default::PID_KP),
+                                            declare_parameter(Params::PID_TD, Default::PID_TD),
+                                            declare_parameter(Params::PID_AD, Default::PID_AD),
+                                            declare_parameter(Params::PID_TI, Default::PID_TI),
+                                            1.0 / ((float)freq));
+
+    fixed_loop = create_wall_timer(microseconds((long)std::floor(1. / freq * 1E6)),
+                                   std::bind(&LineFollower::loop, this));
+  }
+}
 
 void LineFollower::declare_controller() {
   input_declaration = create_publisher<SetControllerInput>(Topics::PUB_DECLARE, TRANSIENT_QOS);
@@ -129,12 +151,12 @@ void LineFollower::compute_edge() {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-void LineFollower::update_controller() {
+void LineFollower::update_controller(double dt) {
   float u;
 
   if (result.valid_edge) {
-    u = -pid.pid(last_cmd->offset, ((last_cmd->follow) ? result.right_edge : result.left_edge),
-                 limited);
+    u = -pid->update(dt, last_cmd->offset,
+                     ((last_cmd->follow) ? result.right_edge : result.left_edge), limited);
     if (limited = std::fabs(u) > max_turn_rate; limited)
       u = math::saturate(u, max_turn_rate);
     else
@@ -152,6 +174,8 @@ void LineFollower::update_controller() {
 ///////////////////////////////////////////////////////////////////////////////
 
 void LineFollower::loop() {
+  static UTime loop_clock("now");
+
   // If calib not valid, don't continue
   if (!calib_valid) {
     RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR, "Calibration is not good!");
@@ -173,8 +197,10 @@ void LineFollower::loop() {
 
   // Compute edge
   compute_edge();
-  update_controller();
+  update_controller(loop_clock.getTimePassed());
   last_data_has_been_used = true;
+
+  loop_clock.now();
 }
 
 }  // namespace raubase::control

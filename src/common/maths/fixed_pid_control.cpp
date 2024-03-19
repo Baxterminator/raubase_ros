@@ -2,21 +2,16 @@
 
 #include "common/math/math.hpp"
 
-
 namespace raubase::math {
 
 FixedPILeadController::FixedPILeadController(control_val Kp, control_val td, control_val alpha_d,
                                              control_val ti, control_val sampling_time)
     : kp(Kp),
-      td(td),
-      ad(alpha_d),
-      ti(ti),
-      sampling_time(sampling_time),
       use_integrator(ti > MIN_TAU),
       use_lead(td > MIN_TAU),
-      Kd1((use_lead) ? (sampling_time + 2 * td) / (sampling_time + 2 * td * ad) : 0),
-      Kd2((use_lead) ? (sampling_time - 2 * td) / (sampling_time + 2 * td * ad) : 0),
-      Kd3((use_lead) ? (sampling_time - 2 * td * ad) / (sampling_time + 2 * td * ad) : 0),
+      Kd1((use_lead) ? (sampling_time + 2 * td) / (sampling_time + 2 * td * alpha_d) : 0),
+      Kd2((use_lead) ? (sampling_time - 2 * td) / (sampling_time + 2 * td * alpha_d) : 0),
+      Kd3((use_lead) ? (sampling_time - 2 * td * alpha_d) / (sampling_time + 2 * td * alpha_d) : 0),
       Ki((use_integrator) ? sampling_time / (2 * ti) : 0.0) {
   reset_history();
 }

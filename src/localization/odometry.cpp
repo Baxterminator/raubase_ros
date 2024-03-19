@@ -1,8 +1,8 @@
 #include <cmath>
 #include <rclcpp/logging.hpp>
 
+#include "common/math/math.hpp"
 #include "common/robot/kinematics.hpp"
-#include "common/utils/math.hpp"
 #include "common/utils/types.hpp"
 #include "localization/localization.hpp"
 

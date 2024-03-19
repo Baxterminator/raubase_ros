@@ -68,6 +68,8 @@ struct FixedPILeadController : public ControllerInterface<control_val, control_v
   FixedPILeadController(control_val Kp, control_val td, control_val alpha_d, control_val ti,
                         control_val sampling_time);
 
+  ~FixedPILeadController() override {}
+
   /**
    * @brief Construct a PI-Lead controller.
    *
@@ -174,11 +176,7 @@ struct FixedPILeadController : public ControllerInterface<control_val, control_v
   // ==========================================================================
  private:
   // PI-Lead parameters
-  const control_val kp;             //< Potential gain of the controller
-  const control_val td;             //< Lead time constant (in s)
-  const control_val ad;             //< Value in [0, 1]
-  const control_val ti;             //< Integration time constant (in s)
-  const control_val sampling_time;  //< The sampling time (in s)
+  const control_val kp;  //< Potential gain of the controller
 
   // Precompute values
   const bool use_integrator;        //< Whether we want to compute the integration part

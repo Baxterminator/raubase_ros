@@ -51,9 +51,11 @@ VelocityController::VelocityController(NodeOptions opts) : Node(NODE_NAME, opts)
   // Initiate ROS components
   cmd_sub = create_subscription<CmdMove>(Topics::SUB_CMD, QOS,
                                          [this](const CmdMove::SharedPtr cmd) { last_cmd = cmd; });
-  odom_sub = create_subscription<ResultOdometry>(
-      Topics::SUB_ODOMETRY, QOS,
-      [this](const ResultOdometry::SharedPtr odm) { last_odometry = odm; });
+  odom_sub = create_subscription<ResultOdometry>(Topics::SUB_ODOMETRY, QOS,
+                                                 [this](const ResultOdometry::SharedPtr odm) {
+                                                   last_odometry = odm;
+                                                   if (consuming) loop();
+                                                 });
   voltage_pub = create_publisher<CmdMotorVoltage>(Topics::PUB_CMD, QOS);
   if (debug) state_pub = create_publisher<StateVelocityController>(Topics::PUB_STATE, QOS);
 }
