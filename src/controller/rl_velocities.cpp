@@ -13,26 +13,26 @@
 
 namespace raubase::motor {
 
-void Controller::computeVelocitiesRef() {
+void VelocityController::computeVelocitiesRef() {
   state.vel_dif = wheel_base * state.turn_rate / 2;
   state.vright_ref = last_cmd->velocity + state.vel_dif;
   state.vleft_ref = last_cmd->velocity - state.vel_dif;
 }
 
-void Controller::computeRLVelocities() {
+void VelocityController::computeRLVelocities(double dt) {
   // Compute new PID value
   voltage_cmd.right =
-      vel_pid_right.pid(state.vright_ref, last_odometry->v_right, state.voltage_saturation);
+      vel_pid_right->update(dt, state.vright_ref, last_odometry->v_right, state.voltage_saturation);
   voltage_cmd.left =
-      vel_pid_left.pid(state.vleft_ref, last_odometry->v_left, state.voltage_saturation);
+      vel_pid_left->update(dt, state.vleft_ref, last_odometry->v_left, state.voltage_saturation);
 
   // Check for voltage saturation
   double vr = std::fabs(voltage_cmd.right), vl = std::fabs(voltage_cmd.left);
-  state.voltage_saturation = (vr > max_voltage || vl > max_voltage);
+  state.voltage_saturation = (vr > state.max_voltage || vl > state.max_voltage);
 
   // If saturation, reduce non-saturating wheel accordingly
   if (state.voltage_saturation) {
-    double k = max_voltage / ((vr > vl) ? vr : vl);
+    double k = state.max_voltage / ((vr > vl) ? vr : vl);
     voltage_cmd.right *= k;
     voltage_cmd.left *= k;
   }

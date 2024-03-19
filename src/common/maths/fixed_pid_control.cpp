@@ -1,5 +1,8 @@
 #include "common/math/fixed_pid_control.hpp"
 
+#include "common/math/math.hpp"
+
+
 namespace raubase::math {
 
 FixedPILeadController::FixedPILeadController(control_val Kp, control_val td, control_val alpha_d,
@@ -29,7 +32,10 @@ void FixedPILeadController::reset_history() {
 
 control_val FixedPILeadController::update(control_val dt, const control_val &ref,
                                           const control_val &measured, bool saturation) {
-  ep = kp * (ref - measured);
+  if (fold_angle)
+    ep = kp * math::natural_angle(ref - measured);
+  else
+    ep = kp * (ref - measured);
   if (use_lead)
     up = update_lead(dt, ep);
   else

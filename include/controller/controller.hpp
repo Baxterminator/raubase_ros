@@ -35,7 +35,8 @@ THE SOFTWARE.
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/subscription.hpp>
 
-#include "common/utils/upid.hpp"
+#include "common/math/controller.hpp"
+#include "common/utils/types.hpp"
 
 using namespace rclcpp;
 using namespace std::chrono;
@@ -52,46 +53,71 @@ namespace raubase::motor {
  * motors.
  *
  */
-class Controller : public Node {
+class VelocityController : public Node {
   // ==========================================================================
   //                                 Constants
   // ==========================================================================
- private:
-  static constexpr const char* SUB_CMD_TOPIC{"control/move"};
-  static constexpr const char* SUB_ODOMETRY{"state/odometry"};
-  static constexpr const char* PUB_CMD_TOPIC{"control/set_voltage"};
-  static constexpr const char* PUB_STATE_TOPIC{"state/vcontroller"};
-  static constexpr const int QOS{10};
+ public:
+  constchar NODE_NAME{"controller"};   //< Name of the ROS node
+  static constexpr const int QOS{10};  //< Default QoS
 
-  // ----------------------------- Default values ---------------------------------
-  // General parameters
-  static constexpr int DEFAULT_FREQ = 100;            //< Frequency of the controller loop
-  static constexpr float DEFAULT_MAX_V = 10.0;        //< Max voltage for commanding the motors
-  static constexpr float DEFAULT_MAX_TR = 3.0;        //< Max turn rate for the robot (rad/s)
-  static constexpr float DEFAULT_WHEEL_BASE = 0.243;  //< Distance between the wheels
+  struct Topics {
+    constchar SUB_CMD{"control/move"};         //< Where to grab commands
+    constchar SUB_ODOMETRY{"state/odometry"};  //< Where to grab odometry
+    constchar PUB_CMD{"control/set_voltage"};  //< Where to publish voltage commands
+    constchar PUB_STATE{"state/vcontroller"};  //< Where to publish controller state
+  };
+  struct Params {
+    constchar PID_FREQ{"pid_freq"};        //< PID frequency
+    constchar MAX_VOLT{"max_volt"};        //< Maximum voltage for the motors (in V)
+    constchar MAX_TR{"max_turn_rate"};     //< Maximum turn rate for the robot (in rad/s)
+    constchar WHEEL_BASE{"wheel_base_m"};  //< Distance between the wheels (in m)
+    constchar DEBUG{"debug"};              //< If in debug mode (share state)
 
-  // Velocity PID
-  static constexpr float DEFAULT_PID_V_KP = 7.0;   //< Velocity PID: prop. gain (V per (m/s))
-  static constexpr float DEFAULT_PID_V_TD = 0.0;   //< Velocity PID: lead time constant (sec)
-  static constexpr float DEFAULT_PID_V_AD = 1.0;   //< Velocity PID: lead alpha value
-  static constexpr float DEFAULT_PID_V_TI = 0.05;  //< Velocity PID: integrator time constant (sec)
+    // PIDS
+    constchar PID_V_KP{"vpid_kp"};  //< Velocity PID: prop. gain (V per (m/s))
+    constchar PID_V_TD{"vpid_td"};  //< Velocity PID: lead time constant (sec)
+    constchar PID_V_AD{"vpid_ad"};  //< Velocity PID: lead alpha value
+    constchar PID_V_TI{"vpid_ti"};  //< Velocity PID: integrator time constant (sec)
+    constchar PID_H_KP{"hpid_kp"};  //< Heading PID: prop. gain (rad/s per rad)
+    constchar PID_H_TD{"hpid_td"};  //< Heading PID: lead time constant (sec)
+    constchar PID_H_AD{"hpid_ad"};  //< Heading PID: lead alpha value
+    constchar PID_H_TI{"hpid_ti"};  //< Heading PID: integrator time constant (sec)
+  };
+  struct Default {
+    constval int FREQ = -1;             //< Frequency of the controller loop
+    constval float MAX_VOLT = 10.0;     //< Max voltage for commanding the motors
+    constval float MAX_TR = 3.0;        //< Max turn rate for the robot (rad/s)
+    constval float WHEEL_BASE = 0.243;  //< Distance between the wheels (in m)
+    constval bool IN_DEBUG = true;      //< Whether we are in debug mode
 
-  // Heading PID
-  static constexpr float DEFAULT_PID_H_KP = 10.0;  //< Heading PID: prop. gain (rad/s per rad)
-  static constexpr float DEFAULT_PID_H_TD = 0.0;   //< Heading PID: lead time constant (sec)
-  static constexpr float DEFAULT_PID_H_AD = 1.0;   //< Heading PID: lead alpha value
-  static constexpr float DEFAULT_PID_H_TI = 0.;    //< Heading PID: integrator time constant (sec)
+    // PIDS
+    constval float PID_V_KP = 7.0;   //< Velocity PID: prop. gain (V per (m/s))
+    constval float PID_V_TD = 0.0;   //< Velocity PID: lead time constant (sec)
+    constval float PID_V_AD = 1.0;   //< Velocity PID: lead alpha value
+    constval float PID_V_TI = 0.05;  //< Velocity PID: integrator time constant (sec)
+    constval float PID_H_KP = 10.0;  //< Heading PID: prop. gain (rad/s per rad)
+    constval float PID_H_TD = 0.0;   //< Heading PID: lead time constant (sec)
+    constval float PID_H_AD = 1.0;   //< Heading PID: lead alpha value
+    constval float PID_H_TI = 0.;    //< Heading PID: integrator time constant (sec)
+  };
 
   // ==========================================================================
   //                                 Methods
   // ==========================================================================
  public:
   // ----------------------------- Life Cycle ---------------------------------
-  Controller(NodeOptions);
+  VelocityController(NodeOptions);
 
   void terminate();
 
  private:
+  /**
+   * @brief Initialize the internal controllers
+   *
+   */
+  void init_controllers();
+
   /**
    * @brief Loop for launching the several PID computations and export the command.
    */
@@ -106,7 +132,7 @@ class Controller : public Node {
   /**
    * @brief Compute the turn rate from the last received command.
    */
-  void computeTurnRate();
+  void computeTurnRate(double dt);
 
   // ----------------------------- Velocities ---------------------------------
   /**
@@ -116,18 +142,16 @@ class Controller : public Node {
   /**
    * @brief Compute the left-right wheels velocities command in Volts based on the reference.
    */
-  void computeRLVelocities();
+  void computeRLVelocities(double dt);
 
   // ==========================================================================
   //                                    Members
   // ==========================================================================
  private:
   // ------------------------ Parameters of the node --------------------------
-  microseconds loop_period;  //< Duration between two loop runs
-  double max_voltage;        //< Maximum voltage accepted by the motors
-  double max_turn_rate;      //< Maximum turn rate allowed by the robot
-  double wheel_base;         //< Distance between the two wheels
-  bool debug;                //< Whether the node run on debug
+  double max_turn_rate;  //< Maximum turn rate allowed by the robot
+  double wheel_base;     //< Distance between the two wheels
+  bool debug;            //< Whether the node run on debug
 
   // ----------------------------- ROS Members --------------------------------
   TimerBase::SharedPtr fixed_loop;                          //< Controller loop
@@ -140,11 +164,12 @@ class Controller : public Node {
   CmdMove::SharedPtr last_cmd;              //< Last command received
   ResultOdometry::SharedPtr last_odometry;  //< Last odometry received
   CmdMotorVoltage voltage_cmd;              //< Command voltage message
+  StateVelocityController state;  //< Internal state of the controller (as msg for debug publishing)
 
   // ----------------------------------- PIDs ---------------------------------
-  StateVelocityController state;  //< Internal state of the controller (as msg for debug publishing)
-  PID vel_pid_right, vel_pid_left;  //< PIDs for controlling the motors velocity
-  PID heading_pid;                  //< PID for controlling the heading
+  math::ControlInterface::SharedPtr vel_pid_right,
+      vel_pid_left;                            //< PIDs for controlling the motors velocity
+  math::ControlInterface::SharedPtr head_pid;  //< PID for controlling the heading
 };
 
 }  // namespace raubase::motor

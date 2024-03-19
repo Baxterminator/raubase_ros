@@ -1,7 +1,11 @@
 #include "controller/controller.hpp"
 
+#include <chrono>
+#include <cmath>
 #include <rclcpp/logging.hpp>
 
+#include "common/math/fixed_pid_control.hpp"
+#include "common/math/pid_control.hpp"
 #include "common/utils/types.hpp"
 #include "common/utils/utime.hpp"
 
@@ -15,7 +19,7 @@
 
 namespace raubase::motor {
 
-Controller::Controller(NodeOptions opts) : Node("controller", opts) {
+VelocityController::VelocityController(NodeOptions opts) : Node(NODE_NAME, opts) {
   // General initialization
   state.vleft_ref = 0;
   state.vright_ref = 0;
@@ -36,59 +40,82 @@ Controller::Controller(NodeOptions opts) : Node("controller", opts) {
   last_cmd->velocity = 0;
 
   // Initiate parameters
-  loop_period =
-      microseconds((long)std::fabs(1. / declare_parameter("pid_freq", DEFAULT_FREQ) * 1E6));
-  max_voltage = declare_parameter("max_volt", DEFAULT_MAX_V);
-  state.max_voltage = max_voltage;
-  max_turn_rate = declare_parameter("max_turn_rate", DEFAULT_MAX_TR);
-  state.max_turnrate = max_turn_rate;
-  wheel_base = declare_parameter("wheel_base", DEFAULT_WHEEL_BASE);
-  debug = declare_parameter("debug", true);
+  state.max_voltage = declare_parameter(Params::MAX_VOLT, Default::MAX_VOLT);
+  state.max_turnrate = declare_parameter(Params::MAX_TR, Default::MAX_TR);
+  wheel_base = declare_parameter(Params::WHEEL_BASE, Default::WHEEL_BASE);
+  debug = declare_parameter(Params::DEBUG, Default::IN_DEBUG);
 
-  // Initiate PIDs
-  vel_pid_right.setup(loop_period.count() * 1E-6, declare_parameter("vpid_kp", DEFAULT_PID_V_KP),
-                      declare_parameter("vpid_td", DEFAULT_PID_V_TD),
-                      declare_parameter("vpid_ad", DEFAULT_PID_V_AD),
-                      declare_parameter("vpid_ti", DEFAULT_PID_V_TI));
-  vel_pid_left.setup(loop_period.count() * 1E-6, get_parameter("vpid_kp").as_double(),
-                     get_parameter("vpid_td").as_double(), get_parameter("vpid_ad").as_double(),
-                     get_parameter("vpid_ti").as_double());
-  heading_pid.setup(loop_period.count() * 1E-6, declare_parameter("hpid_kp", DEFAULT_PID_H_KP),
-                    declare_parameter("hpid_td", DEFAULT_PID_H_TD),
-                    declare_parameter("hpid_ad", DEFAULT_PID_H_AD),
-                    declare_parameter("hpid_ti", DEFAULT_PID_H_TI));
-  heading_pid.doAngleFolding(true);
+  // Initiate Controllers
+  init_controllers();
 
   // Initiate ROS components
-  RCLCPP_INFO(get_logger(), "Launching controller unit with a period of %zuµs",
-              loop_period.count());
-  cmd_sub = create_subscription<CmdMove>(SUB_CMD_TOPIC, QOS,
+  cmd_sub = create_subscription<CmdMove>(Topics::SUB_CMD, QOS,
                                          [this](const CmdMove::SharedPtr cmd) { last_cmd = cmd; });
   odom_sub = create_subscription<ResultOdometry>(
-      SUB_ODOMETRY, QOS, [this](const ResultOdometry::SharedPtr odm) { last_odometry = odm; });
-  voltage_pub = create_publisher<CmdMotorVoltage>(PUB_CMD_TOPIC, QOS);
-  if (debug) state_pub = create_publisher<StateVelocityController>(PUB_STATE_TOPIC, QOS);
-  fixed_loop = create_wall_timer(loop_period, std::bind(&Controller::loop, this));
+      Topics::SUB_ODOMETRY, QOS,
+      [this](const ResultOdometry::SharedPtr odm) { last_odometry = odm; });
+  voltage_pub = create_publisher<CmdMotorVoltage>(Topics::PUB_CMD, QOS);
+  if (debug) state_pub = create_publisher<StateVelocityController>(Topics::PUB_STATE, QOS);
 }
 
-void Controller::terminate() {
+void VelocityController::init_controllers() {
+  int freq = declare_parameter(Params::PID_FREQ, Default::FREQ);
+
+  // Velocity controller constants
+  float vel_kp = declare_parameter(Params::PID_V_KP, Default::PID_V_KP);
+  float vel_td = declare_parameter(Params::PID_V_TD, Default::PID_V_TD);
+  float vel_ad = declare_parameter(Params::PID_V_AD, Default::PID_V_AD);
+  float vel_ti = declare_parameter(Params::PID_V_TI, Default::PID_V_TI);
+
+  // Heading controller constants
+  float heading_kp = declare_parameter(Params::PID_H_KP, Default::PID_H_KP);
+  float heading_td = declare_parameter(Params::PID_H_TD, Default::PID_H_TD);
+  float heading_ad = declare_parameter(Params::PID_H_AD, Default::PID_H_AD);
+  float heading_ti = declare_parameter(Params::PID_H_TI, Default::PID_H_TI);
+
+  // If controller works on "as soon as we have the odometry"
+  if (freq == -1) {
+    RCLCPP_INFO(get_logger(), "Launching velocity controller unit in consuming mode");
+    vel_pid_right = math::PILeadController::make(vel_kp, vel_td, vel_ad, vel_ti);
+    vel_pid_left = math::PILeadController::make(vel_kp, vel_td, vel_ad, vel_ti);
+    head_pid = math::PILeadController::make(heading_kp, heading_td, heading_ad, heading_ti);
+  }
+  // Else the controller is at a fixed speed
+  else {
+    double period = 1.0 / ((double)freq);
+    RCLCPP_INFO(get_logger(), "Launching velocity controller unit with a period of %zuµs",
+                (long)std::floor(period * 1E6));
+    vel_pid_right = math::FixedPILeadController::make(vel_kp, vel_td, vel_ad, vel_ti, period);
+    vel_pid_left = math::FixedPILeadController::make(vel_kp, vel_td, vel_ad, vel_ti, period);
+    head_pid =
+        math::FixedPILeadController::make(heading_kp, heading_td, heading_ad, heading_ti, period);
+    fixed_loop = create_wall_timer(microseconds((long)std::floor(period * 1E6)),
+                                   std::bind(&VelocityController::loop, this));
+  }
+  head_pid->set_fold_angle(true);
+}
+
+void VelocityController::terminate() {
   voltage_cmd.right = 0;
   voltage_cmd.left = 0;
   voltage_pub->publish(voltage_cmd);
 }
 
-void Controller::loop() {
+///////////////////////////////////////////////////////////////////////////////
+
+void VelocityController::loop() {
   static UTime loop_time("now");
 
   RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR, "Loop");
+  float dt = loop_time.getTimePassed();
 
   // Compute the Turn Rate to apply
-  computeHeadingRef(loop_time.getTimePassed());
-  computeTurnRate();
+  computeHeadingRef(dt);
+  computeTurnRate(dt);
 
   // Compute the RL velocities
   computeVelocitiesRef();
-  computeRLVelocities();
+  computeRLVelocities(dt);
 
   // Publish the message
   voltage_pub->publish(voltage_cmd);
@@ -101,7 +128,7 @@ void Controller::loop() {
 int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
 
-  auto controller = std::make_shared<raubase::motor::Controller>(NodeOptions{});
+  auto controller = std::make_shared<raubase::motor::VelocityController>(NodeOptions{});
 
   while (rclcpp::ok()) rclcpp::spin_some(controller);
   controller->terminate();

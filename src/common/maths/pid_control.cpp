@@ -1,5 +1,7 @@
 #include "common/math/pid_control.hpp"
 
+#include "common/math/math.hpp"
+
 namespace raubase::math {
 
 PILeadController::PILeadController(control_val Kp, control_val td, control_val alpha_d,
@@ -27,7 +29,11 @@ void PILeadController::reset_history() {
 
 control_val PILeadController::update(double dt, const control_val &ref, const control_val &measured,
                                      bool saturation) {
-  ep = kp * (ref - measured);
+  if (dt < 1E-8) return;
+  if (fold_angle)
+    ep = kp * math::natural_angle(ref - measured);
+  else
+    ep = kp * (ref - measured);
   if (use_lead)
     up = update_lead(dt, ep);
   else

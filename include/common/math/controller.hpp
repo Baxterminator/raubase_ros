@@ -26,6 +26,8 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
+#include "common/utils/types.hpp"
+
 namespace raubase::math {
 
 /**
@@ -33,6 +35,8 @@ namespace raubase::math {
  */
 template <typename R, typename Y>
 struct ControllerInterface {
+  typedef sptr<ControllerInterface<R, Y>> SharedPtr;
+
   /**
    * @brief Reset the internal state of the controller.
    *
@@ -47,10 +51,20 @@ struct ControllerInterface {
    * @param saturation if the controller is at its limit or not
    */
   virtual Y update(double dt, const R& ref, const Y& measured, bool saturation) = 0;
+
+  /**
+   * @brief Set whether the angle should be folder after computing the error.
+   */
+  void set_fold_angle(bool _fold) { fold_angle = _fold; }
+
+ protected:
+  bool fold_angle = false;
 };
 
 // Way of changing controllers floating precision
 typedef double control_val;
+
+typedef ControllerInterface<control_val, control_val> ControlInterface;
 
 }  // namespace raubase::math
 
