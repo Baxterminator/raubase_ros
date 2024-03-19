@@ -1,0 +1,64 @@
+site_name: Raubase-ROS Documentation
+repo_url: https://github.com/Baxterminator/raubase_ros
+site_description: Raubase ROS package documentation
+site_author: Meltwin
+copyright: © 2023 - Meltwin for the DTU Robocup
+docs_dir: dist
+site_dir: docs
+nav:
+  - Home: index.md
+  - 0 - Using the tools:
+    - Introduction: tools.md
+    - Planning:
+      - Making Behavior Plan: tasks/behavior.md
+      - Making Custom Task: tasks/task.md
+  - A - Messages:
+    - Introduction: messages/messages.md
+    - Sensor Data: messages/data.md
+    - Algorithm Results: messages/results.md
+  - B - Python API:
+    - Planning:
+      - Conditions: python_api/conditions.md
+      - Requirements: python_api/requirements.md
+      - Shared Control: python_api/shared_cmd.md
+      - Shared Data: python_api/shared_data.md
+theme:
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+      primary: black
+      accent: red
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+      primary: cyan
+      accent: red
+  features:
+    - content.code.copy
+    - content.code.select
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - markdown_include.include:
+      base_path: dist
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - admonition
+  - pymdownx.details
+extra_css:
+  - css/extra.css

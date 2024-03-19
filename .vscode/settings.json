@@ -1,0 +1,5 @@
+{
+  "editor.wordWrap": "bounded",
+  "editor.wordWrapColumn": 70,
+  "editor.minimap.maxColumn": 80
+}
