@@ -34,6 +34,9 @@ class ControlCheck(Node):
             .get_parameter_value()
             .double_value
         )
+        self.read_only = (
+            self.declare_parameter("read_only", True).get_parameter_value().bool_value
+        )
 
         # Plot
         self.turn_rate = [[], [], [], []]
@@ -54,11 +57,13 @@ class ControlCheck(Node):
         self.odo_sub = self.create_subscription(
             ResultOdometry, "state/odometry", self.odom_callback, 10
         )
-        self.move_msg = CmdMove()
-        self.move_msg.move_type = CmdMove.CMD_V_ANGLE
-        self.move_pub = self.create_publisher(CmdMove, "control/move", 10)
-        self.step = 0
-        self.last_step_time = perf_counter() - 5
+
+        if not self.read_only:
+            self.move_msg = CmdMove()
+            self.move_msg.move_type = CmdMove.CMD_V_ANGLE
+            self.move_pub = self.create_publisher(CmdMove, "control/move", 10)
+            self.step = 0
+            self.last_step_time = perf_counter() - 5
         self.loop = self.create_timer(0.03, self.next_step)
 
     def setup_plot(self):
@@ -85,7 +90,10 @@ class ControlCheck(Node):
         )
         self._ax1[1].set_xlabel("Time (s)")
         self._ax1[1].set_ylabel("Heading (rad)")
-        self._ax1[1].set_ylim([-1.1 * np.pi / 2, 1.1 * np.pi / 2])
+        self._ax1[1].set_ylim([-1.1 * np.pi, 1.1 * np.pi])
+        self._ax1[1].set_yticks(
+            [-np.pi, -np.pi / 2, -np.pi / 4, 0, np.pi / 4, np.pi / 2, np.pi]
+        )
         self._fig1.canvas.draw()
         self._ax1[1].grid(which="both")
 
@@ -242,6 +250,10 @@ class ControlCheck(Node):
         Try to launch the next step of the calibration
         """
         self.plot_update()
+
+        if self.read_only:
+            return
+
         if perf_counter() - self.last_step_time < self.min_time:
             return
 

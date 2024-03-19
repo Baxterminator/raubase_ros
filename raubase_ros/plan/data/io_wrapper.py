@@ -154,9 +154,7 @@ class IOWrapper:
         """
         Setup for selecting the input source in the velocity controller.
         """
-        self.__control.set_cmd = self._pub(
-            node, SetControllerInput, Topics.CONTROLLER, TRANSIENT_QOS
-        )
+        self.__control.set_cmd = self._pub(node, SetControllerInput, Topics.CONTROLLER)
 
     def __init_move(self, node: NodeWrapper) -> None:
         """
@@ -165,7 +163,9 @@ class IOWrapper:
         self.__control.set_vel = self._pub(node, CmdMove, Topics.MOVE)
 
         # Initialize "plan" input method for the mixer
-        pub = node.create_publisher(SetControllerInput, Topics.DECLARE_INPUT, 10)
+        pub = node.create_publisher(
+            SetControllerInput, Topics.DECLARE_INPUT, TRANSIENT_QOS
+        )
         msg = SetControllerInput()
         msg.input = SetControllerInput.PLAN
         pub.publish(msg)
@@ -227,6 +227,7 @@ class IOWrapper:
         """
         Register an internal publisher and configure its method
         """
+        node.get_logger().warn(f"For topic {topic}, got QoS {qos}")
         pub = node.create_publisher(T, topic, qos)
         self.__pubs.append(pub)
 

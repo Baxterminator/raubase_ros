@@ -26,7 +26,7 @@ class BehaviourPlan(NodeWrapper):
 
         # Declare loop runner
         self.__timer = self.create_timer(
-            self.declare_wparameter("loop_s", 0.01).get(),
+            self.declare_wparameter("loop_s", 0.05).get(),
             self.loop,
         )
 

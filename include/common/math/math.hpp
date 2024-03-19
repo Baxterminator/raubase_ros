@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include <algorithm>
 #include <builtin_interfaces/msg/time.hpp>
 #include <cmath>
+#include <limits>
 
 using mTime = builtin_interfaces::msg::Time;
 
@@ -75,7 +76,8 @@ inline T cst_outside(T value, T x_lim, T outside = 0) {
  */
 template <typename T>
 inline T natural_angle(T value) {
-  return (value > M_PI) ? value - M_2PI : ((value < -M_PI) ? value + M_2PI : value);
+  return (value > M_PI) ? natural_angle(value - M_2PI)
+                        : ((value < -M_PI) ? natural_angle(value + M_2PI) : value);
 }
 
 /**
@@ -87,6 +89,21 @@ inline T natural_angle(T value) {
  */
 inline double timeBtwStamps(const mTime &from, const mTime &to) {
   return (to.sec - from.sec + (to.nanosec - from.nanosec) * 1E-9);
+}
+
+/**
+ * @brief Compute the minimum of the absolute value in a list of double.
+ */
+inline double asb_min(std::vector<double> numbers) {
+  auto min = 0.0;
+  auto min_value = std::numeric_limits<double>::max();
+  for (auto n : numbers) {
+    if (auto nabs = std::fabs(n); nabs < min_value) {
+      min_value = nabs;
+      min = n;
+    }
+  }
+  return min;
 }
 
 }  // namespace raubase::math
