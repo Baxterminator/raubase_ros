@@ -77,6 +77,7 @@ void VelocityController::init_controllers() {
 
   // If controller works on "as soon as we have the odometry"
   if (freq == -1) {
+    consuming = true;
     RCLCPP_INFO(get_logger(), "Launching velocity controller unit in consuming mode");
     vel_pid_right = math::PILeadController::make(vel_kp, vel_td, vel_ad, vel_ti);
     vel_pid_left = math::PILeadController::make(vel_kp, vel_td, vel_ad, vel_ti);

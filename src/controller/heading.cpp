@@ -1,4 +1,5 @@
 #include <complex>
+#include <rclcpp/logging.hpp>
 
 #include "common/math/math.hpp"
 #include "controller/controller.hpp"
@@ -20,15 +21,16 @@ void VelocityController::computeHeadingRef(double dt) {
 }
 
 void VelocityController::computeTurnRate(double dt) {
+  RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 500, "Got time %f", dt);
   // Compute new turn rate command
   state.turn_rate =
       head_pid->update(dt, state.heading_ref, last_odometry->heading, state.turnrate_saturation);
 
   // Saturation for the turn rate
-  state.turnrate_saturation =
-      (std::fabs(state.turn_rate) > max_turn_rate || state.voltage_saturation);
-  if (state.turnrate_saturation) {
-    state.turn_rate = math::saturate(state.turn_rate, max_turn_rate);
+  if (state.turnrate_saturation =
+          (std::fabs(state.turn_rate) > state.max_turnrate || state.voltage_saturation);
+      state.turnrate_saturation) {
+    state.turn_rate = math::saturate(state.turn_rate, state.max_turnrate);
   }
 }
 

@@ -26,7 +26,7 @@ void PILeadController::reset_history() {
 
 control_val PILeadController::update(double dt, const control_val &ref, const control_val &measured,
                                      bool saturation) {
-  if (dt < 1E-8) return;
+  if (dt < 1E-8) return last_ui + last_up;
   if (fold_angle)
     ep = kp * math::natural_angle(ref - measured);
   else
