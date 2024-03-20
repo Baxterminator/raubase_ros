@@ -1,0 +1,19 @@
+# =============================================================================
+#
+#                              Localization configuration
+# 
+#  This file contains the configurations needed for localizations
+# =============================================================================
+
+odom_freq: -1
+base_width_m: 0.243
+flon: 1.0
+flat: 1.0
+right:
+  right_wheel_diameter_m: 0.146
+  right_gear_ratio: 19.0
+  right_tick_per_rev: 68
+left:
+  left_wheel_diameter_m: 0.146
+  left_gear_ratio: 19.0
+  left_tick_per_rev: 68

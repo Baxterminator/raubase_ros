@@ -11,7 +11,7 @@ from raubase_ros.config import ConfigFile
 
 
 def generate_launch_description():
-    config = ConfigFile("control")
+    config = ConfigFile("localization")
 
     return LaunchDescription(
         [
