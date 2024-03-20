@@ -74,8 +74,8 @@ struct TwoWheeledRoverKinematics {
         Flat(flat),
         Flon(flon) {
     // Apply Flat and Flon to wheels
-    right.tick_per_rev /= Flon;
-    left.tick_per_rev /= Flon * Flat;
+    right.dist_per_tick /= Flon;
+    left.dist_per_tick /= Flon * Flat;
   }
 
   static TwoWheeledRoverKinematics::SharedPtr make(const Wheel &_right_wheel,

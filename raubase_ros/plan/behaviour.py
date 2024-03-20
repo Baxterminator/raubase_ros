@@ -1,8 +1,6 @@
 from time import perf_counter
 from typing import List
 
-from regex import D
-
 from raubase_ros.wrappers import NodeWrapper
 from .data import IOWrapper, Requirement
 from .task import BaseTask
