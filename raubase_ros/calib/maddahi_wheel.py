@@ -133,7 +133,7 @@ class WheelMaddahi(BaseTask):
 
                 Flat = denc_right / denc_left
                 Flon = self.data.distance / np.sqrt(
-                    np.power(self.data.distance - dx, 2) + np.power(dy, 2)
+                    np.power(self.data.distance + dx, 2) + np.power(dy, 2)
                 )
 
                 self.logger.info("Calibration results :")

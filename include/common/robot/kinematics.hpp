@@ -25,6 +25,7 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEAL
 THE SOFTWARE.
 */
 
+#include <iostream>
 #include <memory>
 #include <raubase_msgs/msg/data_encoder.hpp>
 #include <raubase_msgs/msg/result_odometry.hpp>
@@ -74,6 +75,26 @@ struct TwoWheeledRoverKinematics {
         Flat(flat),
         Flon(flon) {
     // Apply Flat and Flon to wheels
+    std::cout << std::endl
+              << std::endl
+              << std::endl
+              << std::endl
+              << std::endl
+              << std::endl
+              << std::endl
+              << std::endl
+              << std::endl;
+    std::cout << "Flon " << Flon << std::endl;
+    std::cout << "Flat " << Flat << std::endl;
+    std::cout << std::endl
+              << std::endl
+              << std::endl
+              << std::endl
+              << std::endl
+              << std::endl
+              << std::endl
+              << std::endl
+              << std::endl;
     right.dist_per_tick /= Flon;
     left.dist_per_tick /= Flon * Flat;
   }
