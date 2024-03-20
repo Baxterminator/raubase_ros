@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <raubase_msgs/msg/detail/set_controller_input__struct.hpp>
+#include <raubase_msgs/msg/detail/set_line_sensor_config__struct.hpp>
 
 #include "common/math/fixed_pid_control.hpp"
 #include "common/math/math.hpp"
@@ -44,6 +45,12 @@ LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
   controller_state = create_subscription<StateVelocityController>(
       Topics::SUB_CONTROLLER_STATE, QOS,
       [this](StateVelocityController::SharedPtr msg) { last_control_state = msg; });
+
+  sensor_config = create_publisher<SetLineSensorConfig>(Topics::PUB_LINE_SET, 10);
+  config.high_power = true;
+  config.on = true;
+  config.white = true;
+  sensor_config->publish(config);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

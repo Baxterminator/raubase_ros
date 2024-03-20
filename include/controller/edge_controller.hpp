@@ -5,8 +5,10 @@
 #include <raubase_msgs/msg/cmd_line_follower.hpp>
 #include <raubase_msgs/msg/cmd_move.hpp>
 #include <raubase_msgs/msg/data_line_sensor.hpp>
+#include <raubase_msgs/msg/detail/set_line_sensor_config__struct.hpp>
 #include <raubase_msgs/msg/result_edge.hpp>
 #include <raubase_msgs/msg/set_controller_input.hpp>
+#include <raubase_msgs/msg/set_line_sensor_config.hpp>
 #include <raubase_msgs/msg/state_velocity_controller.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rclcpp/subscription.hpp>
@@ -21,6 +23,7 @@ using raubase_msgs::msg::CmdMove;
 using raubase_msgs::msg::DataLineSensor;
 using raubase_msgs::msg::ResultEdge;
 using raubase_msgs::msg::SetControllerInput;
+using raubase_msgs::msg::SetLineSensorConfig;
 using raubase_msgs::msg::StateVelocityController;
 using std::chrono::microseconds;
 
@@ -79,6 +82,7 @@ class LineFollower : public Node {
     constchar PUB_CMD{"control/move_edge"};
     constchar PUB_RESULT{"sensor/edge"};
     constchar PUB_DECLARE{"control/declare_input"};
+    constchar PUB_LINE_SET{"control/line/set"};
   };
 
   // ==========================================================================
@@ -159,6 +163,9 @@ class LineFollower : public Node {
 
   ResultEdge result;
   Publisher<ResultEdge>::SharedPtr result_pub;
+
+  SetLineSensorConfig config;
+  Publisher<SetLineSensorConfig>::SharedPtr sensor_config;
 
   // ----------------------------------- PIDs ---------------------------------
   math::ControlInterface::SharedPtr pid;  //< PID for controlling the heading
