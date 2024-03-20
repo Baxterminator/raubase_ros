@@ -6,11 +6,14 @@
 #include "common/utils/types.hpp"
 #include "localization/localization.hpp"
 
+using raubase::kinematics::Wheel;
+
 namespace raubase::loc {
 
 Odometry::Odometry(NodeOptions opts) : Node(NODE_NAME, opts) {
   RCLCPP_INFO(get_logger(), "Initializing odometry");
 
+  // Declare parameters
   odom_msg.turn_rate = 0;
   odom_msg.v_lin = 0;
   odom_msg.v_left = 0;
@@ -20,26 +23,37 @@ Odometry::Odometry(NodeOptions opts) : Node(NODE_NAME, opts) {
   odom_msg.y = 0;
 
   robot = TwoWheeledRoverKinematics::make(
-      Wheel(declare_parameter("right_wheel_diameter_m", DEF_WHEEL_D),
-            declare_parameter("right_gear_ratio", DEF_GEAR_RATIO),
-            declare_parameter("right_tick_per_rev", DEF_TICK_PER_REV)),
-      Wheel(declare_parameter("left_wheel_diameter_m", DEF_WHEEL_D),
-            declare_parameter("left_gear_ratio", DEF_GEAR_RATIO),
-            declare_parameter("left_tick_per_rev", DEF_TICK_PER_REV)),
-      MAX_TICK_CHANGE, declare_parameter("base_width_m", DEF_BASE));
+      Wheel(declare_parameter(Params::R_WHEEL_D, Default::WHEEL_D),
+            declare_parameter(Params::R_WHEEL_RATIO, Default::GEAR_RATIO),
+            declare_parameter(Params::R_WHEEL_TPR, Default::TICK_PER_REV)),
+      Wheel(declare_parameter(Params::L_WHEEl_D, Default::WHEEL_D),
+            declare_parameter(Params::L_WHEEL_RATIO, Default::GEAR_RATIO),
+            declare_parameter(Params::L_WHEEL_TPR, Default::TICK_PER_REV)),
+      MAX_TICK_CHANGE, declare_parameter(Params::BASE_WIDTH, Default::DEF_BASE),
+      declare_parameter(Params::F_LAT, Default::F_LAT),
+      declare_parameter(Params::F_LON, Default::F_LON));
 
-  // Declare parameters
-  odom_loop_period = microseconds((long)(1E6 / declare_parameter("odom_freq", DEF_ODOM_FREQ)));
-
-  // Declare ROS participants
+  //< Whether the node should run in "consuming" (i.e. when receiving a message) or
+  // in "frequency" (i.e. run x times a second)
   RCLCPP_INFO(get_logger(), "Initializing pub/sub");
-  encoder_sub = create_subscription<msg::DataEncoder>(
-      SUB_ENC_TOPIC, 10, [this](const msg::DataEncoder::SharedPtr msg) {
-        last_enc = msg;
-        last_enc_has_been_used = false;
-      });
-  odom_pub = create_publisher<msg::ResultOdometry>(PUB_ODOM_TOPIC, QOS);
-  odom_loop = create_wall_timer(odom_loop_period, std::bind(&Odometry::updateOdometry, this));
+  auto freq = declare_parameter(Params::ODOM_FREQ, Default::ODOM_FREQ);
+  if (freq == -1) {
+    encoder_sub = create_subscription<msg::DataEncoder>(
+        Topics::SUB_ENC, 10, [this](const msg::DataEncoder::SharedPtr msg) {
+          last_enc = msg;
+          last_enc_has_been_used = false;
+          updateOdometry();
+        });
+  } else {
+    encoder_sub = create_subscription<msg::DataEncoder>(
+        Topics::SUB_ENC, 10, [this](const msg::DataEncoder::SharedPtr msg) {
+          last_enc = msg;
+          last_enc_has_been_used = false;
+        });
+    odom_loop = create_wall_timer(microseconds((long)(1E6 * 1 / freq)),
+                                  std::bind(&Odometry::updateOdometry, this));
+  }
+  odom_pub = create_publisher<msg::ResultOdometry>(Topics::PUB_ODOM, QOS);
 }
 
 ///////////////////////////////////////////////////////////////////////////////

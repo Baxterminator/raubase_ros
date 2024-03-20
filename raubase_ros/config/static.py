@@ -27,6 +27,7 @@ def is_on_raspberry() -> bool:
 
 
 def get_top_namespace() -> str:
-    if is_on_raspberry():
-        return socket.gethostname()
-    return "robobot"
+    robot_name = os.getenv("ROBOT_NAME", "")
+    if robot_name != "":
+        return robot_name
+    return socket.gethostname() if is_on_raspberry() else "robobot"

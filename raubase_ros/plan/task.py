@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from rclpy.logging import get_logger
 
-from .conditions import StartTaskCondition, StopTaskCondition
+from .conditions import StartTaskCondition, StopTaskCondition, FlowTaskCondition
 from .data import SharedData, ControlWrapper, Requirement
 
 
@@ -22,14 +22,14 @@ class BaseTask:
         raise RuntimeError("Requirements method not implemented!")
 
     @abstractmethod
-    def start_conditions(self) -> StartTaskCondition:
+    def start_conditions(self) -> StartTaskCondition | FlowTaskCondition:
         """
         List the conditions to accomplish to start
         """
         raise RuntimeError("Start conditions method not implemented!")
 
     @abstractmethod
-    def stop_conditions(self) -> StopTaskCondition:
+    def stop_conditions(self) -> StopTaskCondition | FlowTaskCondition:
         """
         List the conditions to accomplish to stop.
         """

@@ -17,6 +17,7 @@ class SharedData:
     ir: Dict[int, DataDistance] = field(
         default_factory=lambda: {1: DataDistance(), 2: DataDistance()}
     )
+    last_odometry: ResultOdometry | None = None
     odometry: ResultOdometry = ResultOdometry()
 
     # Camera / Images

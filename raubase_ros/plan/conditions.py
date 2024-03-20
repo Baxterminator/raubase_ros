@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Callable
 
 
 class TaskCondition:
@@ -18,8 +18,12 @@ class StopTaskCondition(TaskCondition):
     pass
 
 
+class FlowTaskCondition(TaskCondition):
+    pass
+
+
 # =============================================================================
-class Never(TaskCondition):
+class Never(FlowTaskCondition):
     """
     Condition that is always False.
     """
@@ -47,7 +51,7 @@ class AsSoonAsPossible(StopTaskCondition):
 
 
 # =============================================================================
-class ANDConditions(TaskCondition):
+class ANDConditions(FlowTaskCondition):
     def __init__(self, conditions: List[TaskCondition]) -> None:
         super().__init__()
         self.conditions = conditions
@@ -59,7 +63,7 @@ class ANDConditions(TaskCondition):
         return True
 
 
-class ORConditions(TaskCondition):
+class ORConditions(FlowTaskCondition):
     def __init__(self, conditions: List[TaskCondition]) -> None:
         super().__init__()
         self.conditions = conditions
@@ -69,3 +73,29 @@ class ORConditions(TaskCondition):
             if c:
                 return True
         return False
+
+
+# =============================================================================
+class OnValue(StopTaskCondition):
+    """
+    Test on a value (bool) condition.
+
+    Params:
+        - value_callback: a callback (or lambda) returning a bool
+
+    For example, one can use this condition like this:
+
+    class CustomTask(BaseTask):
+        def __init__(self):
+            self.stop = False
+            self.stop_cond = OnValue(lambda: self.stop)
+        def stop_conditions(self) -> StopCondition:
+            return self.stop_cond
+    """
+
+    def __init__(self, value_callback: Callable[[], bool]) -> None:
+        super().__init__()
+        self.value = value_callback
+
+    def test(self) -> bool:
+        return self.value()

@@ -1,0 +1,65 @@
+#!/usr/bin/python3
+from enum import IntEnum, auto
+from raubase_ros.plan import BehaviourPlan
+from raubase_ros.wrappers import ParameterWrapper
+from rclpy import init, ok, spin_once, shutdown
+import matplotlib.pyplot as plt
+from raubase_ros.calib import WheelMaddahi
+from raubase_ros.config import get_top_namespace
+
+CALIB_MENU = """
+What calibration to do next ?
+[1] Wheel Calibration (Maddahi and co.)
+""".strip()
+
+WIDTH = 45
+
+
+class AvailableTasks(IntEnum):
+    NONE = 0
+    WHEEL_MADDAHI = auto()
+
+
+class CalibrationTool(BehaviourPlan):
+    def __init__(self) -> None:
+        super().__init__("calibration_tool")
+        self.task = self.declare_wparameter("task", "none")
+
+    def print_header(self) -> None:
+        self.get_logger().info("".center(WIDTH, "="))
+        self.get_logger().info("Raubase Calibration Tool".center(WIDTH, " "))
+        self.get_logger().info("".center(WIDTH, "="))
+
+    def parse_param(self) -> None:
+        self.get_logger().info(self.task.get())
+        match self.task.get():
+            case "wheel" | "maddahi" | "1":
+                self.get_logger().info(
+                    "Running calibration wheel with the Maddahi methods"
+                )
+                self.add_task(WheelMaddahi())
+            case _:
+                self.get_logger().warn("No calibration choosen")
+                self.done = True
+        self.reinitialize()
+
+
+if __name__ == "__main__":
+    init()
+
+    plt.ion()
+    node = CalibrationTool()
+    spin_once(node)
+    node.parse_param()
+
+    if not node.done:
+        node.print_header()
+
+    while ok() and not node.done:
+        first = False
+        spin_once(node)
+        plt.pause(0.001)
+
+    input("Press [enter] to close all windows")
+
+    shutdown()

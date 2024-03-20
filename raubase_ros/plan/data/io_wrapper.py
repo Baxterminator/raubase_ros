@@ -104,12 +104,14 @@ class IOWrapper:
         """
 
         def clbk(msg: ResultOdometry):
-            # Update elapsed distance
-            dx = msg.x - self.state.odometry.x
-            dy = msg.y - self.state.odometry.y
-            self.state.distance += np.sqrt(dx * dx + dy * dy)
+            if self.state.last_odometry is not None:
+                # Update elapsed distance
+                dx = msg.x - self.state.odometry.x
+                dy = msg.y - self.state.odometry.y
+                self.state.distance += np.sqrt(dx * dx + dy * dy)
 
             # Update odometry message
+            self.state.last_odometry = msg
             self.state.odometry = msg
 
         self._sub(node, ResultOdometry, Topics.ODOMETRY, clbk)

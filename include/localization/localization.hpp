@@ -35,11 +35,11 @@ THE SOFTWARE.
 #include <rclcpp/timer.hpp>
 
 #include "common/robot/kinematics.hpp"
+#include "common/utils/types.hpp"
 
 using namespace rclcpp;
 using namespace raubase_msgs;
 using raubase::kinematics::TwoWheeledRoverKinematics;
-using raubase::kinematics::Wheel;
 using std::chrono::microseconds;
 
 namespace raubase::loc {
@@ -47,18 +47,40 @@ class Odometry : public Node {
   // ==========================================================================
   //                                 Constants
   // ==========================================================================
-  static constexpr const char* NODE_NAME{"odometry"};             //< Name of the node
-  static constexpr const char* SUB_ENC_TOPIC{"sensor/encoders"};  //< Topics of the encoders state
-  static constexpr const char* PUB_ODOM_TOPIC{"state/odometry"};  //< Topic for sharing the odometry
-  static constexpr int QOS{10};                                   //< QoS for all participants
-  static constexpr int MAX_TICK_CHANGE{1000};                     //< Max acceptable tick change
+ public:
+  constchar NODE_NAME{"odometry"};     //< Name of the node
+  constval int QOS{10};                //< QoS for all participants
+  constval int MAX_TICK_CHANGE{1000};  //< Max acceptable tick change
+
+  struct Topics {
+    constchar SUB_ENC{"sensor/encoders"};  //< Topics of the encoders state
+    constchar PUB_ODOM{"state/odometry"};  //< Topic for sharing the odometry
+  };
+  struct Params {
+    constchar ODOM_FREQ{"odom_freq"};  //< Default odometry frequency
+
+    constchar R_WHEEL_D{"right_wheel_diameter_m"};  //< Right wheel diameter (in m)
+    constchar R_WHEEL_RATIO{"right_gear_ratio"};    //< Right wheel gear ratio
+    constchar R_WHEEL_TPR{"right_tick_per_rev"};    //< Right wheel number of tick per revolution
+    constchar L_WHEEl_D{"left_wheel_diameter_m"};   //< Left wheel diameter (in m)
+    constchar L_WHEEL_RATIO{"left_gear_ratio"};     //< Left wheel gear ratio
+    constchar L_WHEEL_TPR{"left_tick_per_rev"};     //< Left wheel number of tick per revolution
+    constchar BASE_WIDTH{"base_width_m"};           //< Width between the two wheels (in m)
+    constchar F_LON{"flon"};                        //< Longitudinal error coefficient
+    constchar F_LAT{"flat"};                        //< Lateral error coefficient
+  };
 
   // Default values
-  static constexpr int DEF_ODOM_FREQ{100};       //< Default odometry frequency
-  static constexpr double DEF_GEAR_RATIO{19.0};  //< Default gear ratio
-  static constexpr double DEF_WHEEL_D{0.146};    //< Default wheel diameter (in meters)
-  static constexpr int DEF_TICK_PER_REV{68};     //< Default number of ticks per encoder revolution
-  static constexpr double DEF_BASE{0.243};       //< Default wheel base width (in meters)
+  struct Default {
+    constval int ODOM_FREQ{-1};  //< Default odometry frequency
+
+    constval float WHEEL_D{0.146};    //< Default wheel diameter (in meters)
+    constval float GEAR_RATIO{19.0};  //< Default gear ratio
+    constval float TICK_PER_REV{68};  //< Default number of ticks per encoder revolution
+    constval double DEF_BASE{0.243};  //< Default wheel base width (in meters)
+    constval float F_LAT{1.0};        //< Lateral error coefficient
+    constval float F_LON{1.0};        //< Longitudinal error coefficient
+  };
 
   // ==========================================================================
   //                                 Methods
@@ -79,12 +101,6 @@ class Odometry : public Node {
   // ==========================================================================
  private:
   // ------------------------------- Parameters -------------------------------
-  microseconds odom_loop_period;  //< Period for the loop duration
-  double gear;                    //< Gear ratio for the reducter (input:output = gear:1)
-  double wheel_d;                 //< Wheel diameter (in meters)
-  int tick_per_rev;               //< Number of tick per revolution for the encoder
-  double base;                    //< Base width (distance between the wheels, in meters)
-  double dist_per_tick;           //< Distance between two wheel ticks
   TwoWheeledRoverKinematics::SharedPtr robot;
 
   // ---------------------------------- ROS -----------------------------------

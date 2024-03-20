@@ -1,9 +1,12 @@
 from time import perf_counter
 from typing import List
 
+from regex import D
+
 from raubase_ros.wrappers import NodeWrapper
 from .data import IOWrapper, Requirement
 from .task import BaseTask
+from raubase_ros.config import get_top_namespace
 
 
 class BehaviourPlan(NodeWrapper):
@@ -11,14 +14,16 @@ class BehaviourPlan(NodeWrapper):
     # =================================================================
     #                             Setup
     # =================================================================
-    def __init__(self) -> None:
-        super().__init__("behaviour")  # type: ignore
+    def __init__(
+        self, name="behavior", default_loop_s=0.05, namespace: str = get_top_namespace()
+    ) -> None:
+        super().__init__(name, namespace=namespace)  # type: ignore
         self.__io = IOWrapper()
         self.__tasks: List[BaseTask] = []
         self._requirements: int = Requirement.NONE
         self.__task_id = 0
         self.__task_started = False
-        self.__done = False
+        self.done = False
         self.__initialized = False
 
         # Extra variables
@@ -26,14 +31,18 @@ class BehaviourPlan(NodeWrapper):
 
         # Declare loop runner
         self.__timer = self.create_timer(
-            self.declare_wparameter("loop_s", 0.05).get(),
+            self.declare_wparameter("loop_s", default_loop_s).get(),
             self.loop,
         )
 
     def __setup(self) -> None:
-        self.get_logger().info("Initializing the requirements for the tasks")
-        self.__io.init_requirements(self, self._requirements)
+        if self._requirements != 0:
+            self.get_logger().info("Initializing the requirements for the tasks")
+            self.__io.init_requirements(self, self._requirements)
         self.__initialized = True
+
+    def reinitialize(self) -> None:
+        self.__initialized = False
 
     # =================================================================
     #                             Task configuration
@@ -47,6 +56,15 @@ class BehaviourPlan(NodeWrapper):
         self.__tasks[-1].setup(self.__io.state, self.__io.controls)
         self._requirements = self._requirements | self.__tasks[-1].requirements()
 
+    def clear_tasks(self) -> None:
+        """
+        Clear the tasks of this plan.
+        """
+        self.__tasks = []
+        self.__task_id = 0
+        self.__task_started = False
+        self.done = False
+
     # =================================================================
     #                             Runtime
     # =================================================================
@@ -59,7 +77,7 @@ class BehaviourPlan(NodeWrapper):
             self.__setup()
 
         # Run if there's a task
-        if len(self.__tasks) == 0 or self.__done:
+        if len(self.__tasks) == 0 or self.done:
             return
 
         # Update task
@@ -81,6 +99,6 @@ class BehaviourPlan(NodeWrapper):
 
         # If done, reset state
         if self.__task_id >= len(self.__tasks):
-            self.__done = True
+            self.done = True
             self.__task_id = 0
             self.__task_started = False

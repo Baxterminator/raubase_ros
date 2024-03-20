@@ -66,17 +66,24 @@ struct TwoWheeledRoverKinematics {
   typedef sptr<TwoWheeledRoverKinematics> SharedPtr;
 
   TwoWheeledRoverKinematics(Wheel _right_wheel, Wheel _left_wheel, double _max_tick_change,
-                            double base_width)
+                            double base_width, double flat, double flon)
       : max_tick_change(_max_tick_change),
         base(base_width),
         left(_left_wheel),
-        right(_right_wheel) {}
+        right(_right_wheel),
+        Flat(flat),
+        Flon(flon) {
+    // Apply Flat and Flon to wheels
+    right.tick_per_rev /= Flon;
+    left.tick_per_rev /= Flon * Flat;
+  }
 
   static TwoWheeledRoverKinematics::SharedPtr make(const Wheel &_right_wheel,
                                                    const Wheel &_left_wheel,
-                                                   double _max_tick_change, double base_width) {
+                                                   double _max_tick_change, double base_width,
+                                                   double flat, double flon) {
     return std::make_shared<TwoWheeledRoverKinematics>(_right_wheel, _left_wheel, _max_tick_change,
-                                                       base_width);
+                                                       base_width, flat, flon);
   }
 
   // ==========================================================================
@@ -207,6 +214,7 @@ struct TwoWheeledRoverKinematics {
   int max_tick_change;
   double base;
   Wheel left, right;
+  double Flat, Flon;
 };
 }  // namespace raubase::kinematics
 
