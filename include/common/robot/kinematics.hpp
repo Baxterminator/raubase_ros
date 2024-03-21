@@ -74,27 +74,6 @@ struct TwoWheeledRoverKinematics {
         right(_right_wheel),
         Flat(flat),
         Flon(flon) {
-    // Apply Flat and Flon to wheels
-    std::cout << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl;
-    std::cout << "Flon " << Flon << std::endl;
-    std::cout << "Flat " << Flat << std::endl;
-    std::cout << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl
-              << std::endl;
     right.dist_per_tick /= Flon;
     left.dist_per_tick /= Flon * Flat;
   }
@@ -208,7 +187,7 @@ struct TwoWheeledRoverKinematics {
 
     // Compute wheels displacement
     odom_msg.v_right = enc2RWdist(newest->right - last_used->right);
-    odom_msg.v_left = enc2RWdist(newest->left - last_used->left);
+    odom_msg.v_left = enc2LWdist(newest->left - last_used->left);
 
     // Compute robot displacement
     odom_msg.v_lin = rl_disp2lin_disp(odom_msg.v_right, odom_msg.v_left);
