@@ -13,7 +13,11 @@ class BehaviourPlan(NodeWrapper):
     #                             Setup
     # =================================================================
     def __init__(
-        self, name="behavior", default_loop_s=0.05, namespace: str = get_top_namespace()
+        self,
+        name="behavior",
+        default_loop_s=0.05,
+        namespace: str = get_top_namespace(),
+        require_user_input: bool = False,
     ) -> None:
         super().__init__(name, namespace=namespace)  # type: ignore
         self.__io = IOWrapper()
@@ -23,6 +27,7 @@ class BehaviourPlan(NodeWrapper):
         self.__task_started = False
         self.done = False
         self.__initialized = False
+        self.__require_input = require_user_input
 
         # Extra variables
         self.__task_time_origin = 0
@@ -94,6 +99,9 @@ class BehaviourPlan(NodeWrapper):
             self.__task_time_origin = perf_counter()
             self.__io.state.time_origin = 0
             self.__io.state.time_elapsed = 0
+            self.__io.state.reset_distance()
+            if self.__require_input:
+                input("Press [enter] for next task...")
 
         # If done, reset state
         if self.__task_id >= len(self.__tasks):

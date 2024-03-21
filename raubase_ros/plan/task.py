@@ -1,8 +1,13 @@
 from abc import abstractmethod
 from rclpy.logging import get_logger
+import numpy as np
 
 from .conditions import StartTaskCondition, StopTaskCondition, FlowTaskCondition
 from .data import SharedData, ControlWrapper, Requirement
+
+
+def close_to(x: float, y: float, eps: float = 5e-3) -> bool:
+    return np.abs(x - y) < eps
 
 
 class BaseTask:

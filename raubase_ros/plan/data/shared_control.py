@@ -68,7 +68,7 @@ class ControlWrapper:
             req.input = mode.value
         self._cmd.set_cmd(req)
 
-    def follow_line(self, follow_right: bool, offset: float):
+    def follow_line(self, follow_right: bool, offset: float, velocity: float):
         """
         Send the command to follow the line.
 
@@ -85,6 +85,7 @@ class ControlWrapper:
         line_cmd = CmdLineFollower()
         line_cmd.follow = bool(follow_right)
         line_cmd.offset = float(offset)
+        line_cmd.speed = float(velocity)
         self._cmd.follow_edge(line_cmd)
 
     def set_vel_w(self, v: float, w: float):
