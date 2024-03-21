@@ -73,7 +73,7 @@ class LineFollower : public Node {
     constval float WIDTH{0.12};     //< Width of the sensor board (in m)
     constval int WHITE{1000};       //< Value for the default white calibration (in [0-1000])
     constval int BLACK{0};          //< Value for the default black calibration (in [0-1000])
-    constval int W_THRESHOLD{700};  //< Threshold for detecting a white value (in [0-1000])
+    constval int W_THRESHOLD{250};  //< Threshold for detecting a white value (in [0-1000])
   };
   struct Topics {
     constchar SUB_CONTROLLER_STATE{"state/vcontroller"};
@@ -153,7 +153,7 @@ class LineFollower : public Node {
 
   Subscription<DataLineSensor>::SharedPtr sensor_sub;
   DataLineSensor::SharedPtr last_data, last_data_used;
-  bool last_data_has_been_used = true;
+  bool last_data_has_been_used = false;
 
   Subscription<CmdLineFollower>::SharedPtr ref_sub;
   CmdLineFollower::SharedPtr last_cmd;

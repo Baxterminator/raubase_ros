@@ -27,6 +27,7 @@ LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
   black_calibration = declare_parameter(Params::BLACK_CALIB, calib(n_sensors, Default::BLACK));
   white_threshold = declare_parameter(Params::WHITE_THRES, Default::W_THRESHOLD);
   check_calib();
+  if (!calib_valid) RCLCPP_ERROR(get_logger(), "Invalid calibration for line controller!");
 
   // Register ROS components
   move_cmd.move_type = CmdMove::CMD_V_TR;
@@ -162,8 +163,8 @@ void LineFollower::update_controller(double dt) {
   float u;
 
   if (result.valid_edge) {
-    u = -pid->update(dt, last_cmd->offset,
-                     ((last_cmd->follow) ? result.right_edge : result.left_edge), limited);
+    u = pid->update(dt, last_cmd->offset,
+                    ((last_cmd->follow) ? result.right_edge : result.left_edge), limited);
     if (limited = std::fabs(u) > max_turn_rate; limited)
       u = math::saturate(u, max_turn_rate);
     else
@@ -183,6 +184,7 @@ void LineFollower::update_controller(double dt) {
 void LineFollower::loop() {
   static UTime loop_clock("now");
 
+  RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR, "Edge valid %d", calib_valid);
   // If calib not valid, don't continue
   if (!calib_valid) {
     RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR, "Calibration is not good!");

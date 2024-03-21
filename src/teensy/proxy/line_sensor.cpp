@@ -21,6 +21,8 @@ void LineSensorProxy::setupParams(rclcpp::Node::SharedPtr node) {
                                 std::placeholders::_2));
   clock = node->get_clock();
 
+  _msg.data.resize(8);
+
   // Initializing internal state
   _internal_req = std::make_shared<SetLineSensorConfig>();
   _internal_req->on = node->declare_parameter("liv_def_on", false);
