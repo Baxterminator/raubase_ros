@@ -3,6 +3,7 @@
 #include <rclcpp/logging.hpp>
 #include <vector>
 
+#include "common/utils/rmw.hpp"
 #include "common/utils/types.hpp"
 
 namespace raubase::cam {
@@ -27,7 +28,7 @@ Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node(NODE_NAME, opts) {
   msg.encoding = IMG_ENCODING;
   _img_pub = create_publisher<Image>(Topics::OUT_RAW, QOS);
   _compr_pub = create_publisher<CompressedImage>(Topics::OUT_COMPRESSED, QOS);
-  cam_info_pub = create_publisher<CameraInfo>(Topics::OUT_CAM_INFO, QOS);
+  cam_info_pub = create_publisher<CameraInfo>(Topics::OUT_CAM_INFO, TRANSIENT_QOS);
 
   // --------------------------------- Works ----------------------------------
   sub_mode_set = create_subscription<SetCameraMode>(
