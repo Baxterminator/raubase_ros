@@ -251,6 +251,7 @@ class Camera : public rclcpp::Node {
     grabLastImage();
     _img_pub->publish(*msg.toImageMsg());
     _compr_pub->publish(*msg.toCompressedImageMsg());
+    cam_info_pub->publish(cam_info);
     RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), THROTTLED_MS, "Sending image ...");
   }
 

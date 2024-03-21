@@ -1,4 +1,4 @@
-# =============================================================================
+  # =============================================================================
 #
 #                              Camera configuration
 # 
@@ -13,7 +13,7 @@ mode:
   co_s: 1.0                # The timeout before retrying to connect to the camera
   on_trigger: true         # True if the camera needs to be trigger for an image to be published
 calibration:
-  calib_width: 1080              # The width at which the calibration has been done
-  calib_height: 720              # The height at which the calibration has been done
-  calib_K: [1.0, 1.0, 540, 360]  # Matrix K coeffs (fx, fy, cx, cy) = transformation to camera frame
-  calib_d: [0,0,0,0,0]           # Vector d coeffs = distortion (5 elems)
+  calib_width: 640         # The width at which the calibration has been done
+  calib_height: 480        # The height at which the calibration has been done
+  calib_K: [721.725306, 724.478325, 349.178234, 294.499380]  # Matrix K coeffs (fx, fy, cx, cy) = transformation to camera frame
+  calib_d: [-0.394776,0.137569,-0.007480,-0.005361,0.0]      # Vector d coeffs = distortion (5 elems)

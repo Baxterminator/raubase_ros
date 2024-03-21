@@ -1,11 +1,11 @@
-from enum import IntEnum, unique
+from enum import unique, IntFlag
 from typing import Tuple
 
 ENUM_IDX = -1
 
 
 @unique
-class BaseRequirement(IntEnum):
+class BaseRequirement(IntFlag):
 
     @staticmethod
     def next() -> int:

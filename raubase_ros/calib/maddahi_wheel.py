@@ -53,7 +53,7 @@ class WheelMaddahi(BaseTask):
         self.cmd_launched = perf_counter()
         self.wheels_d = [lwheel_diam, rwheel_diam]
 
-    def requirements(self) -> int:
+    def requirements(self) -> Requirement:
         return Requirement.MOVE | Requirement.ENCODERS | Requirement.ODOMETRY
 
     def start_conditions(self) -> StartTaskCondition:

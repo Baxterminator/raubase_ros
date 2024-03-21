@@ -2,7 +2,13 @@ from abc import abstractmethod
 from rclpy.logging import get_logger
 import numpy as np
 
-from .conditions import StartTaskCondition, StopTaskCondition, FlowTaskCondition
+from .conditions import (
+    StartTaskCondition,
+    StopTaskCondition,
+    FlowTaskCondition,
+    FollowPreviousTask,
+    Never,
+)
 from .data import SharedData, ControlWrapper, Requirement
 
 
@@ -70,3 +76,15 @@ class BaseTask:
         Test whether the task can stop.
         """
         return self.stop_conditions().test()
+
+
+class DefaultTask(BaseTask):
+    """
+    Task that will be run as a default action no other task is running.
+    """
+
+    def start_conditions(self) -> StartTaskCondition | FlowTaskCondition:
+        return FollowPreviousTask()
+
+    def stop_conditions(self) -> StopTaskCondition | FlowTaskCondition:
+        return Never()

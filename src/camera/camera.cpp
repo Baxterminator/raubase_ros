@@ -27,6 +27,7 @@ Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node(NODE_NAME, opts) {
   msg.encoding = IMG_ENCODING;
   _img_pub = create_publisher<Image>(Topics::OUT_RAW, QOS);
   _compr_pub = create_publisher<CompressedImage>(Topics::OUT_COMPRESSED, QOS);
+  cam_info_pub = create_publisher<CameraInfo>(Topics::OUT_CAM_INFO, QOS);
 
   // --------------------------------- Works ----------------------------------
   sub_mode_set = create_subscription<SetCameraMode>(
@@ -41,6 +42,7 @@ Camera::Camera(rclcpp::NodeOptions opts) : rclcpp::Node(NODE_NAME, opts) {
   runner->cancel();
 
   // setup_actions();
+  init_cam_info();
   RCLCPP_INFO(get_logger(), "The node has been successfully initialized!");
 }
 
@@ -112,6 +114,7 @@ void Camera::run() {
   grabLastImage();
   _img_pub->publish(*msg.toImageMsg());
   _compr_pub->publish(*msg.toCompressedImageMsg());
+  cam_info_pub->publish(cam_info);
 }
 
 }  // namespace raubase::cam
