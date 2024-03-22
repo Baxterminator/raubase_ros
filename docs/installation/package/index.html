@@ -13,10 +13,10 @@
       
       
       
-        <link rel="prev" href="../messages/">
+        <link rel="prev" href="../intro/">
       
       
-        <link rel="next" href="../results/">
+        <link rel="next" href="../multicast/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -24,7 +24,7 @@
     
     
       
-        <title>Sensor Data - Raubase-ROS Documentation</title>
+        <title>ROS Packages - Raubase-ROS Documentation</title>
       
     
     
@@ -81,7 +81,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#raubase-sensor-data-messages" class="md-skip">
+        <a href="#raubase_ros-package-installation" class="md-skip">
           Skip to content
         </a>
       
@@ -117,7 +117,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Sensor Data
+              ROS Packages
             
           </span>
         </div>
@@ -292,18 +292,20 @@
       
   
   
+    
+  
   
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -317,7 +319,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             0 - Installation
@@ -330,7 +332,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../installation/intro/" class="md-nav__link">
+      <a href="../intro/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -350,7 +352,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../installation/intro/" class="md-nav__link">
+      <a href="../intro/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -368,9 +370,29 @@
                 
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../../installation/package/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    ROS Packages
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -379,6 +401,61 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#preparing-the-environnement" class="md-nav__link">
+    Preparing the environnement
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fetching-the-packages-and-dependencies" class="md-nav__link">
+    Fetching the packages and dependencies
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-compile-only-necessary-packages" class="md-nav__link">
+    (Optional) Compile only necessary packages
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-everything" class="md-nav__link">
+    Building everything
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sourcing-the-whole-stack" class="md-nav__link">
+    Sourcing the whole stack
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -390,7 +467,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../installation/multicast/" class="md-nav__link">
+      <a href="../multicast/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -562,20 +639,18 @@
       
   
   
-    
-  
   
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
           <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
@@ -589,7 +664,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             A - Messages
@@ -602,7 +677,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../messages/" class="md-nav__link">
+      <a href="../../messages/messages/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -620,29 +695,9 @@
                 
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Sensor Data
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../messages/data/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -651,47 +706,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#raubase_msgsmsgdatadistance" class="md-nav__link">
-    raubase_msgs::msg::DataDistance
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#raubase_msgsmsgdataencoder" class="md-nav__link">
-    raubase_msgs::msg::DataEncoder
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#raubase_msgsmsgdatalinesensor" class="md-nav__link">
-    raubase_msgs::msg::DataLineSensor
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -703,7 +717,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../results/" class="md-nav__link">
+      <a href="../../messages/results/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -918,22 +932,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#raubase_msgsmsgdatadistance" class="md-nav__link">
-    raubase_msgs::msg::DataDistance
+  <a href="#preparing-the-environnement" class="md-nav__link">
+    Preparing the environnement
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#raubase_msgsmsgdataencoder" class="md-nav__link">
-    raubase_msgs::msg::DataEncoder
+  <a href="#fetching-the-packages-and-dependencies" class="md-nav__link">
+    Fetching the packages and dependencies
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#raubase_msgsmsgdatalinesensor" class="md-nav__link">
-    raubase_msgs::msg::DataLineSensor
+  <a href="#optional-compile-only-necessary-packages" class="md-nav__link">
+    (Optional) Compile only necessary packages
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-everything" class="md-nav__link">
+    Building everything
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sourcing-the-whole-stack" class="md-nav__link">
+    Sourcing the whole stack
   </a>
   
 </li>
@@ -956,112 +984,63 @@
   
 
 
-<h1 id="raubase-sensor-data-messages">Raubase Sensor Data Messages</h1>
-<p>This page registers the custom sensors data messages.</p>
-<h2 id="raubase_msgsmsgdatadistance">raubase_msgs::msg::DataDistance</h2>
-<p>This messages contains the raw value for one IR sensor.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">IDL</label><label for="__tabbed_1_2">C++</label><label for="__tabbed_1_3">Python</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># This message contains the data of one of the plugged sensor
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>builtin_interfaces/Time stamp
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>char UNKNOWN = 0
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>char SHARP = 1
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>char URM09 = 2
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>char type 1
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>float64[2] calib
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>float64 range
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>float64 range_ad
+<h1 id="raubase_ros-package-installation">Raubase_ROS package installation</h1>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Prior to any installation, make sure ROS2 Humble is installed on your computer and sourced in the terminal. </p>
+<p>To install ROS2 Humble, follow the official installation guides from the <a href="https://docs.ros.org/en/humble/Installation.html">ROS2 Documentation</a>.</p>
+</div>
+<h2 id="preparing-the-environnement">Preparing the environnement</h2>
+<p>As any ROS package, you must first make a workspace to build the several packages that you will need.</p>
+<p>For that, create a directory wherever you want, and create a <code>src</code> folder inside.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>mkdir<span class="w"> </span>dtu_ws/src
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>dtu_ws/src
+</code></pre></div>
+<h2 id="fetching-the-packages-and-dependencies">Fetching the packages and dependencies</h2>
+<p>The next step is to install the packages and their dependencies from Github.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>sudo<span class="w"> </span>apt<span class="w"> </span>update
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>ros-humble-camera-calibration-parsers<span class="w"> </span>ros-humble-camera-info-manager<span class="w"> </span>ros-humble-launch-testing-ament-cmake
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:ros-perception/image_pipeline.git<span class="w"> </span>-b<span class="w"> </span>humble
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:ros-perception/vision_opencv.git<span class="w"> </span>-b<span class="w"> </span>humble
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:Baxterminator/raubase_msgs.git
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>git<span class="w"> </span>clone<span class="w"> </span>git@github.com:Baxterminator/raubase_ros.git
+</code></pre></div>
+<h2 id="optional-compile-only-necessary-packages">(Optional) Compile only necessary packages</h2>
+<p>The two first repository in the list are meta-packages (i.e. repositories that gather several packages in one place so that you can compile everything together), and you don't really need everything. In fact the only packages that we really need are:</p>
+<ul>
+<li><code>vision_opencv/cv_bridge</code>: a ROS2 package that facilitate conversion between OpenCV image and ROS2 Image and CompressedImage messages,</li>
+<li><code>vision_opencv/image_geometry</code>: "<em>collection of methods for dealing with image and pixel geometry</em>"<sup id="fnref:1"><a class="footnote-ref" href="#fn:1">1</a></sup>. This package is needed by the <code>image_calibration</code> package.</li>
+<li><code>image_pipeline/image_calibration</code>: a tool to calibrate cameras in ROS2<sup id="fnref:2"><a class="footnote-ref" href="#fn:2">2</a></sup></li>
+</ul>
+<p>In the end, a lot of the <code>image_pipeline</code> packages are not really needed.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">echo</span><span class="w"> </span>&gt;<span class="w"> </span>image_pipeline/COLCON_IGNORE
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>mv<span class="w"> </span>image_pipeline/image_calibration<span class="w"> </span>image_calibration
+</code></pre></div>
+<h2 id="building-everything">Building everything</h2>
+<p>Now is the time to build everything:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>..
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>colcon<span class="w"> </span>build
+</code></pre></div>
+<h2 id="sourcing-the-whole-stack">Sourcing the whole stack</h2>
+<p>When everything is built, you can source the stack for further purposes. The method doesn't change from a regular ROS2 workspace, so you can rely on the <a href="https://docs.ros.org/en/humble/Installation.html">ROS2 Documentation</a> for this part. Nonetheless, we give here a reminder on how to do it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">source</span><span class="w"> </span>./install/local_setup.sh
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Info</p>
+<p>If you want to source automatically the workspace on startup, you can add the following line in your .bashrc / .zshrc</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">source</span><span class="w"> </span><span class="s2">&quot;/absolute_path_to_workspace/install/setup.sh&quot;</span>
 </code></pre></div>
 </div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">DataDistance</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">UNKNOWN</span><span class="p">{</span><span class="mi">0</span><span class="p">};</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">SHARP</span><span class="p">{</span><span class="mi">1</span><span class="p">};</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">constexpr</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">URM09</span><span class="p">{</span><span class="mi">2</span><span class="p">};</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="n">builtin_interfaces</span><span class="o">::</span><span class="n">msg</span><span class="o">::</span><span class="n">Time</span><span class="w"> </span><span class="n">stamp</span><span class="p">;</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="kt">char</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SHARP</span><span class="p">;</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">calib</span><span class="p">[</span><span class="mi">2</span><span class="p">];</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">range</span><span class="p">;</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">range_ad</span><span class="p">;</span><span class="w"> </span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="p">};</span>
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">class</span> <span class="nc">DataDistance</span><span class="p">:</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="n">UNKNOWN</span> <span class="o">=</span> <span class="mi">0</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="n">SHARP</span> <span class="o">=</span> <span class="mi">1</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="n">URM09</span> <span class="o">=</span> <span class="mi">2</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stamp</span> <span class="p">:</span> <span class="n">builtin_interfaces</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">Time</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">calib</span> <span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">range</span> <span class="p">:</span> <span class="nb">float</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">range_ad</span><span class="p">:</span> <span class="nb">float</span>
-</code></pre></div>
-</div>
-</div>
-</div>
-<h2 id="raubase_msgsmsgdataencoder">raubase_msgs::msg::DataEncoder</h2>
-<p>This messages contains both encoders position.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="2:3"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio" /><input id="__tabbed_2_2" name="__tabbed_2" type="radio" /><input id="__tabbed_2_3" name="__tabbed_2" type="radio" /><div class="tabbed-labels"><label for="__tabbed_2_1">IDL</label><label for="__tabbed_2_2">C++</label><label for="__tabbed_2_3">Python</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>builtin_interfaces/Time stamp
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>int32 right
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>int32 left
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">DataEncoder</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">builtin_interfaces</span><span class="o">::</span><span class="n">msg</span><span class="o">::</span><span class="n">Time</span><span class="w"> </span><span class="n">stamp</span><span class="p">;</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">right</span><span class="p">;</span>
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">left</span><span class="p">;</span><span class="w"> </span>
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">};</span>
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">class</span> <span class="nc">DataEncoder</span><span class="p">:</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stamp</span> <span class="p">:</span> <span class="n">builtin_interfaces</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">Time</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">right</span> <span class="p">:</span> <span class="nb">int</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">left</span>  <span class="p">:</span> <span class="nb">int</span>
-</code></pre></div>
-</div>
-</div>
-</div>
-<h2 id="raubase_msgsmsgdatalinesensor">raubase_msgs::msg::DataLineSensor</h2>
-<p>This messages the raw reading from the line sensor.</p>
-<div class="tabbed-set tabbed-alternate" data-tabs="3:3"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio" /><input id="__tabbed_3_2" name="__tabbed_3" type="radio" /><input id="__tabbed_3_3" name="__tabbed_3" type="radio" /><div class="tabbed-labels"><label for="__tabbed_3_1">IDL</label><label for="__tabbed_3_2">C++</label><label for="__tabbed_3_3">Python</label></div>
-<div class="tabbed-content">
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>builtin_interfaces/Time stamp
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a># Values of each sensor of the sensor line
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>int32[] data
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">struct</span><span class="w"> </span><span class="nc">DataLineSensor</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="n">builtin_interfaces</span><span class="o">::</span><span class="n">msg</span><span class="o">::</span><span class="n">Time</span><span class="w"> </span><span class="n">stamp</span><span class="p">;</span>
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span><span class="w"> </span><span class="n">data</span><span class="p">;</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="p">};</span>
-</code></pre></div>
-</div>
-<div class="tabbed-block">
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">class</span> <span class="nc">DataLineSensor</span><span class="p">:</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">stamp</span> <span class="p">:</span> <span class="n">builtin_interfaces</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">Time</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
-</code></pre></div>
-</div>
-</div>
+<div class="footnote">
+<hr />
+<ol>
+<li id="fn:1">
+<p>Cf. the description made on the <a href="https://github.com/ros-perception/vision_opencv/tree/humble">Vision_OpenCV Package Github</a>&#160;<a class="footnote-backref" href="#fnref:1" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>Installation instruction and usage of the calibration tool can be found on the <a href="https://navigation.ros.org/tutorials/docs/camera_calibration.html">Nav2 Wiki</a>&#160;<a class="footnote-backref" href="#fnref:2" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+</li>
+</ol>
 </div>
 
 

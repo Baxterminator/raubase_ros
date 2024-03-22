@@ -7,7 +7,13 @@ docs_dir: dist
 site_dir: docs
 nav:
   - Home: index.md
-  - 0 - Using the tools:
+  - Why this project ?: introduction/why.md
+  - 0 - Installation:
+    - Introduction: installation/intro.md
+    - -------: installation/intro.md
+    - ROS Packages: installation/package.md
+    - Setup Multicast: installation/multicast.md
+  - 1 - Using the tools:
     - Introduction: tools.md
     - Planning:
       - Making Behavior Plan: tasks/behavior.md
@@ -50,6 +56,9 @@ markdown_extensions:
       base_path: dist
   - pymdownx.tabbed:
       alternate_style: true
+  - attr_list
+  - md_in_html
+  - footnotes
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
