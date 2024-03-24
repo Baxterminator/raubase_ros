@@ -14,4 +14,5 @@ class Topics:
     CONTROLLER = "control/set_input"
     MOVE = "control/move_plan"
     LINE = "control/move_egde"
-    SERVO = "control/set_servos"
+    SERVO_CMD = "control/set_servos"
+    SERVO_STATE = "sensor/servos"

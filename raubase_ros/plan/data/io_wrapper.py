@@ -3,6 +3,7 @@ from enum import unique
 from raubase_msgs.msg import (
     DataDistance,
     DataEncoder,
+    DataServo,
     ResultYolo,
     ResultArUco,
     ResultOdometry,
@@ -188,7 +189,12 @@ class IOWrapper:
         """
         Setup for using servos
         """
-        self.__control.set_servo = self._pub(node, CmdServoPosition, Topics.SERVO)
+        self.__control.set_servo = self._pub(node, CmdServoPosition, Topics.SERVO_CMD)
+
+        def servo_clbk(msg):
+            self.state.servos = msg
+
+        self._sub(node, DataServo, Topics.SERVO_STATE, servo_clbk)
 
     # =========================================================================
     # Internal work methods (should not be modified)
