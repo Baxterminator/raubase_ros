@@ -118,3 +118,40 @@ This messages the raw reading from the line sensor.
             self.stamp : builtin_interfaces.msg.Time
             self.data : List[int]
     ```
+
+## raubase_msgs::msg::DataServo
+
+This messages records the positions of the servos.
+
+=== "IDL"
+
+    ```
+    # Message describing the servos states
+    builtin_interfaces/Time stamp
+
+    bool[] enabled
+    int32[] positons
+    int32[] velocities
+    ```
+
+=== "C++"
+
+    ```c++
+    struct DataServo {
+      builtin_interfaces::msg::Time stamp;
+      std::vector<bool> enabled;
+      std::vector<int> positions;
+      std::vector<int> velocities;
+    };
+    ```
+
+=== "Python"
+
+    ```Python
+    class DataServo:
+        def __init__(self):
+            self.stamp : builtin_interfaces.msg.Time
+            self.enabled : List[bool]
+            self.positions : List[float]
+            self.velocities : List[float]
+    ```

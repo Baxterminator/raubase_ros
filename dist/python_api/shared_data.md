@@ -8,15 +8,15 @@ The data are gathered inside the structure **SharedData** (can be found in the f
 
 ### `SharedData.encoders` 
 
-**Type:** [`raubase_msgs/DataEncoder`](/messages/data)
+**Type:** [`raubase_msgs/DataEncoder`](../../messages/data)
 
 **Requires:** `Requirement.ENCODERS`
     
 It contains the latest received encoders values.
 
-### `SharedData.distance` 
+### `SharedData.ir` 
 
-**Type:** [`Dict[int, raubase_msgs/DataDistance]`](/messages/data)
+**Type:** [`Dict[int, raubase_msgs/DataDistance]`](../../messages/data)
 
 **Requires:** `Requirement.DISTANCE`
     
@@ -30,11 +30,19 @@ It contains the latest received IR sensors values. Since there could be several 
     
 Contains the latest available image from the camera. Should be decrypted through the cv_bridge package to get a raw image.
 
+### `SharedData.servos` 
+
+**Type:** [`raubase_ros/DataServo`](../../messages/data)
+
+**Requires:** `Requirement.SERVOS`
+    
+Contains the latest servos positions.
+
 ## Results
 
 ### `SharedData.odometry` 
 
-**Type:** [`raubase_msgs/ResultOdometry`](/messages/results)
+**Type:** [`raubase_msgs/ResultOdometry`](../../messages/results)
 
 **Requires:** `Requirement.ODOMETRY`
     
@@ -43,7 +51,7 @@ Get the latest computed and received odometry.
 
 ### `SharedData.last_yolo` 
 
-**Type:** [`raubase_msgs/ResultYolo`](/messages/results)
+**Type:** [`raubase_msgs/ResultYolo`](../../messages/results)
 
 **Requires:** `Requirement.YOLO`
     
@@ -51,7 +59,7 @@ Get the latest computed and received YOLO classification.
 
 ### `SharedData.last_aruco` 
 
-**Type:** [`raubase_msgs/ResultOdometry`](/messages/results)
+**Type:** [`raubase_msgs/ResultOdometry`](../../messages/results)
 
 **Requires:** `Requirement.ARUCO`
     

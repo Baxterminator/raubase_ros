@@ -49,3 +49,15 @@ Configure the mixer to use the given mode in input.
 
   - `str` mode: the name of the input the mixer has to switch to
   - `bool` force: should force for sending the message (prevent sending two time the same message one after another)
+
+### `ControlWrapper.set_servo(index, position, velocity) -> None`
+
+Send a command to the servo with the given position and velocity
+
+**Requires**: `InternalRequirement.SERVO`
+
+**Params**: 
+
+  - `int` index: the number of the servo (between 1 and 5)
+  - `int` position: the target position for the given servo (in ticks, in [-1024, +1024])
+  - `int` velocity: the velocity for this movement (in ticks/s, in [0, 4000])

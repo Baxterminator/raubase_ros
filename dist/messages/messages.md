@@ -10,16 +10,17 @@ You'll find here the definitions of the messages in separate pages, grouped by t
 
 ### Messages
 
-- [`raubase_msgs/DataDistance`](/messages/data)
-- [`raubase_msgs/DataEncoder`](/messages/data)
-- [`raubase_msgs/DataLineSensor`](/messages/data)
-- [`raubase_msgs/ObjectArUco`](/messages/results)
-- [`raubase_msgs/ObjectBall`](/messages/results)
-- [`raubase_msgs/ObjectYolo`](/messages/results)
-- [`raubase_msgs/ResultArUco`](/messages/results)
-- [`raubase_msgs/ResultBall`](/messages/results)
-- [`raubase_msgs/ResultYolo`](/messages/results)
-- [`raubase_msgs/ResultEdge`](/messages/results)
-- [`raubase_msgs/ResultOdometry`](/messages/results)
+- [`raubase_msgs/DataDistance`](../data)
+- [`raubase_msgs/DataEncoder`](../data)
+- [`raubase_msgs/DataLineSensor`](../data)
+- [`raubase_msgs/DataServos`](../data)
+- [`raubase_msgs/ObjectArUco`](../results)
+- [`raubase_msgs/ObjectBall`](../results)
+- [`raubase_msgs/ObjectYolo`](../results)
+- [`raubase_msgs/ResultArUco`](../results)
+- [`raubase_msgs/ResultBall`](../results)
+- [`raubase_msgs/ResultYolo`](../results)
+- [`raubase_msgs/ResultEdge`](../results)
+- [`raubase_msgs/ResultOdometry`](../results)
 
 ### Services
