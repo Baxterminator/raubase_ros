@@ -9,7 +9,12 @@ from raubase_msgs.msg import (
 )
 from raubase_ros.constants import TRANSIENT_QOS
 from sensor_msgs.msg import CompressedImage
-from raubase_msgs.msg import CmdMove, CmdLineFollower, SetControllerInput
+from raubase_msgs.msg import (
+    CmdMove,
+    CmdLineFollower,
+    SetControllerInput,
+    CmdServoPosition,
+)
 from rclpy.qos import QoSProfile
 from rclpy.subscription import Subscription
 from rclpy.publisher import Publisher
@@ -64,6 +69,7 @@ class IOWrapper:
         self.add_req(InternalReq.CONTROLLER, self.__init_controller_mode)
         self.add_req(Requirement.MOVE, self.__init_move, InternalReq.CONTROLLER)
         self.add_req(Requirement.LINE, self.__init_line_follow, InternalReq.CONTROLLER)
+        self.add_req(Requirement.SERVO, self.__init_servos)
 
     # -------------------------
     # Sensors
@@ -177,6 +183,12 @@ class IOWrapper:
         Setup for following the line
         """
         self.__control.follow_edge = self._pub(node, CmdLineFollower, Topics.LINE)
+
+    def __init_servos(self, node: NodeWrapper) -> None:
+        """
+        Setup for using servos
+        """
+        self.__control.set_servo = self._pub(node, CmdServoPosition, Topics.SERVO)
 
     # =========================================================================
     # Internal work methods (should not be modified)

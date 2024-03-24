@@ -28,7 +28,7 @@ class WheelMaddahi(BaseTask):
     """
 
     DEFAULT_DIST_TO_GO = 2.0
-    DEFAULT_ROBOT_VEL = 0.7
+    DEFAULT_ROBOT_VEL = 0.45    
     DEFAULT_WHEEL_D = 0.146
 
     def __init__(

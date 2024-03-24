@@ -1,7 +1,12 @@
 from dataclasses import dataclass
 from enum import Enum, unique
 from typing import Callable
-from raubase_msgs.msg import CmdMove, CmdLineFollower, SetControllerInput
+from raubase_msgs.msg import (
+    CmdMove,
+    CmdLineFollower,
+    SetControllerInput,
+    CmdServoPosition,
+)
 
 
 @dataclass
@@ -15,6 +20,7 @@ class SharedControl:
     set_cmd: Callable[[SetControllerInput], None] | None = None
     follow_edge: Callable[[CmdLineFollower], None] | None = None
     set_vel: Callable[[CmdMove], None] | None = None
+    set_servo: Callable[[CmdServoPosition], None] | None = None
 
 
 @unique
@@ -127,3 +133,24 @@ class ControlWrapper:
         move_cmd.velocity = float(v)
         move_cmd.heading = float(h)
         self._cmd.set_vel(move_cmd)
+
+    # =========================================================================
+    # Servo movement
+    # =========================================================================
+    def set_servo(self, idx: int, p: float, v: float):
+        """
+        Set the servo position, according to the given velocity.
+
+        Params:
+            - idx: the index of the robot
+            - p: the angular position of the servo (in ticks)
+            - v: the velocity of the movement (ticks/s)
+        """
+        if self._cmd.set_servo is None:
+            raise RuntimeError(ControlWrapper.USE_UNDEFINED)
+
+        servo_cmd = CmdServoPosition()
+        servo_cmd.servo_id = idx
+        servo_cmd.position = p
+        servo_cmd.velocity = v
+        self._cmd.set_servo(servo_cmd)

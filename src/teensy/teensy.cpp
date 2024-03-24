@@ -16,6 +16,7 @@
 #include "teensy/proxy/imu.hpp"
 #include "teensy/proxy/line_sensor.hpp"
 #include "teensy/proxy/motor.hpp"
+#include "teensy/proxy/servo.hpp"
 
 namespace raubase::teensy {
 
@@ -54,6 +55,7 @@ Teensy::Teensy(rclcpp::NodeOptions opts) : rclcpp::Node(Teensy::NODE_NAME, opts)
   add_proxy(TeensyProxy::make_shared<proxy::DistanceProxy>(_sending_cbk),
             proxy::DistanceProxy::TEENSY_MSG);
   add_proxy(TeensyProxy::make_shared<proxy::MotorProxy>(_sending_cbk));
+  add_proxy(proxy::ServoProxy::make(_sending_cbk), proxy::ServoProxy::TEENSY_MSG);
 
   // -------------------------- Communication Init ----------------------------
   trx_runtime = create_wall_timer(_timer_period, std::bind(&Teensy::TRXLoop, this));

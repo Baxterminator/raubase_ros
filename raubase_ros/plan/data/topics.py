@@ -13,4 +13,5 @@ class Topics:
     DECLARE_INPUT = "control/declare_input"
     CONTROLLER = "control/set_input"
     MOVE = "control/move_plan"
-    LINE = "line"
+    LINE = "control/move_egde"
+    SERVO = "control/set_servos"

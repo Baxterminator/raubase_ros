@@ -54,3 +54,4 @@ class Requirement(BaseRequirement):
     # Control requirements
     MOVE = BaseRequirement.next()
     LINE = BaseRequirement.next()
+    SERVO = BaseRequirement.next()
