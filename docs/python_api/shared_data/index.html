@@ -862,8 +862,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#shareddatadistance" class="md-nav__link">
-    SharedData.distance
+  <a href="#shareddatair" class="md-nav__link">
+    SharedData.ir
   </a>
   
 </li>
@@ -871,6 +871,13 @@
           <li class="md-nav__item">
   <a href="#shareddatalast_img" class="md-nav__link">
     SharedData.last_img
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shareddataservos" class="md-nav__link">
+    SharedData.servos
   </a>
   
 </li>
@@ -923,7 +930,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#shareddatadistance_1" class="md-nav__link">
+  <a href="#shareddatadistance" class="md-nav__link">
     SharedData.distance
   </a>
   
@@ -1048,8 +1055,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#shareddatadistance" class="md-nav__link">
-    SharedData.distance
+  <a href="#shareddatair" class="md-nav__link">
+    SharedData.ir
   </a>
   
 </li>
@@ -1057,6 +1064,13 @@
           <li class="md-nav__item">
   <a href="#shareddatalast_img" class="md-nav__link">
     SharedData.last_img
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shareddataservos" class="md-nav__link">
+    SharedData.servos
   </a>
   
 </li>
@@ -1109,7 +1123,7 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#shareddatadistance_1" class="md-nav__link">
+  <a href="#shareddatadistance" class="md-nav__link">
     SharedData.distance
   </a>
   
@@ -1191,32 +1205,36 @@
 <p>The data are gathered inside the structure <strong>SharedData</strong> (can be found in the file <code>raubase_ros/plan/data/shared_data.py</code>) which is shared accross all tasks. On this page you can find all available values. To use them, replace <code>SharedData</code> by <code>self.data</code>.</p>
 <h2 id="sensors">Sensors</h2>
 <h3 id="shareddataencoders"><code>SharedData.encoders</code></h3>
-<p><strong>Type:</strong> <a href="/messages/data"><code>raubase_msgs/DataEncoder</code></a></p>
+<p><strong>Type:</strong> <a href="../../messages/data"><code>raubase_msgs/DataEncoder</code></a></p>
 <p><strong>Requires:</strong> <code>Requirement.ENCODERS</code></p>
 <p>It contains the latest received encoders values.</p>
-<h3 id="shareddatadistance"><code>SharedData.distance</code></h3>
-<p><strong>Type:</strong> <a href="/messages/data"><code>Dict[int, raubase_msgs/DataDistance]</code></a></p>
+<h3 id="shareddatair"><code>SharedData.ir</code></h3>
+<p><strong>Type:</strong> <a href="../../messages/data"><code>Dict[int, raubase_msgs/DataDistance]</code></a></p>
 <p><strong>Requires:</strong> <code>Requirement.DISTANCE</code></p>
 <p>It contains the latest received IR sensors values. Since there could be several installed IR sensors on the robot, the informations are store in a dict where the key id the index of the sensor.</p>
 <h3 id="shareddatalast_img"><code>SharedData.last_img</code></h3>
 <p><strong>Type:</strong> <a href="https://docs.ros2.org/latest/api/sensor_msgs/msg/CompressedImage.html"><code>sensor_msgs/CompressedImage</code></a></p>
 <p><strong>Requires:</strong> <code>Requirement.CAMERA</code></p>
 <p>Contains the latest available image from the camera. Should be decrypted through the cv_bridge package to get a raw image.</p>
+<h3 id="shareddataservos"><code>SharedData.servos</code></h3>
+<p><strong>Type:</strong> <a href="../../messages/data"><code>raubase_ros/DataServo</code></a></p>
+<p><strong>Requires:</strong> <code>Requirement.SERVOS</code></p>
+<p>Contains the latest servos positions.</p>
 <h2 id="results">Results</h2>
 <h3 id="shareddataodometry"><code>SharedData.odometry</code></h3>
-<p><strong>Type:</strong> <a href="/messages/results"><code>raubase_msgs/ResultOdometry</code></a></p>
+<p><strong>Type:</strong> <a href="../../messages/results"><code>raubase_msgs/ResultOdometry</code></a></p>
 <p><strong>Requires:</strong> <code>Requirement.ODOMETRY</code></p>
 <p>Get the latest computed and received odometry.</p>
 <h3 id="shareddatalast_yolo"><code>SharedData.last_yolo</code></h3>
-<p><strong>Type:</strong> <a href="/messages/results"><code>raubase_msgs/ResultYolo</code></a></p>
+<p><strong>Type:</strong> <a href="../../messages/results"><code>raubase_msgs/ResultYolo</code></a></p>
 <p><strong>Requires:</strong> <code>Requirement.YOLO</code></p>
 <p>Get the latest computed and received YOLO classification.</p>
 <h3 id="shareddatalast_aruco"><code>SharedData.last_aruco</code></h3>
-<p><strong>Type:</strong> <a href="/messages/results"><code>raubase_msgs/ResultOdometry</code></a></p>
+<p><strong>Type:</strong> <a href="../../messages/results"><code>raubase_msgs/ResultOdometry</code></a></p>
 <p><strong>Requires:</strong> <code>Requirement.ARUCO</code></p>
 <p>Get the latest computed and received the latest detected ArUco codes.</p>
 <h2 id="special">Special</h2>
-<h3 id="shareddatadistance_1"><code>SharedData.distance</code></h3>
+<h3 id="shareddatadistance"><code>SharedData.distance</code></h3>
 <p><strong>Type:</strong> <code>float</code></p>
 <p><strong>Requires:</strong> <code>Requirement.ODOMETRY</code></p>
 <p>Internal register computing the distance since the latest call of <code>SharedData.reset_distance()</code> method, or since the beginning of the task otherwise.</p>

@@ -864,6 +864,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#controlwrapperset_servoindex-position-velocity-none" class="md-nav__link">
+    ControlWrapper.set_servo(index, position, velocity) -&gt; None
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -975,6 +982,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#controlwrapperset_servoindex-position-velocity-none" class="md-nav__link">
+    ControlWrapper.set_servo(index, position, velocity) -&gt; None
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1033,6 +1047,15 @@
 <ul>
 <li><code>str</code> mode: the name of the input the mixer has to switch to</li>
 <li><code>bool</code> force: should force for sending the message (prevent sending two time the same message one after another)</li>
+</ul>
+<h3 id="controlwrapperset_servoindex-position-velocity-none"><code>ControlWrapper.set_servo(index, position, velocity) -&gt; None</code></h3>
+<p>Send a command to the servo with the given position and velocity</p>
+<p><strong>Requires</strong>: <code>InternalRequirement.SERVO</code></p>
+<p><strong>Params</strong>: </p>
+<ul>
+<li><code>int</code> index: the number of the servo (between 1 and 5)</li>
+<li><code>int</code> position: the target position for the given servo (in ticks, in [-1024, +1024])</li>
+<li><code>int</code> velocity: the velocity for this movement (in ticks/s, in [0, 4000])</li>
 </ul>
 
 
