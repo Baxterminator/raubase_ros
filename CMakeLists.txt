@@ -57,10 +57,8 @@ endfunction()
 macro(link_raspberry_libs node_name)
   if (${CPU} MATCHES "armv7l" OR ${CPU} MATCHES "aarch64")
     target_link_libraries(${node_name} ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod rt)
-  elseif(${CPU} MATCHES "x86_64") # If personal computer, do not link libs
+  else() # If personal computer, do not link libs
     target_link_libraries(${node_name} ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS})
-  else()
-    target_link_libraries(${node_name} ${CMAKE_THREAD_LIBS_INIT} ${OpenCV_LIBS} readline gpiod)
   endif()
 endmacro()
 
