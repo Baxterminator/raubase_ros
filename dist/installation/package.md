@@ -5,6 +5,11 @@
 
     To install ROS2 Humble, follow the official installation guides from the [ROS2 Documentation](https://docs.ros.org/en/humble/Installation.html).
 
+    To source ROS2, use the following command:
+    ```shell
+    . /opt/ros/humble/setup.sh
+    ```
+
 ## Preparing the environnement
 
 As any ROS package, you must first make a workspace to build the several packages that you will need.
