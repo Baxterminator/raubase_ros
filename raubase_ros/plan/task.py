@@ -21,6 +21,9 @@ class BaseTask:
     This class is an implementation of a task
     """
 
+    def __init__(self, name: str | None = None) -> None:
+        self.name = name
+
     # =================================================================
     #                        Task Properties
     # =================================================================
@@ -63,7 +66,11 @@ class BaseTask:
         """
         self.data = data
         self.control = control
-        self.logger = get_logger(self.__class__.__name__)
+        self.logger = get_logger(
+            self.__class__.__name__
+            if (self.name is None) or (self.name == "")
+            else self.name
+        )
 
     def can_start(self) -> bool:
         """
