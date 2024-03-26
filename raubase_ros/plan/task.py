@@ -23,6 +23,9 @@ class BaseTask:
 
     def __init__(self, name: str | None = None) -> None:
         self.name = name
+        self.logger = get_logger(
+            self.__class__.__name__ if (name is None) or (name == "") else name
+        )
 
     # =================================================================
     #                        Task Properties
@@ -33,28 +36,48 @@ class BaseTask:
         """
         List the requirements of this task (in term of inputs)
         """
-        raise RuntimeError("Requirements method not implemented!")
+        self.logger.error(
+            f"Requirements for task {self.__class__.__name__} not implemented!"
+        )
+        raise NotImplementedError(
+            f"Requirements for task {self.__class__.__name__} not implemented!"
+        )
 
     @abstractmethod
-    def start_conditions(self) -> StartTaskCondition | FlowTaskCondition:
+    def start_condition(self) -> StartTaskCondition | FlowTaskCondition:
         """
         List the conditions to accomplish to start
         """
-        raise RuntimeError("Start conditions method not implemented!")
+        self.logger.error(
+            f"Start condition for task {self.__class__.__name__} not implemented!"
+        )
+        raise NotImplementedError(
+            f"Start condition for task {self.__class__.__name__} not implemented!"
+        )
 
     @abstractmethod
-    def stop_conditions(self) -> StopTaskCondition | FlowTaskCondition:
+    def stop_condition(self) -> StopTaskCondition | FlowTaskCondition:
         """
         List the conditions to accomplish to stop.
         """
-        raise RuntimeError("Stop conditions method not implemented!")
+        self.logger.error(
+            f"Stop condition for task {self.__class__.__name__} not implemented!"
+        )
+        raise NotImplementedError(
+            f"Stop condition for task {self.__class__.__name__} not implemented!"
+        )
 
     @abstractmethod
     def loop(self) -> None:
         """
         Run a loop iteration for this task
         """
-        raise RuntimeError("Can start method not implemented!")
+        self.logger.error(
+            f"Runtime loop for task {self.__class__.__name__} not implemented!"
+        )
+        raise NotImplementedError(
+            f"Runtime loop for task {self.__class__.__name__} not implemented!"
+        )
 
     # =================================================================
     #                             Runtime
@@ -66,23 +89,18 @@ class BaseTask:
         """
         self.data = data
         self.control = control
-        self.logger = get_logger(
-            self.__class__.__name__
-            if (self.name is None) or (self.name == "")
-            else self.name
-        )
 
     def can_start(self) -> bool:
         """
         Test whether the task can start.
         """
-        return self.start_conditions().test()
+        return self.start_condition().test()
 
     def can_stop(self) -> bool:
         """
         Test whether the task can stop.
         """
-        return self.stop_conditions().test()
+        return self.stop_condition().test()
 
 
 class DefaultTask(BaseTask):
@@ -90,8 +108,8 @@ class DefaultTask(BaseTask):
     Task that will be run as a default action no other task is running.
     """
 
-    def start_conditions(self) -> StartTaskCondition | FlowTaskCondition:
+    def start_condition(self) -> StartTaskCondition | FlowTaskCondition:
         return FollowPreviousTask()
 
-    def stop_conditions(self) -> StopTaskCondition | FlowTaskCondition:
+    def stop_condition(self) -> StopTaskCondition | FlowTaskCondition:
         return Never()

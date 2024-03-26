@@ -28,7 +28,7 @@ class WheelMaddahi(BaseTask):
     """
 
     DEFAULT_DIST_TO_GO = 2.0
-    DEFAULT_ROBOT_VEL = 0.45    
+    DEFAULT_ROBOT_VEL = 0.45
     DEFAULT_WHEEL_D = 0.146
 
     def __init__(
@@ -56,10 +56,10 @@ class WheelMaddahi(BaseTask):
     def requirements(self) -> Requirement:
         return Requirement.MOVE | Requirement.ENCODERS | Requirement.ODOMETRY
 
-    def start_conditions(self) -> StartTaskCondition:
+    def start_condition(self) -> StartTaskCondition:
         return FollowPreviousTask()
 
-    def stop_conditions(self) -> StopTaskCondition:
+    def stop_condition(self) -> StopTaskCondition:
         return self.stop_cond
 
     # =========================================================================
