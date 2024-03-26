@@ -16,10 +16,10 @@ class TestTask(BaseTask):
     def requirements(self) -> Requirement:
         pass
 
-    def start_conditions(self) -> StartTaskCondition:
+    def start_condition(self) -> StartTaskCondition:
         pass
 
-    def stop_conditions(self) -> StopTaskCondition:
+    def stop_condition(self) -> StopTaskCondition:
         pass
 
     def loop(self) -> None:
@@ -51,7 +51,7 @@ These two methods declare when to start and when to stop a task and go to the ne
 
 ```Python
     ...
-    def start_conditions(self) -> StartTaskCondition:
+    def start_condition(self) -> StartTaskCondition:
         return FollowPreviousTask()
     ...
 ```
