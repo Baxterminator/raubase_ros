@@ -23,18 +23,15 @@ The next step is to install the packages and their dependencies from Github.
 ```shell
 sudo apt update
 sudo apt install ros-humble-camera-calibration-parsers ros-humble-camera-info-manager ros-humble-launch-testing-ament-cmake
-git clone git@github.com:ros-perception/image_pipeline.git -b humble
-git clone git@github.com:ros-perception/vision_opencv.git -b humble
-git clone git@github.com:Baxterminator/raubase_msgs.git
-git clone git@github.com:Baxterminator/raubase_ros.git
+git clone https://github.com:ros-perception/image_pipeline.git -b humble
+git clone https://github.com:Baxterminator/raubase_msgs.git
+git clone https://github.com:Baxterminator/raubase_ros.git
 ```
 
 ## (Optional) Compile only necessary packages
 
 The two first repository in the list are meta-packages (i.e. repositories that gather several packages in one place so that you can compile everything together), and you don't really need everything. In fact the only packages that we really need are:
 
-- `vision_opencv/cv_bridge`: a ROS2 package that facilitate conversion between OpenCV image and ROS2 Image and CompressedImage messages,
-- `vision_opencv/image_geometry`: "*collection of methods for dealing with image and pixel geometry*"[^1]. This package is needed by the `image_calibration` package.
 - `image_pipeline/image_calibration`: a tool to calibrate cameras in ROS2[^2]
 
 
