@@ -99,7 +99,7 @@ class BehaviourPlan(NodeWrapper):
         if self.__task_started:
             self.get_logger().info(
                 f"Running task {self.__tasks[self.__task_id].__class__.__name__}",
-                throttle_duration_s=0.5,
+                throttle_duration_sec=0.5,
             )
             self.__io.state.task_time = perf_counter() - self.__task_time_origin
             self.__io.state.time_elapsed = perf_counter() - self.__io.state.time_origin
