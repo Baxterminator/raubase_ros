@@ -56,12 +56,14 @@ class ServoProxy : public TeensyProxy {
     constchar CMD_SUB{"control/set_servos"};
   };
   struct Params {
+    constchar PROXY_ON{"servo_on"};      //< Is this proxy running ?
     constchar N_SERVOS{"servo_number"};  //< Number of servo presents
     constchar RATE_MS{"servo_rate_ms"};  //< Period between messages in ms
   };
   struct Default {
-    constval int RATE_MS{40};  //< Default period between messages in ms
-    constval int N_SERVOS{5};  //< Default number of servos
+    constval bool PROXY_ON{false};  //< Is this proxy on ?
+    constval int RATE_MS{40};       //< Default period between messages in ms
+    constval int N_SERVOS{5};       //< Default number of servos
   };
 
   // =================================================================
@@ -100,6 +102,7 @@ class ServoProxy : public TeensyProxy {
   // =================================================================
   //                           Sensor Parameters
   // =================================================================
+  bool _is_on;        //< Is this proxy on ?
   int _n_servos;      //< Number of servos
   int _refresh_rate;  //< The refresh rate for the distance sensors
 };

@@ -10,6 +10,7 @@ void ServoProxy::setupParams(rclcpp::Node::SharedPtr node) {
   RCLCPP_INFO(logger, "Initializing proxy %s", NODE_NAME);
 
   // Declaring parameters for the encoder
+  _is_on = node->declare_parameter(Params::PROXY_ON, Default::PROXY_ON);
   _n_servos = node->declare_parameter(Params::N_SERVOS, Default::N_SERVOS);
   _refresh_rate = node->declare_parameter(Params::RATE_MS, Default::RATE_MS);
 
@@ -34,6 +35,8 @@ void ServoProxy::setServoPosition(const CmdServoPosition::SharedPtr msg) {
 }
 
 void ServoProxy::decode(char* msg) {
+  if (!_is_on) return;
+
   // like: servo {enable position velocity} x 5
   if (strlen(msg) <= 5) return;
   const char* p1 = msg + 5;
