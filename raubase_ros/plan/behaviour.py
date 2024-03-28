@@ -3,7 +3,7 @@ from typing import List
 
 from raubase_ros.wrappers import NodeWrapper
 from .data import IOWrapper, Requirement
-from .task import BaseTask
+from .task import BaseTask, DefaultTask
 from raubase_ros.config import get_top_namespace
 
 
@@ -21,8 +21,13 @@ class BehaviourPlan(NodeWrapper):
     ) -> None:
         super().__init__(name, namespace=namespace)  # type: ignore
         self.__io = IOWrapper()
+
+        # Tasks related
         self.__tasks: List[BaseTask] = []
         self._requirements: int = Requirement.NONE
+        self.__default_task: DefaultTask | None = None
+
+        # Runtime variables
         self.__task_id = 0
         self.__task_started = False
         self.done = False
@@ -68,6 +73,13 @@ class BehaviourPlan(NodeWrapper):
         self.__task_started = False
         self.done = False
 
+    def set_default_task(self, task: DefaultTask) -> None:
+        """
+        Set the default task to run when no other task is running.
+        """
+        self.__default_task = task
+        self._requirements |= self.__default_task.requirements()
+
     # =================================================================
     #                             Runtime
     # =================================================================
@@ -85,15 +97,25 @@ class BehaviourPlan(NodeWrapper):
 
         # Update task
         if self.__task_started:
+            self.get_logger().info(
+                f"Running task {self.__tasks[self.__task_id].__class__.__name__}",
+                throttle_duration_s=0.5,
+            )
             self.__io.state.task_time = perf_counter() - self.__task_time_origin
             self.__io.state.time_elapsed = perf_counter() - self.__io.state.time_origin
             self.__tasks[self.__task_id].loop()
 
             # Test for task end
             if self.__tasks[self.__task_id].can_stop():
+                self.get_logger().info(
+                    f"Stopping task {self.__tasks[self.__task_id].__class__.__name__}"
+                )
                 self.__task_id += 1
                 self.__task_started = False
         elif self.__tasks[self.__task_id].can_start():
+            self.get_logger().info(
+                f"Starting task {self.__tasks[self.__task_id].__class__.__name__}"
+            )
             self.__task_started = True
             self.__io.state.task_time = perf_counter()
             self.__task_time_origin = perf_counter()
@@ -102,9 +124,13 @@ class BehaviourPlan(NodeWrapper):
             self.__io.state.reset_distance()
             if self.__require_input:
                 input("Press [enter] for next task...")
+        elif self.__default_task is not None:
+            self.get_logger().info(f"Running default task")
+            self.__default_task.loop()
 
         # If done, reset state
         if self.__task_id >= len(self.__tasks):
+            self.get_logger().info(f"Task list done!")
             self.done = True
             self.__task_id = 0
             self.__task_started = False
