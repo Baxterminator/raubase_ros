@@ -42,6 +42,8 @@ VelocityController::VelocityController(NodeOptions opts) : Node(NODE_NAME, opts)
   // Initiate parameters
   state.max_voltage = declare_parameter(Params::MAX_VOLT, Default::MAX_VOLT);
   state.max_turnrate = declare_parameter(Params::MAX_TR, Default::MAX_TR);
+  state.max_acceleration = declare_parameter(Params::MAX_ACC, Default::MAX_ACC);
+
   wheel_base = declare_parameter(Params::WHEEL_BASE, Default::WHEEL_BASE);
   debug = declare_parameter(Params::DEBUG, Default::IN_DEBUG);
 
@@ -117,7 +119,7 @@ void VelocityController::loop() {
   computeTurnRate(dt);
 
   // Compute the RL velocities
-  computeVelocitiesRef();
+  computeVelocitiesRef(dt);
   computeRLVelocities(dt);
 
   // Publish the message
