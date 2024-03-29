@@ -13,6 +13,6 @@ class Topics:
     DECLARE_INPUT = "control/declare_input"
     CONTROLLER = "control/set_input"
     MOVE = "control/move_plan"
-    LINE = "control/move_egde"
+    LINE = "control/line_conf"
     SERVO_CMD = "control/set_servos"
     SERVO_STATE = "sensor/servos"
