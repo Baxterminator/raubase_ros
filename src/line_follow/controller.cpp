@@ -51,7 +51,6 @@ LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
   config.high_power = true;
   config.on = true;
   config.white = true;
-  sensor_config->publish(config);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -190,6 +189,8 @@ void LineFollower::loop() {
     RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR, "Calibration is not good!");
     return;
   }
+
+  sensor_config->publish(config);
 
   RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), THROTTLE_DUR, "Edge loop");
   // Initialize last enc
