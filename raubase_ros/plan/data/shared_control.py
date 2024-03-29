@@ -48,7 +48,7 @@ class ControlWrapper:
     # =========================================================================
     # Movement
     # =========================================================================
-    def controller_input(self, mode: ControllerMode | str, force: bool = True):
+    def controller_input(self, mode: ControllerMode | str, force: bool = False):
         """
         Set the input type of the velocity controller.
 
