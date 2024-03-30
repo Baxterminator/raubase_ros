@@ -1,0 +1,25 @@
+# =============================================================================
+#
+#                       Velocity Controller configuration
+# 
+#  This file contains the configurations needed for using the velocity 
+#  controller.
+# =============================================================================
+
+pid:
+  pid_freq: -1 # PID frequency, -1 for acting when receiving odometry data
+  velocity:
+    vpid_kp: 7.0  # Potential gain for the velocity PID (in V per m/s)
+    vpid_td: 0.0  # Lead time constant for velocity PID (in s)
+    vpid_ad: 1.0  # Lead alpha value for the velocity PID (in [0, 1])
+    vpid_ti: 0.05 # Integrator time constant for the velocity PID (in s)
+  heading:
+    hpid_kp: 10.0 # Potential gain for the heading PID (in rad/s per rad)
+    hpid_td: 0.0  # Lead time constant for heading PID (in s)
+    hpid_ad: 1.0  # Lead alpha value for the heading PID (in [0, 1])
+    hpid_ti: 0.0  # Integrator time constant for the heading PID (in s)
+limits:
+  max_volt: 10.0         # Maximum voltage for saturation
+  max_turn_rate: 3.0     # Maximum turn rate (in rad/s)
+  max_acceleration: 1.0  # Maximum acceleration (in m/s²)
+debug: True # Whether we want to share the controller state

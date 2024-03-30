@@ -68,11 +68,12 @@ class VelocityController : public Node {
     constchar PUB_STATE{"state/vcontroller"};  //< Where to publish controller state
   };
   struct Params {
-    constchar PID_FREQ{"pid_freq"};        //< PID frequency
-    constchar MAX_VOLT{"max_volt"};        //< Maximum voltage for the motors (in V)
-    constchar MAX_TR{"max_turn_rate"};     //< Maximum turn rate for the robot (in rad/s)
-    constchar WHEEL_BASE{"wheel_base_m"};  //< Distance between the wheels (in m)
-    constchar DEBUG{"debug"};              //< If in debug mode (share state)
+    constchar PID_FREQ{"pid_freq"};         //< PID frequency
+    constchar MAX_VOLT{"max_volt"};         //< Maximum voltage for the motors (in V)
+    constchar MAX_TR{"max_turn_rate"};      //< Maximum turn rate for the robot (in rad/s)
+    constchar WHEEL_BASE{"wheel_base_m"};   //< Distance between the wheels (in m)
+    constchar DEBUG{"debug"};               //< If in debug mode (share state)
+    constchar MAX_ACC{"max_acceleration"};  //< Maximum wheel acceleration (m/s²)
 
     // PIDS
     constchar PID_V_KP{"vpid_kp"};  //< Velocity PID: prop. gain (V per (m/s))
@@ -90,6 +91,7 @@ class VelocityController : public Node {
     constval float MAX_TR = 3.0;        //< Max turn rate for the robot (rad/s)
     constval float WHEEL_BASE = 0.243;  //< Distance between the wheels (in m)
     constval bool IN_DEBUG = true;      //< Whether we are in debug mode
+    constval float MAX_ACC{1.0};        //< Maximum wheel acceleration (m/s²), -1 for disabling
 
     // PIDS
     constval float PID_V_KP = 7.0;   //< Velocity PID: prop. gain (V per (m/s))
@@ -138,7 +140,7 @@ class VelocityController : public Node {
   /**
    * @brief Compute the targeted RL velocities for the motors.
    */
-  void computeVelocitiesRef();
+  void computeVelocitiesRef(double dt);
   /**
    * @brief Compute the left-right wheels velocities command in Volts based on the reference.
    */
@@ -153,6 +155,7 @@ class VelocityController : public Node {
                            // data is received, else it updates at a precise frequency
   double wheel_base;       //< Distance between the two wheels
   bool debug;              //< Whether the node run on debug
+  float max_acc;           //< Maximum wheel acceleration (m/s²)
 
   // ----------------------------- ROS Members --------------------------------
   TimerBase::SharedPtr fixed_loop;                          //< Controller loop

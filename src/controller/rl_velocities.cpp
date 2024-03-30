@@ -13,10 +13,22 @@
 
 namespace raubase::motor {
 
-void VelocityController::computeVelocitiesRef() {
+void VelocityController::computeVelocitiesRef(double dt) {
   state.vel_dif = wheel_base * state.turn_rate / 2;
-  state.vright_ref = last_cmd->velocity + state.vel_dif;
-  state.vleft_ref = last_cmd->velocity - state.vel_dif;
+
+  float v_right = last_cmd->velocity + state.vel_dif;
+  float v_left = last_cmd->velocity - state.vel_dif;
+
+  // Compute accelerations
+  state.aright_ref = (v_right - state.vright_ref) / dt;
+  state.aleft_ref = (v_left - state.vleft_ref) / dt;
+  state.acc_coeff = std::max({std::fabs(state.aleft_ref) / state.max_acceleration,
+                              std::fabs(state.aright_ref) / state.max_acceleration, 1.});
+
+  // Compute new velocity
+  state.vright_ref += (v_right - state.vright_ref) / state.acc_coeff;
+  state.vleft_ref += (v_left - state.vleft_ref) / state.acc_coeff;
+  state.acc_saturation = state.acc_coeff > 1.;
 }
 
 void VelocityController::computeRLVelocities(double dt) {
@@ -38,8 +50,8 @@ void VelocityController::computeRLVelocities(double dt) {
   }
 
   // Save for debug
-  state.vright = voltage_cmd.right;
-  state.vleft = voltage_cmd.left;
+  state.volt_right = voltage_cmd.right;
+  state.volt_left = voltage_cmd.left;
 }
 
 }  // namespace raubase::motor
