@@ -1,0 +1,26 @@
+# Configure a GPIO of the raspberry
+
+# Mode possibilities
+int32 READ = 0
+int32 WRITE = 1
+
+int32 pin
+int32 mode 0
+
+# If in read mode, the period between readings, by default 20 Hz
+int32 period_ms 50
+
+# If write mode, the topic it should read from
+string DEFAULT_TOPIC = none
+string topic none
+
+---
+
+# Result of the request
+int32 SUCCESS = 0
+int32 OPENING_SPECIAL = 1
+int32 ALREAD_OPEN_SAME_MODE = 2
+int32 ALREAD_OPEN_WRONG_MODE = 3
+
+string name
+int32 result 0
