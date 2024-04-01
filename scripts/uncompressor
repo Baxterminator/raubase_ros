@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+from raubase_ros.config import get_top_namespace
 from rclpy.node import Node
 from sensor_msgs.msg import CompressedImage, Image
 from cv_bridge import CvBridge
@@ -8,12 +9,12 @@ from rclpy import init, ok, shutdown, spin_once
 
 class Uncompressor(Node):
     def __init__(self) -> None:
-        super().__init__("uncompressor")
+        super().__init__("uncompressor", namespace=get_top_namespace())
 
         self.sub = self.create_subscription(
-            CompressedImage, "/compressed", self.image_clb, 10
+            CompressedImage, "camera/compressed", self.image_clb, 10
         )
-        self.pub = self.create_publisher(Image, "/uncompressed", 10)
+        self.pub = self.create_publisher(Image, "camera/uncompressed", 10)
         self.bridge = CvBridge()
 
     def image_clb(self, img: CompressedImage) -> None:
