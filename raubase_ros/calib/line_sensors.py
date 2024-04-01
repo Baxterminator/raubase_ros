@@ -2,7 +2,7 @@ from enum import Enum, auto
 
 import numpy as np
 
-from raubase_ros.constants import CfgFilename
+from raubase_ros.constants import ConfigFiles
 from raubase_ros.config import ConfigFile
 from raubase_ros.plan import BaseTask, Requirement
 from raubase_ros.plan.conditions import (
@@ -36,7 +36,7 @@ class LineSensor(BaseTask):
         self.stop_cond = OnValue(lambda: self.stop)
 
         # Inner Work
-        self.cfg = ConfigFile(CfgFilename.LINE)
+        self.cfg = ConfigFile(ConfigFiles.Names.LINE)
         self.n_data: int = n_data
         self.last_stamp = None
         self.buffer: np.ndarray = np.array([])
