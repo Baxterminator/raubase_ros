@@ -1,6 +1,7 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from raubase_ros.config import ConfigFile
+from raubase_ros.constants import ConfigFiles, PACKAGE_NAME
 
 # =============================================================================
 #                               Camera Launcher
@@ -10,11 +11,11 @@ from raubase_ros.config import ConfigFile
 
 
 def generate_launch_description():
-    config = ConfigFile("camera")
+    config = ConfigFile(ConfigFiles.Names.CAMERA)
     return LaunchDescription(
         [
             Node(
-                package="raubase_ros",
+                package=PACKAGE_NAME,
                 executable="camera",
                 parameters=config.get_parameters(),
                 remappings=config.get_remaps(),

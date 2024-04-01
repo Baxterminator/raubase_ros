@@ -45,6 +45,8 @@ class Requirement(BaseRequirement):
     ENCODERS = BaseRequirement.next()
     DISTANCE = BaseRequirement.next()
     ODOMETRY = BaseRequirement.next()
+    LINE = BaseRequirement.next()
+    EDGE = BaseRequirement.next()
 
     # Camera requirements
     CAMERA = BaseRequirement.next()
@@ -53,5 +55,5 @@ class Requirement(BaseRequirement):
 
     # Control requirements
     MOVE = BaseRequirement.next()
-    LINE = BaseRequirement.next()
+    MOVE_LINE = BaseRequirement.next()
     SERVO = BaseRequirement.next()

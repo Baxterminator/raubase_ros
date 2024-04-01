@@ -63,14 +63,6 @@ class WheelMaddahi(BaseTask):
         return self.stop_cond
 
     # =========================================================================
-    @staticmethod
-    def make_motor_msg(vel: float) -> CmdMove:
-        out = CmdMove()
-        out.move_type = CmdMove.CMD_V_ANGLE
-        out.velocity = float(vel)
-        out.heading = 0
-        return out
-
     def loop(self) -> None:
         match self.state:
             case TaskStep.WAITING_FOR_LAUNCH:

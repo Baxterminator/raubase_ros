@@ -1,11 +1,9 @@
 #!/usr/bin/python3
 from enum import IntEnum, auto
 from raubase_ros.plan import BehaviourPlan
-from raubase_ros.wrappers import ParameterWrapper
 from rclpy import init, ok, spin_once, shutdown
 import matplotlib.pyplot as plt
-from raubase_ros.calib import WheelMaddahi
-from raubase_ros.config import get_top_namespace
+from raubase_ros.calib import WheelMaddahi, LineSensor
 
 CALIB_MENU = """
 What calibration to do next ?
@@ -23,7 +21,8 @@ class AvailableTasks(IntEnum):
 class CalibrationTool(BehaviourPlan):
     def __init__(self) -> None:
         super().__init__("calibration_tool")
-        self.task = self.declare_wparameter("task", "none")
+        self.task: str = self.declare_wparameter("task", "none").get()
+        self.parse_param()
 
     def print_header(self) -> None:
         self.get_logger().info("".center(WIDTH, "="))
@@ -31,15 +30,17 @@ class CalibrationTool(BehaviourPlan):
         self.get_logger().info("".center(WIDTH, "="))
 
     def parse_param(self) -> None:
-        self.get_logger().info(self.task.get())
-        match self.task.get():
-            case "wheel" | "maddahi" | "1":
+        match self.task:
+            case "wheel" | "maddahi":
                 self.get_logger().info(
-                    "Running calibration wheel with the Maddahi methods"
+                    "Running calibration for wheel with the Maddahi methods"
                 )
                 self.add_task(WheelMaddahi())
+            case "line":
+                self.get_logger().info("Running calibration for line sensors")
+                self.add_task(LineSensor())
             case _:
-                self.get_logger().warn("No calibration choosen")
+                self.get_logger().warn(f"No calibration choosen ({self.task})")
                 self.done = True
         self.reinitialize()
 

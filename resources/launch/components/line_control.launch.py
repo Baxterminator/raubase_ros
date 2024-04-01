@@ -1,6 +1,7 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from raubase_ros.config import ConfigFile
+from raubase_ros.constants import ConfigFiles, PACKAGE_NAME
 
 # =============================================================================
 #                      Line following controller Launcher
@@ -11,12 +12,12 @@ from raubase_ros.config import ConfigFile
 
 
 def generate_launch_description():
-    config = ConfigFile("line")
+    config = ConfigFile(ConfigFiles.Names.LINE)
 
     return LaunchDescription(
         [
             Node(
-                package="raubase_ros",
+                package=PACKAGE_NAME,
                 executable="line_follow",
                 parameters=config.get_parameters(),
                 remappings=config.get_remaps(),

@@ -1,6 +1,7 @@
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from raubase_ros.config import ConfigFile, is_on_raspberry
+from raubase_ros.constants import ConfigFiles, PACKAGE_NAME
 
 # =============================================================================
 #                             Teensy Board Launcher
@@ -11,13 +12,13 @@ from raubase_ros.config import ConfigFile, is_on_raspberry
 
 
 def generate_launch_description():
-    config = ConfigFile("teensy")
+    config = ConfigFile(ConfigFiles.Names.TEENSY)
 
     if is_on_raspberry():
         return LaunchDescription(
             [
                 Node(
-                    package="raubase_ros",
+                    package=PACKAGE_NAME,
                     executable="teensy",
                     parameters=config.get_parameters(),
                     remappings=config.get_remaps(),
@@ -29,7 +30,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             Node(
-                package="raubase_ros",
+                package=PACKAGE_NAME,
                 executable="simulator",
                 parameters=config.get_parameters(),
                 remappings=config.get_remaps(),
