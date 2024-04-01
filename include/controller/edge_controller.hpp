@@ -52,7 +52,7 @@ class LineFollower : public Node {
  public:
   struct Params {
     constchar PID_FREQ{"pid_freq"};            //< Frequency of the controller loop
-    constchar PID_KP{"pid_kp"};                //< PID: prop. gain (V per (m/s))
+    constchar PID_KP{"pid_kp"};                //< PID: prop. gain (rad/s per m)
     constchar PID_TD{"pid_td"};                //< PID: lead time constant (sec)
     constchar PID_AD{"pid_ad"};                //< PID: lead alpha value
     constchar PID_TI{"pid_ti"};                //< PID: integrator time constant (sec)
@@ -65,9 +65,9 @@ class LineFollower : public Node {
   };
   struct Default {
     constval int FREQ{-1};          //< Frequency of the controller loop
-    constval float PID_KP{40};      //< PID: prop. gain (V per (m/s))
+    constval float PID_KP{40};      //< PID: prop. gain (rad/s per m)
     constval float PID_TD{0.3};     //< PID: lead time constant (sec)
-    constval float PID_AD{1.5};     //< PID: lead alpha value
+    constval float PID_AD{0.5};     //< PID: lead alpha value
     constval float PID_TI{0};       //< PID: integrator time constant (sec)
     constval float MAX_TR{7};       //< Max turn rate for the robot (rad/s)
     constval int N_SENSORS{8};      //< Number of sensors for line detection
