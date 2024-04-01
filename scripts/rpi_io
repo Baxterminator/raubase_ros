@@ -63,6 +63,7 @@ class RPI_IO(NodeWrapper):
 
     def __del__(self):
         if len(self.__register.keys()) > 0:
+            print("Cleaning-up GPIO ...")
             self.__register = {}
             GPIO.cleanup()
 
@@ -231,7 +232,4 @@ if __name__ == "__main__":
     while ok():
         spin_once(node)
 
-    if len(node.__register.keys()) > 0:
-        node.__register = {}
-        GPIO.cleanup()
     shutdown()
