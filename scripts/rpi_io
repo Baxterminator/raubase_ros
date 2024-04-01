@@ -1,0 +1,233 @@
+#!/usr/bin/python3
+from typing import Dict, List
+
+from rclpy.node import Publisher, Subscription, Timer
+
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError as e:
+    print(
+        "Error importing RPi.GPIO!  This is probably because you need superuser privileges.  You can achieve this by using 'sudo' to run your script"
+    )
+    print(e)
+    exit(-1)
+
+from raubase_msgs.msg import DataGPIO
+from rclpy import init, ok, shutdown, spin_once
+
+from raubase_ros.boards import BoardInterface, PinDesc, PinType, RobotIO_23_09_05
+from raubase_ros.config import get_top_namespace
+from raubase_ros.wrappers import NodeWrapper
+
+
+class RPI_IO(NodeWrapper):
+
+    N_GPIO = 40
+    POWER = [1, 2, 4, 17]
+    GROUNDS = [6, 9, 14, 20, 25, 30, 34, 39]
+
+    DEFAULT_PUB_TOPIC = "sensor/gpio"
+    DEFAULT_SUB_TOPIC = "control/gpio"
+
+    def __init__(self, board: BoardInterface | None = None) -> None:
+        super().__init__("RPI_IO", namespace=get_top_namespace())
+
+        # Declare GPIO parameters
+        self.n_gpio = self.declare_wparameter("n_gpio", RPI_IO.N_GPIO)
+        self.power = self.declare_wparameter("power_pin", RPI_IO.POWER)
+        self.grounds = self.declare_wparameter("ground_pin", RPI_IO.GROUNDS)
+
+        # Declare class variables
+        self.reserved: List[int] = []
+        self.specials: List[PinDesc] = []
+        self.__register: Dict[int, PinType] = {}
+        self.__name_mapping: Dict[int, str] = {
+            pin: PinDesc.default_pin_name(pin) for pin in range(self.n_gpio)
+        }
+        self.__inv_name_mapping: Dict[str, int] = {}
+
+        self.__gpio_pub: Dict[str, Publisher] = []
+        self.__gpio_sub: List[Subscription] = []
+        self.__gpio_timers: List[Timer]
+
+        # Initialize GPIO
+        GPIO.setmode(GPIO.BOARD)
+
+        # If no board is provided in the constructor (from another script), then take it from the parameters
+        if board is None:
+            self.__board_name = self.declare_wparameter("board_name", "robotio").get()
+            self.__load_board()
+        else:
+            self.__board_name = board.__class__.__name__
+            self.__load_board_info(board)
+
+    def __del__(self):
+        GPIO.cleanup()
+
+    # =========================================================================
+
+    def get_pin_mode(self, pin: int | str) -> PinType | None:
+        """
+        Get the mode on the pin. If the pin is not configured yet, return None
+        """
+        pin_number = -1
+        # Get pin number
+        if type(pin) is str:
+            if pin not in self.__inv_name_mapping.keys():
+                return None
+            pin_number = self.__inv_name_mapping[pin]
+        elif type(pin) is int:
+            pin_number = pin
+        else:
+            return None
+
+        # Look into the internal register
+        if pin_number not in self.__register.keys():
+            return None
+
+        return self.__register[pin_number]
+
+    @staticmethod
+    def timer_callback(pub: Publisher, channel: int, name: str) -> None:
+        """
+        Callback for a GPIO reading
+        """
+        msg = DataGPIO()
+        msg.pin = channel
+        msg.name = name
+        msg.value = GPIO.input(channel)
+        pub.publish(msg)
+
+    def _make_reader(self, pin: PinDesc) -> bool:
+        """
+        Make a pin reader (gpio reader + ROS publisher & timer)
+        """
+        # Check if pin already used
+        pin_mode = self.get_pin_mode(pin.pin)
+        if pin_mode is not None:
+            self.get_logger().warn(
+                f"Trying to open in mode {pin.type.name} pin #{pin.pin} - {self.__name_mapping[pin.pin]} which had mode {pin_mode.name}"
+            )
+            return False
+
+        # Register and setup GPIO
+        GPIO.setup(pin.pin, GPIO.IN)
+        self.__register[pin.pin] = PinType.DIGITAL_IN
+
+        # Check pin topic
+        if pin.special_topic is None:
+            pin.special_topic = RPI_IO.DEFAULT_PUB_TOPIC
+
+        # Check alias for special pin
+        if self.__name_mapping[pin.pin] != pin.alias:
+            self.__name_mapping[pin.pin] = pin.alias
+        self.__inv_name_mapping[pin.alias] = pin.pin
+
+        # Check for the publishing topic
+        if pin.special_topic not in self.__gpio_pub.keys():
+            self.__gpio_pub[pin.special_topic] = self.create_publisher(
+                DataGPIO, pin.special_topic, 10
+            )
+
+        # Create timer and its callback
+        clbk = lambda: RPI_IO.timer_callback(
+            self.__gpio_pub[pin.special_topic], pin.pin, pin.alias
+        )
+        self.__gpio_timers.append(self.create_timer(pin.period_ms / 1000, clbk))
+        self.get_logger().info(
+            f"Opened DI #{pin.pin} - {pin.alias} on topic {pin.special_topic}"
+        )
+        return True
+
+    def _make_writer(self, pin: PinDesc) -> bool:
+        """
+        Make a pin writer (gpio writer + ROS subscriber)
+        """
+        # Check if pin already used
+        pin_mode = self.get_pin_mode(pin.pin)
+        if pin_mode is not None:
+            self.get_logger().warn(
+                f"Trying to open in mode {pin.type.name} pin #{pin.pin} - {self.__name_mapping[pin.pin]} which had mode {pin_mode.name}"
+            )
+            return False
+
+        # Register and setup GPIO
+        GPIO.setup(pin.pin, GPIO.OUT, initial=GPIO.LOW)
+        self.__register[pin.pin] = PinType.DIGITAL_OUT
+
+        # Change name mapping for special pin
+        if self.__name_mapping[pin.pin] != pin.alias:
+            self.__name_mapping[pin.pin] = pin.alias
+        self.__inv_name_mapping[pin.alias] = pin.pin
+
+        # Check for pin topic
+        if pin.special_topic is None:
+            pin.special_topic = RPI_IO.DEFAULT_SUB_TOPIC
+
+        # Create subscription callback
+        def sub_clbk(channel: int, msg: DataGPIO) -> None:
+            GPIO.output(channel, msg.value)
+
+        # Create subscription
+        self.__gpio_sub.append(
+            self.create_subscription(
+                DataGPIO, pin.special_topic, lambda m: sub_clbk(pin.pin, m), 10
+            )
+        )
+        self.get_logger().info(
+            f"Opened DO #{pin.pin} - {pin.alias} on topic {pin.special_topic}"
+        )
+        return True
+
+    # =========================================================================
+
+    def __load_board(self) -> None:
+        """
+        Load the board based on the parameter value.
+        """
+        match self.__board_name:
+            case "robotio" | "robotio_230905" | _:
+                board = RobotIO_23_09_05()
+        self.__load_board_info(board)
+
+    def __load_board_info(self, board: BoardInterface) -> None:
+        """
+        Load the board info into the node.
+        """
+        self.get_logger().info(f"Loading board {board.__class__.__name__}")
+
+        # Get reserved pins
+        self.reserved = [
+            *self.power,
+            *self.grounds,
+            *board.reserved(),
+        ]
+
+        # Get specials pins
+        self.specials.extend(board.specials())
+        self.__setup_specials()
+
+    def __setup_specials(self) -> None:
+        """
+        Setup the special pins (sensors / buttons / actuators)
+        """
+        for pin in self.specials:
+            match pin.type:
+                case PinType.DIGITAL_IN:
+                    self._make_reader(pin)
+                case PinType.DIGITAL_OUT:
+                    self._make_writer(pin)
+                case _:
+                    self.__name_mapping[pin.pin] = pin.alias
+
+    # =========================================================================
+
+
+if __name__ == "__main__":
+    init()
+    node = RPI_IO()
+    while ok():
+        spin_once(node)
+
+    GPIO.cleanup()
+    shutdown()
