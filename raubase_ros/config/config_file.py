@@ -38,9 +38,13 @@ class ConfigFile:
         # Open the file
         with open(self.path, "r") as config_file:
             try:
+                # Save the content for exporting
                 self.content = config_file.read()
+                config_file.seek(0, 0)
+
+                # Load YAML data
                 data = yaml.safe_load(config_file)
-                logger.info(f"Loaded configuration file {self.name}")
+                logger.info(f"Loaded configuration file \"{self.name}\"")
                 self.load_from_data(data)
             except yaml.YAMLError as e:
                 logger.error("Error while loading config file")
@@ -109,7 +113,7 @@ class ConfigFile:
         """
         # Try to find the parameter in the file
         self.content, n = re.subn(
-            f"{param_name}: ([a-zA-z0-9,-]*)",
+            f"{param_name}: ([a-zA-z0-9,-.]*)",
             f"{param_name}: {param_value}",
             self.content,
         )
