@@ -13,7 +13,7 @@ void VelocityController::computeHeadingRef(double dt) {
       state.heading_ref = last_cmd->heading;
       break;
     case CmdMove::CMD_V_TR:
-      state.heading_ref = last_odometry->heading + last_cmd->turn_rate * dt;
+      state.heading_ref += last_cmd->turn_rate * dt;
       break;
     default:
       state.heading_ref = last_odometry->heading;
