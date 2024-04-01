@@ -109,6 +109,7 @@ class BehaviourPlan(NodeWrapper):
         Start button state callback
         """
         if not self.running and msg.value:
+            self.get_logger().info("Starting behaviour plan!")
             self.running = True
 
     def stop_callback(self, msg: DataGPIO) -> None:
@@ -116,6 +117,7 @@ class BehaviourPlan(NodeWrapper):
         Stop button state callback
         """
         if self.running and msg.value:
+            self.get_logger().warn("Stopping behaviour plan!")
             self.running = False
             self.reset_state()
 
