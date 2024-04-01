@@ -1,6 +1,4 @@
 #include <algorithm>
-#include <raubase_msgs/msg/detail/set_controller_input__struct.hpp>
-#include <raubase_msgs/msg/detail/set_line_sensor_config__struct.hpp>
 
 #include "common/math/fixed_pid_control.hpp"
 #include "common/math/math.hpp"
@@ -38,6 +36,16 @@ LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
                                                      last_data_has_been_used = false;
                                                      if (consuming) loop();
                                                    });
+  stop_sub =
+      create_subscription<DataGPIO>(Topics::SUB_STOP, QOS, [this](DataGPIO::ConstSharedPtr msg) {
+        if (msg->value)
+          last_cmd = []() {
+            auto cmd = std::make_shared<CmdLineFollower>();
+            cmd->speed = 0;
+            cmd->offset = 0;
+            return cmd;
+          }();
+      });
   ref_sub = create_subscription<CmdLineFollower>(
       Topics::SUB_REF, QOS, [this](CmdLineFollower::SharedPtr ref) { last_cmd = ref; });
   result_pub = create_publisher<ResultEdge>(Topics::PUB_RESULT, QOS);

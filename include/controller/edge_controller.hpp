@@ -4,8 +4,8 @@
 #include <chrono>
 #include <raubase_msgs/msg/cmd_line_follower.hpp>
 #include <raubase_msgs/msg/cmd_move.hpp>
+#include <raubase_msgs/msg/data_gpio.hpp>
 #include <raubase_msgs/msg/data_line_sensor.hpp>
-#include <raubase_msgs/msg/detail/set_line_sensor_config__struct.hpp>
 #include <raubase_msgs/msg/result_edge.hpp>
 #include <raubase_msgs/msg/set_controller_input.hpp>
 #include <raubase_msgs/msg/set_line_sensor_config.hpp>
@@ -20,6 +20,7 @@
 using namespace rclcpp;
 using raubase_msgs::msg::CmdLineFollower;
 using raubase_msgs::msg::CmdMove;
+using raubase_msgs::msg::DataGPIO;
 using raubase_msgs::msg::DataLineSensor;
 using raubase_msgs::msg::ResultEdge;
 using raubase_msgs::msg::SetControllerInput;
@@ -79,6 +80,7 @@ class LineFollower : public Node {
     constchar SUB_CONTROLLER_STATE{"state/vcontroller"};
     constchar SUB_REF{"control/line_conf"};
     constchar SUB_LINE{"sensor/line"};
+    constchar SUB_STOP{"stop"};  //< Stop signal
     constchar PUB_CMD{"control/move_edge"};
     constchar PUB_RESULT{"sensor/edge"};
     constchar PUB_DECLARE{"control/declare_input"};
@@ -152,6 +154,7 @@ class LineFollower : public Node {
   Publisher<SetControllerInput>::SharedPtr input_declaration;
 
   Subscription<DataLineSensor>::SharedPtr sensor_sub;
+  Subscription<DataGPIO>::SharedPtr stop_sub;  //< Stop signal subscriber
   DataLineSensor::SharedPtr last_data, last_data_used;
   bool last_data_has_been_used = false;
 
