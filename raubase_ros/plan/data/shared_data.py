@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict
-from raubase_msgs.msg import DataEncoder, DataDistance, DataServo
-from raubase_msgs.msg import ResultYolo, ResultArUco, ResultOdometry
+from raubase_msgs.msg import DataEncoder, DataDistance, DataServo, DataLineSensor
+from raubase_msgs.msg import ResultYolo, ResultArUco, ResultOdometry, ResultEdge
 from sensor_msgs.msg import CompressedImage
 from time import perf_counter
 
@@ -20,6 +20,8 @@ class SharedData:
     last_odometry: ResultOdometry | None = None
     odometry: ResultOdometry = ResultOdometry()
     servos: DataServo = DataServo()
+    line: DataLineSensor = DataLineSensor()
+    edge: ResultEdge = ResultEdge()
 
     # Camera / Images
     last_img: CompressedImage = CompressedImage()

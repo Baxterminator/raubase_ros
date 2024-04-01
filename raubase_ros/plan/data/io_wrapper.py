@@ -7,6 +7,8 @@ from raubase_msgs.msg import (
     ResultYolo,
     ResultArUco,
     ResultOdometry,
+    DataLineSensor,
+    ResultEdge,
 )
 from raubase_ros.constants import TRANSIENT_QOS
 from sensor_msgs.msg import CompressedImage
@@ -60,6 +62,8 @@ class IOWrapper:
         self.add_req(Requirement.ENCODERS, self.__init_encoders)
         self.add_req(Requirement.DISTANCE, self.__init_all_distance)
         self.add_req(Requirement.ODOMETRY, self.__init_odometry)
+        self.add_req(Requirement.LINE, self.__init_line_sensor)
+        self.add_req(Requirement.EDGE, self.__init_edge_result)
 
         # Camera
         self.add_req(Requirement.CAMERA, self.__init_camera)
@@ -69,7 +73,9 @@ class IOWrapper:
         # Control
         self.add_req(InternalReq.CONTROLLER, self.__init_controller_mode)
         self.add_req(Requirement.MOVE, self.__init_move, InternalReq.CONTROLLER)
-        self.add_req(Requirement.LINE, self.__init_line_follow, InternalReq.CONTROLLER)
+        self.add_req(
+            Requirement.MOVE_LINE, self.__init_line_follow, InternalReq.CONTROLLER
+        )
         self.add_req(Requirement.SERVO, self.__init_servos)
 
     # -------------------------
@@ -101,6 +107,26 @@ class IOWrapper:
             self.state.ir[sensor_idx] = msg
 
         self._sub(node, DataEncoder, Topics.DISTANCE.format(sensor_idx), distance_clbk)
+
+    def __init_line_sensor(self, node: NodeWrapper) -> None:
+        """
+        Initialize what is needed for the line sensors data to be accessible.
+        """
+
+        def line_callback(msg: DataLineSensor):
+            self.state.line = msg
+
+        self._sub(node, DataLineSensor, Topics.LINE, line_callback)
+
+    def __init_edge_result(self, node: NodeWrapper) -> None:
+        """
+        Initialize subscriber for edge computation result.
+        """
+
+        def edge_callback(msg: ResultEdge):
+            self.state.edge = msg
+
+        self._sub(node, ResultEdge, Topics.EDGE, edge_callback)
 
     # -------------------------
     # State
@@ -183,7 +209,7 @@ class IOWrapper:
         """
         Setup for following the line
         """
-        self.__control.follow_edge = self._pub(node, CmdLineFollower, Topics.LINE)
+        self.__control.follow_edge = self._pub(node, CmdLineFollower, Topics.MOVE_LINE)
 
     def __init_servos(self, node: NodeWrapper) -> None:
         """
