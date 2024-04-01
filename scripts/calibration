@@ -22,7 +22,6 @@ class CalibrationTool(BehaviourPlan):
     def __init__(self) -> None:
         super().__init__("calibration_tool")
         self.task: str = self.declare_wparameter("task", "none").get()
-        self.parse_param()
 
     def print_header(self) -> None:
         self.get_logger().info("".center(WIDTH, "="))
@@ -50,11 +49,11 @@ if __name__ == "__main__":
 
     plt.ion()
     node = CalibrationTool()
-    spin_once(node)
-    node.parse_param()
 
     if not node.done:
         node.print_header()
+    node.parse_param()
+
 
     while ok() and not node.done:
         first = False

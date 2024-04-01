@@ -106,7 +106,7 @@ class LineSensor(BaseTask):
                 self.last_stamp = self.data.line.stamp
                 for i in range(self.buffer_size):
                     self.buffer[i] += self.data.line.data[i]
-                    self.count += 1
+                self.count += 1
 
                 # When we got enough data, process them
                 if self.count >= self.n_data:
@@ -120,17 +120,18 @@ class LineSensor(BaseTask):
                 self.buffer /= self.n_data
 
                 self.logger.info(
-                    f"{COLOR_TO_CALIB[self.color].title()} calibration results"
+                    f"{COLOR_TO_CALIB[self.color].title()} ({self.color}) calibration results "
                 )
-                self.logger.info(self.buffer)
+                self.logger.info(repr(list(self.buffer)))
 
                 # Replace in config files
                 self.cfg.set_parameter(
-                    f"{COLOR_TO_CALIB[self.color]}_calib", self.buffer
+                    f"{COLOR_TO_CALIB[self.color]}_calib", repr(list(self.buffer.astype(int)))
                 )
+                self.color += 1
 
                 if self.color == len(COLOR_TO_CALIB):
                     self.stop = True
+                    self.cfg.save_file()
                 else:
-                    self.color += 1
                     self.state = TaskStep.WAITING_FOR_LAUNCH
