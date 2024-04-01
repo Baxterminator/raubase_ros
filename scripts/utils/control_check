@@ -1,9 +1,10 @@
 #!/usr/bin/python3
-from time import perf_counter
+from time import perf_counter, sleep
 from rclpy import init, shutdown, spin_once, ok
 from rclpy.node import Node
 import numpy as np
 from raubase_msgs.msg import CmdMove, StateVelocityController, ResultOdometry
+from raubase_ros.config import get_top_namespace
 import matplotlib.pyplot as plt
 
 
@@ -21,7 +22,7 @@ class ControlCheck(Node):
     MAX_HISTORY = 75
 
     def __init__(self) -> None:
-        super().__init__(ControlCheck.NODE_NAME)
+        super().__init__(ControlCheck.NODE_NAME, namespace=get_top_namespace())
 
         # Parameters
         self.max_v = (
@@ -36,6 +37,11 @@ class ControlCheck(Node):
         )
         self.read_only = (
             self.declare_parameter("read_only", True).get_parameter_value().bool_value
+        )
+        self.timeout_time = (
+            self.declare_parameter("data_timeout", 10.0)
+            .get_parameter_value()
+            .double_value
         )
 
         # Plot
@@ -192,6 +198,20 @@ class ControlCheck(Node):
         self._fig2.gca().autoscale_view()
         self._fig2.canvas.draw()
 
+    def reset_buffer(self, msg: StateVelocityController | ResultOdometry) -> None:
+        print("resetting")
+        # Reset initial time
+        self.start_time[0] = msg.stamp.sec
+        self.start_time[1] = msg.stamp.nanosec
+
+        # Reset tables
+        for i in range(4):
+            self.turn_rate[i] = []
+            self.heading[i] = []
+            self.vlin[i] = []
+            self.vleft[i] = []
+            self.vright[i] = []
+
     def prune_data(self) -> None:
         for i in range(4):
             if len(self.turn_rate[i]) > ControlCheck.MAX_HISTORY:
@@ -206,13 +226,20 @@ class ControlCheck(Node):
                 self.vright[i].pop(0)
 
     def state_callback(self, msg: StateVelocityController):
-        if self.start_time[0] == -1:
-            self.start_time[0] = msg.stamp.sec
-            self.start_time[1] = msg.stamp.nanosec
         dt = (
             float(msg.stamp.sec - self.start_time[0])
             + (msg.stamp.nanosec - self.start_time[1]) * 1e-9
         )
+        if self.start_time[0] == -1 or (
+            len(self.turn_rate[0]) > 0
+            and (dt - self.turn_rate[0][-1]) > self.timeout_time
+        ):
+            self.reset_buffer(msg)
+            dt = (
+                float(msg.stamp.sec - self.start_time[0])
+                + (msg.stamp.nanosec - self.start_time[1]) * 1e-9
+            )
+
         self.turn_rate[0].append(dt)
         self.turn_rate[1].append(msg.turn_rate)
         self.heading[0].append(dt)
@@ -226,13 +253,20 @@ class ControlCheck(Node):
         self.prune_data()
 
     def odom_callback(self, msg: ResultOdometry) -> None:
-        if self.start_time[0] == -1:
-            self.start_time[0] = msg.stamp.sec
-            self.start_time[1] = msg.stamp.nanosec
         dt = (
             float(msg.stamp.sec - self.start_time[0])
             + (msg.stamp.nanosec - self.start_time[1]) * 1e-9
         )
+        if self.start_time[0] == -1 or (
+            len(self.turn_rate[2]) > 0
+            and (dt - self.turn_rate[2][-1]) > self.timeout_time
+        ):
+            self.reset_buffer(msg)
+            dt = (
+                float(msg.stamp.sec - self.start_time[0])
+                + (msg.stamp.nanosec - self.start_time[1]) * 1e-9
+            )
+
         self.turn_rate[2].append(dt)
         self.turn_rate[3].append(msg.turn_rate)
         self.heading[2].append(dt)
