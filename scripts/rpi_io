@@ -57,6 +57,11 @@ class RPI_IO(NodeWrapper):
         GPIO.setmode(GPIO.BOARD)
         self.__set_gpio_array_msg()
 
+        # Setup GPIO Array publishing
+        self.__timer_period = 99999.0
+        self.__array_timer: Timer | None = None
+        self.__setup_array_pusblishing()
+
         # If no board is provided in the constructor (from another script), then take it from the parameters
         if board is None:
             self.__board_name = self.declare_wparameter("board_name", "robotio").get()
@@ -64,11 +69,6 @@ class RPI_IO(NodeWrapper):
         else:
             self.__board_name = board.__class__.__name__
             self.__load_board_info(board)
-
-        # Setup GPIO Array publishing
-        self.__timer_period = 99999.0
-        self.__array_timer: Timer | None = None
-        self.__setup_array_pusblishing()
 
         # Setup services
         self._setup_services()
@@ -125,16 +125,17 @@ class RPI_IO(NodeWrapper):
             return None
 
         # Look into the internal register
-        if self.__gpio_array.modes[pin_number] == DataGPIO.UNSET:
+        mode = self.__gpio_array.modes[pin_number-1]
+        if mode == DataGPIO.UNSET:
             return None
 
-        return RPI_IO.pin_mode_int2enum(self.__gpio_array.modes[pin_number])
+        return RPI_IO.pin_mode_int2enum(mode)
 
     def default_timer_callback(self, channel: int) -> None:
         """
         Callback for a GPIO reading, for a default channel
         """
-        self.__gpio_array.values[channel] = bool(GPIO.input(channel))
+        self.__gpio_array.values[channel-1] = bool(GPIO.input(channel))
 
     def special_timer_callback(self, pub: Publisher, channel: int) -> None:
         """
@@ -142,9 +143,9 @@ class RPI_IO(NodeWrapper):
         """
         msg = DataGPIO()
         msg.pin = channel
-        msg.name = self.__gpio_array.names[channel]
+        msg.name = self.__gpio_array.names[channel-1]
         msg.value = bool(GPIO.input(channel))
-        self.__gpio_array.values[channel] = msg.value
+        self.__gpio_array.values[channel-1] = msg.value
         pub.publish(msg)
 
     def _make_reader(self, pin: PinDesc) -> bool:
@@ -155,31 +156,30 @@ class RPI_IO(NodeWrapper):
         pin_mode = self.get_pin_mode(pin.pin)
         if pin_mode is not None:
             self.get_logger().warn(
-                f"Trying to open in mode {pin.type.name} pin #{pin.pin} - {self.__gpio_array.names[pin.pin]} which had mode {pin_mode.name}"
+                f"Trying to open in mode {pin.type.name} pin #{pin.pin} - {self.__gpio_array.names[pin.pin-1]} which had mode {pin_mode.name}"
             )
             return False
 
         # Register and setup GPIO
         GPIO.setup(pin.pin, GPIO.IN)
-        self.__gpio_array.modes[pin.pin] = DataGPIO.READ
+        self.__gpio_array.modes[pin.pin-1] = DataGPIO.READ
 
         # Check alias for special pin
-        if self.__gpio_array.names[pin.pin] != pin.alias:
-            self.__gpio_array.names[pin.pin] = pin.alias
+        if self.__gpio_array.names[pin.pin-1] != pin.alias:
+            self.__gpio_array.names[pin.pin-1] = pin.alias
         self.__inv_name_mapping[pin.alias] = pin.pin
-
-        # Check for the publishing topic
-        if pin.special_topic not in self.__gpio_pub.keys():
-            self.__gpio_pub[pin.special_topic] = self.create_publisher(
-                DataGPIO, pin.special_topic, 10
-            )
 
         # Create timer and its callback
         if pin.special_topic is None:
             clbk = lambda: self.default_timer_callback(pin.pin)
         else:
+            # Check for the publishing topic
+            if pin.special_topic not in self.__gpio_pub.keys():
+                self.__gpio_pub[pin.special_topic] = self.create_publisher(
+                    DataGPIO, pin.special_topic, 10
+                )
             clbk = lambda: self.special_timer_callback(
-                self.__gpio_pub[pin.special_topic], pin.pin, pin.alias
+                self.__gpio_pub[pin.special_topic], pin.pin
             )
         self.__gpio_timers.append(self.create_timer(pin.period_ms / 1000, clbk))
         self.__recreate_publishing_timer(pin.period_ms)
@@ -196,17 +196,17 @@ class RPI_IO(NodeWrapper):
         pin_mode = self.get_pin_mode(pin.pin)
         if pin_mode is not None:
             self.get_logger().warn(
-                f"Trying to open in mode {pin.type.name} pin #{pin.pin} - {self.__gpio_array.names[pin.pin]} which had mode {pin_mode.name}"
+                f"Trying to open in mode {pin.type.name} pin #{pin.pin} - {self.__gpio_array.names[pin.pin-1]} which had mode {pin_mode.name}"
             )
             return False
 
         # Register and setup GPIO
         GPIO.setup(pin.pin, GPIO.OUT, initial=GPIO.LOW)
-        self.__gpio_array.modes[pin.pin] = DataGPIO.WRITE
+        self.__gpio_array.modes[pin.pin-1] = DataGPIO.WRITE
 
         # Change name mapping for special pin
-        if self.__gpio_array.names[pin.pin] != pin.alias:
-            self.__gpio_array.names[pin.pin] = pin.alias
+        if self.__gpio_array.names[pin.pin-1] != pin.alias:
+            self.__gpio_array.names[pin.pin-1] = pin.alias
         self.__inv_name_mapping[pin.alias] = pin.pin
 
         # Check for pin topic
@@ -269,7 +269,7 @@ class RPI_IO(NodeWrapper):
                 case PinType.DIGITAL_OUT:
                     self._make_writer(pin)
                 case _:
-                    self.__gpio_array.names[pin.pin] = pin.alias
+                    self.__gpio_array.names[pin.pin-1] = pin.alias
 
     def __set_gpio_array_msg(self) -> None:
         """
@@ -280,6 +280,7 @@ class RPI_IO(NodeWrapper):
             PinDesc.default_pin_name(pin) for pin in self.__gpio_array.channels
         ]
         self.__gpio_array.modes = [DataGPIO.UNSET for _ in self.__gpio_array.channels]
+        self.__gpio_array.values = [False for _ in self.__gpio_array.channels]
 
     # =========================================================================
     # Services
@@ -337,7 +338,7 @@ class RPI_IO(NodeWrapper):
                             new_pin_type,
                             (
                                 req.topic
-                                if req.topic != ConfigureGPIO.Request.DEFAULT_TOPIC
+                                if req.topic != ConfigureGPIO.Request.DEFAULT_STRING
                                 else None
                             ),
                             req.period_ms,
@@ -351,7 +352,7 @@ class RPI_IO(NodeWrapper):
                             new_pin_type,
                             (
                                 req.topic
-                                if req.topic != ConfigureGPIO.Request.DEFAULT_TOPIC
+                                if req.topic != ConfigureGPIO.Request.DEFAULT_STRING
                                 else None
                             ),
                         )
@@ -363,10 +364,11 @@ class RPI_IO(NodeWrapper):
                 res.result = ConfigureGPIO.Response.SUCCESS
         # ===========================================================
         # Else the pin is already open
-        elif self.__gpio_array.modes[req.pin] == req.mode:
+        elif self.__gpio_array.modes[req.pin-1] == req.mode:
             res.result = ConfigureGPIO.Response.ALREAD_OPEN_SAME_MODE
         else:
             res.result = ConfigureGPIO.Response.ALREAD_OPEN_WRONG_MODE
+        return res
 
     def __fetch_data_callback(
         self, _: GetGPIOProperties.Request, res: GetGPIOProperties.Response
@@ -378,6 +380,7 @@ class RPI_IO(NodeWrapper):
         res.gpios.names = self.__gpio_array.names
         res.gpios.modes = self.__gpio_array.modes
         res.gpios.values = self.__gpio_array.values
+        return res
 
 
 if __name__ == "__main__":
