@@ -42,13 +42,13 @@ class RPI_IO(NodeWrapper):
         self.specials: List[PinDesc] = []
         self.__register: Dict[int, PinType] = {}
         self.__name_mapping: Dict[int, str] = {
-            pin: PinDesc.default_pin_name(pin) for pin in range(self.n_gpio)
+            pin: PinDesc.default_pin_name(pin) for pin in range(self.n_gpio.get())
         }
         self.__inv_name_mapping: Dict[str, int] = {}
 
-        self.__gpio_pub: Dict[str, Publisher] = []
+        self.__gpio_pub: Dict[str, Publisher] = {}
         self.__gpio_sub: List[Subscription] = []
-        self.__gpio_timers: List[Timer]
+        self.__gpio_timers: List[Timer] = []
 
         # Initialize GPIO
         GPIO.setmode(GPIO.BOARD)
@@ -62,7 +62,9 @@ class RPI_IO(NodeWrapper):
             self.__load_board_info(board)
 
     def __del__(self):
-        GPIO.cleanup()
+        if len(self.__register.keys()) > 0:
+            self.__register = {}
+            GPIO.cleanup()
 
     # =========================================================================
 
@@ -95,7 +97,7 @@ class RPI_IO(NodeWrapper):
         msg = DataGPIO()
         msg.pin = channel
         msg.name = name
-        msg.value = GPIO.input(channel)
+        msg.value = bool(GPIO.input(channel))
         pub.publish(msg)
 
     def _make_reader(self, pin: PinDesc) -> bool:
@@ -198,8 +200,8 @@ class RPI_IO(NodeWrapper):
 
         # Get reserved pins
         self.reserved = [
-            *self.power,
-            *self.grounds,
+            *self.power.get(),
+            *self.grounds.get(),
             *board.reserved(),
         ]
 
@@ -229,5 +231,7 @@ if __name__ == "__main__":
     while ok():
         spin_once(node)
 
-    GPIO.cleanup()
+    if len(node.__register.keys()) > 0:
+        node.__register = {}
+        GPIO.cleanup()
     shutdown()
