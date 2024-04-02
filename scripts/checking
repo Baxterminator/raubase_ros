@@ -1,0 +1,60 @@
+#!/usr/bin/python3
+from enum import Enum
+from rclpy import init, ok, spin_once, shutdown
+import matplotlib.pyplot as plt
+from raubase_ros.checkers import LineSensorChecker
+from raubase_ros.wrappers import NodeWrapper
+from argparse import ArgumentParser
+
+from rclpy.logging import get_logger
+
+WIDTH = 45
+
+
+class CheckerChoice(Enum):
+    LINE_SENSOR = "line"
+
+
+class CheckingToolLauncher:
+    def __init__(self) -> None:
+        self.logger = get_logger("checking_launch")
+        self.print_header()
+
+    def print_header(self) -> None:
+        self.logger.info("".center(WIDTH, "="))
+        self.logger.info("Raubase Checking Tool".center(WIDTH, " "))
+        self.logger.info("".center(WIDTH, "="))
+
+    def construct_checker(self, checker: str) -> NodeWrapper:
+        match checker:
+            case CheckerChoice.LINE_SENSOR.value:
+                return LineSensorChecker()
+            case _:
+                self.logger.warn(f"No corresponding checker with name ({checker})")
+                self.done = True
+
+
+if __name__ == "__main__":
+    launcher = CheckingToolLauncher()
+
+    # Load arguments
+    parser = ArgumentParser()
+    parser.add_argument(
+        "checker",
+        type=str,
+        choices=[m.value for m in CheckerChoice.__members__.values()],
+    )
+    args = parser.parse_args()
+
+    # Load environment
+    init()
+    plt.ion()
+
+    checker = launcher.construct_checker(args.checker)
+
+    while ok():
+        spin_once(checker)
+        plt.pause(0.001)
+
+    input("Press [enter] to close all windows")
+    shutdown()

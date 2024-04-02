@@ -3,7 +3,7 @@ class Topics:
     ENCODERS = "sensor/encoders"
     DISTANCE = "sensor/dist_{}"
     ODOMETRY = "state/odometry"
-    LINE = "sensor/line"
+    LINE = "sensor/line/normalized"
     EDGE = "sensor/edge"
 
     # Camera / Images
@@ -15,6 +15,6 @@ class Topics:
     DECLARE_INPUT = "control/declare_input"
     CONTROLLER = "control/set_input"
     MOVE = "control/move_plan"
-    MOVE_LINE = "control/line_conf"
+    MOVE_LINE = "control/line/cmd"
     SERVO_CMD = "control/set_servos"
     SERVO_STATE = "sensor/servos"

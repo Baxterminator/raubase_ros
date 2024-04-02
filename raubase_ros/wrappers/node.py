@@ -52,7 +52,7 @@ class NodeWrapper(Node):
         use_global_arguments: bool = True,
         enable_rosout: bool = True,
         start_parameter_services: bool = True,
-        parameter_overrides: List[Parameter] = None,  # type: ignore
+        parameter_overrides: List[Parameter] | None = None,
         allow_undeclared_parameters: bool = False,
         automatically_declare_parameters_from_overrides: bool = False,
     ) -> None:
@@ -64,7 +64,7 @@ class NodeWrapper(Node):
             use_global_arguments=use_global_arguments,
             enable_rosout=enable_rosout,
             start_parameter_services=start_parameter_services,
-            parameter_overrides=parameter_overrides,
+            parameter_overrides=parameter_overrides,  # type: ignore
             allow_undeclared_parameters=allow_undeclared_parameters,
             automatically_declare_parameters_from_overrides=automatically_declare_parameters_from_overrides,
         )

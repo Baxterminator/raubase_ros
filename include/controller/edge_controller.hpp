@@ -78,11 +78,12 @@ class LineFollower : public Node {
   };
   struct Topics {
     constchar SUB_CONTROLLER_STATE{"state/vcontroller"};
-    constchar SUB_REF{"control/line_conf"};
-    constchar SUB_LINE{"sensor/line"};
+    constchar SUB_REF{"control/line/cmd"};
+    constchar SUB_LINE{"sensor/line/raw"};
     constchar SUB_STOP{"stop"};  //< Stop signal
     constchar PUB_CMD{"control/move_edge"};
-    constchar PUB_RESULT{"sensor/edge"};
+    constchar PUB_NORMALIZED{"sensor/line/normalized"};
+    constchar PUB_RESULT{"sensor/line/edge"};
     constchar PUB_DECLARE{"control/declare_input"};
     constchar PUB_LINE_SET{"control/line/set"};
   };
@@ -166,6 +167,9 @@ class LineFollower : public Node {
 
   ResultEdge result;
   Publisher<ResultEdge>::SharedPtr result_pub;
+
+  DataLineSensor normalized;
+  Publisher<DataLineSensor>::SharedPtr normalized_pub;
 
   SetLineSensorConfig config;
   Publisher<SetLineSensorConfig>::SharedPtr sensor_config;

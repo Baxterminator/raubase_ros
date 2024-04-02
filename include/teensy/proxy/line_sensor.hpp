@@ -50,7 +50,7 @@ class LineSensorProxy : public TeensyProxy {
   static constexpr const char* TEENSY_COMP{"liv"};  //< Teensy component to subscribe from
   static constexpr const char* SENSOR_CONFIG{
       "lip %d %d %d %d %d %d %d"};  //< Message for configuring the sensor
-  static constexpr const char* PUBLISHING_TOPIC{"sensor/line"};  //< Encoder state topic
+  static constexpr const char* PUBLISHING_TOPIC{"sensor/line/raw"};  //< Encoder state topic
   static constexpr const char* SETTING_SERVICE{
       "control/line/set"};  //< Service name for setting the sensors mode
   static constexpr const char* TOGGLE_SERVICE{

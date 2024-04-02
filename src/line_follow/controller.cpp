@@ -29,6 +29,7 @@ LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
 
   // Register ROS components
   move_cmd.move_type = CmdMove::CMD_V_TR;
+  normalized.data.resize(n_sensors);
   move_pub = create_publisher<CmdMove>(Topics::PUB_CMD, QOS);
   sensor_sub = create_subscription<DataLineSensor>(Topics::SUB_LINE, QOS,
                                                    [this](DataLineSensor::SharedPtr msg) {
@@ -50,6 +51,7 @@ LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
       Topics::SUB_REF, QOS, [this](CmdLineFollower::SharedPtr ref) { last_cmd = ref; });
   result_pub = create_publisher<ResultEdge>(Topics::PUB_RESULT, QOS);
   declare_controller();
+  normalized_pub = create_publisher<DataLineSensor>(Topics::PUB_NORMALIZED, QOS);
 
   controller_state = create_subscription<StateVelocityController>(
       Topics::SUB_CONTROLLER_STATE, QOS,
@@ -121,7 +123,6 @@ void LineFollower::compute_edge() {
   result.valid_edge = false;
 
   // Iterate of the values of the sensor to find the edge
-  std::vector<int> normalized(n_sensors);
   ulong i, j;
   bool found_left = false, found_right = false;
   for (i = 0; (i < n_sensors) && (!found_left || !found_right); i++) {
@@ -129,24 +130,25 @@ void LineFollower::compute_edge() {
 
     // Compute normalized value (compute only once)
     if (i < j) {
-      normalized[i] = (last_data->data[i] - black_calibration[i]) * factor[i];
-      normalized[j] = (last_data->data[j] - black_calibration[j]) * factor[j];
+      normalized.data[i] = (last_data->data[i] - black_calibration[i]) * factor[i];
+      normalized.data[j] = (last_data->data[j] - black_calibration[j]) * factor[j];
     }
 
     // Look for left edge
-    if (!found_left && normalized[i] > white_threshold) {
-      result.left_edge = (i == 0) ? 0
-                                  : (float(i) + float(white_threshold - normalized[i - 1]) /
-                                                    float(normalized[i] - normalized[i - 1]));
+    if (!found_left && normalized.data[i] > white_threshold) {
+      result.left_edge = (i == 0)
+                             ? 0
+                             : (float(i) + float(white_threshold - normalized.data[i - 1]) /
+                                               float(normalized.data[i] - normalized.data[i - 1]));
       found_left = true;
     }
 
     // Look for right edge
-    if (!found_right && normalized[j] > white_threshold) {
+    if (!found_right && normalized.data[j] > white_threshold) {
       result.right_edge = (j == n_sensors - 1)
                               ? n_sensors - 1
-                              : (float(j) - float(white_threshold - normalized[j + 1]) /
-                                                float(normalized[j] - normalized[j + 1]));
+                              : (float(j) - float(white_threshold - normalized.data[j + 1]) /
+                                                float(normalized.data[j] - normalized.data[j + 1]));
       found_right = true;
     }
   }
@@ -161,7 +163,10 @@ void LineFollower::compute_edge() {
   result.left_edge = center_m - (result.left_edge * btwn_m);
   result.right_edge = center_m - (result.right_edge * btwn_m);
 
+  normalized.stamp = get_clock()->now();
+  result.width = result.left_edge - result.right_edge;
   result_pub->publish(result);
+  normalized_pub->publish(normalized);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
