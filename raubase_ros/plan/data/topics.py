@@ -3,7 +3,7 @@ class Topics:
     ENCODERS = "sensor/encoders"
     DISTANCE = "sensor/dist_{}"
     ODOMETRY = "state/odometry"
-    LINE = "sensor/line/normalized"
+    LINE = "sensor/line/raw"
     EDGE = "sensor/edge"
 
     # Camera / Images

@@ -175,8 +175,8 @@ void LineFollower::update_controller(double dt) {
   float u;
 
   if (result.valid_edge) {
-    u = -pid->update(dt, last_cmd->offset,
-                     ((last_cmd->follow) ? result.right_edge : result.left_edge), limited);
+    u = pid->update(dt, last_cmd->offset,
+                    ((last_cmd->follow) ? result.right_edge : result.left_edge), limited);
     limited = std::fabs(u) > max_turn_rate || last_control_state->voltage_saturation ||
               last_control_state->turnrate_saturation;
     move_cmd.turn_rate = math::saturate(u, max_turn_rate);
