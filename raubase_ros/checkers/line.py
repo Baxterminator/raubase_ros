@@ -12,12 +12,14 @@ import numpy as np
 class LineSensorChecker(NodeWrapper):
     """ """
 
+    MAX_SAMPLES = 100
+
     def __init__(self) -> None:
         super().__init__("line_checker", namespace=get_top_namespace())
 
-        self.raw = np.ones((8, 50))
+        self.raw = np.ones((8, LineSensorChecker.MAX_SAMPLES))
         self.raw[0, 0] = 0
-        self.norm = np.ones((8, 50))
+        self.norm = np.ones((8, LineSensorChecker.MAX_SAMPLES))
         self.norm[0, 0] = 0
         self.setup_plots()
 
@@ -53,19 +55,19 @@ class LineSensorChecker(NodeWrapper):
         self.fig_raw.canvas.draw()
 
     def plot_update(self) -> None:
-        self.get_logger().info("Updating plot ...")
+        self.get_logger().info("Updating plot ...", throttle_duration_sec=2.0)
         self.raw_img.set_data(self.raw)
         self.norm_img.set_data(self.norm)
         self.fig_raw.canvas.draw()
 
     def raw_callback(self, msg: DataLineSensor) -> None:
-        self.get_logger().info("Raw callback ...")
+        self.get_logger().info("Raw callback ...", throttle_duration_sec=2.0)
         self.raw = np.hstack(
             [self.raw[:, 1:], np.array(msg.data, dtype=float).reshape((8, 1)) / 1000]
         )
 
     def norm_callback(self, msg: DataLineSensor) -> None:
-        self.get_logger().info("Normalized callback ...")
+        self.get_logger().info("Normalized callback ...", throttle_duration_sec=2.0)
         self.norm = np.hstack(
             [self.norm[:, 1:], np.array(msg.data, dtype=float).reshape((8, 1)) / 1000]
         )
