@@ -35,6 +35,7 @@ LineFollower::LineFollower(NodeOptions opts) : Node(NODE_NAME, opts) {
                                                    [this](DataLineSensor::SharedPtr msg) {
                                                      last_data = msg;
                                                      last_data_has_been_used = false;
+                                                     compute_edge();
                                                      if (consuming) loop();
                                                    });
   stop_sub =
@@ -184,7 +185,8 @@ void LineFollower::update_controller(double dt) {
   } else {
     move_cmd.turn_rate = 0.0;
     move_cmd.velocity = 0.0;
-    limited = last_control_state->voltage_saturation || last_control_state->turnrate_saturation;
+    limited = last_control_state->voltage_saturation || last_control_state->turnrate_saturation ||
+              last_control_state->acc_saturation;
   }
 
   move_pub->publish(move_cmd);
@@ -218,7 +220,6 @@ void LineFollower::loop() {
   if (last_data_has_been_used) return;
 
   // Compute edge
-  compute_edge();
   update_controller(loop_clock.getTimePassed());
   last_data_has_been_used = true;
 
