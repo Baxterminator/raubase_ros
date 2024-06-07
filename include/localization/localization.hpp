@@ -76,7 +76,7 @@ class Odometry : public Node {
 
     constval float WHEEL_D{0.146};    //< Default wheel diameter (in meters)
     constval float GEAR_RATIO{19.0};  //< Default gear ratio
-    constval float TICK_PER_REV{68};  //< Default number of ticks per encoder revolution
+    constval int TICK_PER_REV{68};    //< Default number of ticks per encoder revolution
     constval double DEF_BASE{0.243};  //< Default wheel base width (in meters)
     constval float F_LAT{1.0};        //< Lateral error coefficient
     constval float F_LON{1.0};        //< Longitudinal error coefficient

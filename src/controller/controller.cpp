@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <cmath>
+#include <raubase_msgs/msg/detail/cmd_move__struct.hpp>
 #include <rclcpp/logging.hpp>
 
 #include "common/math/fixed_pid_control.hpp"
@@ -58,6 +59,17 @@ VelocityController::VelocityController(NodeOptions opts) : Node(NODE_NAME, opts)
                                                    last_odometry = odm;
                                                    if (consuming) loop();
                                                  });
+  stop_sub =
+      create_subscription<DataGPIO>(Topics::SUB_STOP, QOS, [this](DataGPIO::ConstSharedPtr msg) {
+        if (msg->value)
+          last_cmd = []() {
+            auto cmd = std::make_shared<CmdMove>();
+            cmd->move_type = CmdMove::CMD_V_TR;
+            cmd->velocity = 0;
+            cmd->turn_rate = 0;
+            return cmd;
+          }();
+      });
   voltage_pub = create_publisher<CmdMotorVoltage>(Topics::PUB_CMD, QOS);
   if (debug) state_pub = create_publisher<StateVelocityController>(Topics::PUB_STATE, QOS);
 }

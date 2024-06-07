@@ -1,21 +1,10 @@
 #!/usr/bin/python3
-from enum import IntEnum, auto
 from raubase_ros.plan import BehaviourPlan
 from rclpy import init, ok, spin_once, shutdown
 import matplotlib.pyplot as plt
 from raubase_ros.calib import WheelMaddahi, LineSensor
 
-CALIB_MENU = """
-What calibration to do next ?
-[1] Wheel Calibration (Maddahi and co.)
-""".strip()
-
 WIDTH = 45
-
-
-class AvailableTasks(IntEnum):
-    NONE = 0
-    WHEEL_MADDAHI = auto()
 
 
 class CalibrationTool(BehaviourPlan):
@@ -53,7 +42,6 @@ if __name__ == "__main__":
     if not node.done:
         node.print_header()
     node.parse_param()
-
 
     while ok() and not node.done:
         first = False

@@ -4,8 +4,8 @@
 #include <chrono>
 #include <raubase_msgs/msg/cmd_line_follower.hpp>
 #include <raubase_msgs/msg/cmd_move.hpp>
+#include <raubase_msgs/msg/data_gpio.hpp>
 #include <raubase_msgs/msg/data_line_sensor.hpp>
-#include <raubase_msgs/msg/detail/set_line_sensor_config__struct.hpp>
 #include <raubase_msgs/msg/result_edge.hpp>
 #include <raubase_msgs/msg/set_controller_input.hpp>
 #include <raubase_msgs/msg/set_line_sensor_config.hpp>
@@ -20,6 +20,7 @@
 using namespace rclcpp;
 using raubase_msgs::msg::CmdLineFollower;
 using raubase_msgs::msg::CmdMove;
+using raubase_msgs::msg::DataGPIO;
 using raubase_msgs::msg::DataLineSensor;
 using raubase_msgs::msg::ResultEdge;
 using raubase_msgs::msg::SetControllerInput;
@@ -51,7 +52,7 @@ class LineFollower : public Node {
  public:
   struct Params {
     constchar PID_FREQ{"pid_freq"};            //< Frequency of the controller loop
-    constchar PID_KP{"pid_kp"};                //< PID: prop. gain (V per (m/s))
+    constchar PID_KP{"pid_kp"};                //< PID: prop. gain (rad/s per m)
     constchar PID_TD{"pid_td"};                //< PID: lead time constant (sec)
     constchar PID_AD{"pid_ad"};                //< PID: lead alpha value
     constchar PID_TI{"pid_ti"};                //< PID: integrator time constant (sec)
@@ -64,9 +65,9 @@ class LineFollower : public Node {
   };
   struct Default {
     constval int FREQ{-1};          //< Frequency of the controller loop
-    constval float PID_KP{40};      //< PID: prop. gain (V per (m/s))
+    constval float PID_KP{40};      //< PID: prop. gain (rad/s per m)
     constval float PID_TD{0.3};     //< PID: lead time constant (sec)
-    constval float PID_AD{1.5};     //< PID: lead alpha value
+    constval float PID_AD{0.5};     //< PID: lead alpha value
     constval float PID_TI{0};       //< PID: integrator time constant (sec)
     constval float MAX_TR{7};       //< Max turn rate for the robot (rad/s)
     constval int N_SENSORS{8};      //< Number of sensors for line detection
@@ -77,10 +78,12 @@ class LineFollower : public Node {
   };
   struct Topics {
     constchar SUB_CONTROLLER_STATE{"state/vcontroller"};
-    constchar SUB_REF{"control/line_conf"};
-    constchar SUB_LINE{"sensor/line"};
+    constchar SUB_REF{"control/line/cmd"};
+    constchar SUB_LINE{"sensor/line/raw"};
+    constchar SUB_STOP{"stop"};  //< Stop signal
     constchar PUB_CMD{"control/move_edge"};
-    constchar PUB_RESULT{"sensor/edge"};
+    constchar PUB_NORMALIZED{"sensor/line/normalized"};
+    constchar PUB_RESULT{"sensor/line/edge"};
     constchar PUB_DECLARE{"control/declare_input"};
     constchar PUB_LINE_SET{"control/line/set"};
   };
@@ -152,6 +155,7 @@ class LineFollower : public Node {
   Publisher<SetControllerInput>::SharedPtr input_declaration;
 
   Subscription<DataLineSensor>::SharedPtr sensor_sub;
+  Subscription<DataGPIO>::SharedPtr stop_sub;  //< Stop signal subscriber
   DataLineSensor::SharedPtr last_data, last_data_used;
   bool last_data_has_been_used = false;
 
@@ -163,6 +167,9 @@ class LineFollower : public Node {
 
   ResultEdge result;
   Publisher<ResultEdge>::SharedPtr result_pub;
+
+  DataLineSensor normalized;
+  Publisher<DataLineSensor>::SharedPtr normalized_pub;
 
   SetLineSensorConfig config;
   Publisher<SetLineSensorConfig>::SharedPtr sensor_config;

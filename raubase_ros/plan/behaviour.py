@@ -5,6 +5,7 @@ from raubase_ros.wrappers import NodeWrapper
 from .data import IOWrapper, Requirement
 from .task import BaseTask, DefaultTask
 from raubase_ros.config import get_top_namespace
+from raubase_msgs.msg import DataGPIO
 
 
 class BehaviourPlan(NodeWrapper):
@@ -31,6 +32,7 @@ class BehaviourPlan(NodeWrapper):
         self.__task_id = 0
         self.__task_started = False
         self.done = False
+        self.running = False
         self.__initialized = False
         self.__require_input = require_user_input
 
@@ -43,14 +45,34 @@ class BehaviourPlan(NodeWrapper):
             self.loop,
         )
 
+        # Declare start and stop button
+        self.__start = self.create_subscription(
+            DataGPIO, "start", self.start_callback, 10
+        )
+        self.__stop = self.create_subscription(DataGPIO, "stop", self.stop_callback, 10)
+
     def __setup(self) -> None:
-        if self._requirements != 0:
+        """
+        Setup all requirements needed for the tasks
+        """
+        if self._requirements != Requirement.NONE:
             self.get_logger().info("Initializing the requirements for the tasks")
             self.__io.init_requirements(self, self._requirements)
         self.__initialized = True
 
     def reinitialize(self) -> None:
+        """
+        Launch a reinitialization of the requirements
+        """
         self.__initialized = False
+
+    def reset_state(self) -> None:
+        """
+        Reset the state of the task list (so begins from the start again)
+        """
+        self.__task_id = 0
+        self.__task_started = False
+        self.done = False
 
     # =================================================================
     #                             Task configuration
@@ -69,9 +91,7 @@ class BehaviourPlan(NodeWrapper):
         Clear the tasks of this plan.
         """
         self.__tasks = []
-        self.__task_id = 0
-        self.__task_started = False
-        self.done = False
+        self.reset_state()
 
     def set_default_task(self, task: DefaultTask) -> None:
         """
@@ -83,6 +103,24 @@ class BehaviourPlan(NodeWrapper):
     # =================================================================
     #                             Runtime
     # =================================================================
+
+    def start_callback(self, msg: DataGPIO) -> None:
+        """
+        Start button state callback
+        """
+        if not self.running and msg.value:
+            self.get_logger().info("Starting behaviour plan!")
+            self.running = True
+
+    def stop_callback(self, msg: DataGPIO) -> None:
+        """
+        Stop button state callback
+        """
+        if self.running and msg.value:
+            self.get_logger().warn("Stopping behaviour plan!")
+            self.running = False
+            self.reset_state()
+
     def loop(self) -> None:
         """
         Run an iteration of the task
@@ -92,7 +130,7 @@ class BehaviourPlan(NodeWrapper):
             self.__setup()
 
         # Run if there's a task
-        if len(self.__tasks) == 0 or self.done:
+        if len(self.__tasks) == 0 or self.done or not self.running:
             return
 
         # Update task
@@ -131,6 +169,5 @@ class BehaviourPlan(NodeWrapper):
         # If done, reset state
         if self.__task_id >= len(self.__tasks):
             self.get_logger().info(f"Task list done!")
+            self.reset_state()
             self.done = True
-            self.__task_id = 0
-            self.__task_started = False

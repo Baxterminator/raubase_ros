@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include <memory>
 #include <raubase_msgs/msg/cmd_motor_voltage.hpp>
 #include <raubase_msgs/msg/cmd_move.hpp>
+#include <raubase_msgs/msg/data_gpio.hpp>
 #include <raubase_msgs/msg/result_odometry.hpp>
 #include <raubase_msgs/msg/state_velocity_controller.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -43,6 +44,7 @@ using namespace std::chrono;
 using namespace std::chrono_literals;
 using raubase_msgs::msg::CmdMotorVoltage;
 using raubase_msgs::msg::CmdMove;
+using raubase_msgs::msg::DataGPIO;
 using raubase_msgs::msg::ResultOdometry;
 using raubase_msgs::msg::StateVelocityController;
 
@@ -64,6 +66,7 @@ class VelocityController : public Node {
   struct Topics {
     constchar SUB_CMD{"control/move"};         //< Where to grab commands
     constchar SUB_ODOMETRY{"state/odometry"};  //< Where to grab odometry
+    constchar SUB_STOP{"stop"};                //< Stop signal
     constchar PUB_CMD{"control/set_voltage"};  //< Where to publish voltage commands
     constchar PUB_STATE{"state/vcontroller"};  //< Where to publish controller state
   };
@@ -161,6 +164,7 @@ class VelocityController : public Node {
   TimerBase::SharedPtr fixed_loop;                          //< Controller loop
   Subscription<CmdMove>::SharedPtr cmd_sub;                 //< Command subscriber
   Subscription<ResultOdometry>::SharedPtr odom_sub;         //< ResultOdometry subscriber
+  Subscription<DataGPIO>::SharedPtr stop_sub;               //< Stop signal subscriber
   Publisher<CmdMotorVoltage>::SharedPtr voltage_pub;        //< Motor voltage command publisher
   Publisher<StateVelocityController>::SharedPtr state_pub;  //< Internal state publisher
 
