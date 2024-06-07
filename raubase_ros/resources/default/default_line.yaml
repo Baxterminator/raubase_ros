@@ -1,0 +1,19 @@
+# =============================================================================
+#
+#                           Line follower configuration
+# 
+#  This file contains the configurations needed for using the line controller
+# =============================================================================
+
+pid:
+  pid_freq: -1
+  pid_kp: 40.0
+  pid_td: 0.3
+  pid_ad: 0.5
+  pid_ti: 0.0
+max_turn_rate: 7.0
+n_sensors: 8
+width_m: 0.12
+white_calib: [500,500,500,500,500,500,500,500]
+black_calib: [0,0,0,0,0,0,0,0]
+white_threshold: 450
