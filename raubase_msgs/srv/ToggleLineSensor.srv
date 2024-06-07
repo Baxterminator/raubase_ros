@@ -1,0 +1,7 @@
+char TOGGLE=0
+char ON=1
+char OFF=2
+
+char mode 0
+
+---

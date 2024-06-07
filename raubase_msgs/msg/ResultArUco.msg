@@ -1,0 +1,1 @@
+ObjectArUco[] detected
