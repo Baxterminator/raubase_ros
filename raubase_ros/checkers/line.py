@@ -10,7 +10,9 @@ import numpy as np
 
 
 class LineSensorChecker(NodeWrapper):
-    """ """
+    """
+    Line sensor data and extracted data display
+    """
 
     MAX_SAMPLES = 200
     MAX_VALUE = 1000

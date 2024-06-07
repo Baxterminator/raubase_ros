@@ -172,7 +172,7 @@ class ImageProcessor(NodeWrapper):
             self.__img_sub = self.create_subscription(
                 Image,
                 ImageProcessor.RAW_IMG_TOPIC,
-                self.__compressed_image_callback,
+                self._raw_image_callback,
                 ImageProcessor.DEFAULT_QOS,
             )
         self.__cam_info_sub = self.create_subscription(
@@ -279,7 +279,6 @@ class ImageProcessor(NodeWrapper):
         """
         Receive a new image and process it
         """
-        self.__img_rec = True
         self.process_img(
             self.cv_bridge.imgmsg_to_cv2(
                 img,

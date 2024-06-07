@@ -2,7 +2,7 @@
 from enum import Enum
 from rclpy import init, ok, spin_once, shutdown
 import matplotlib.pyplot as plt
-from raubase_ros.checkers import LineSensorChecker
+from raubase_ros.checkers import LineSensorChecker, LineVelocityChecker
 from raubase_ros.wrappers import NodeWrapper
 from argparse import ArgumentParser
 
@@ -13,6 +13,7 @@ WIDTH = 45
 
 class CheckerChoice(Enum):
     LINE_SENSOR = "line"
+    LINE_VEL = "linevel"
 
 
 class CheckingToolLauncher:
@@ -29,6 +30,8 @@ class CheckingToolLauncher:
         match checker:
             case CheckerChoice.LINE_SENSOR.value:
                 return LineSensorChecker()
+            case CheckerChoice.LINE_VEL.value:
+                return LineVelocityChecker()
             case _:
                 self.logger.warn(f"No corresponding checker with name ({checker})")
                 self.done = True
@@ -57,4 +60,7 @@ if __name__ == "__main__":
         plt.pause(0.001)
 
     input("Press [enter] to close all windows")
-    shutdown()
+    try:
+        shutdown()
+    except:
+        pass
