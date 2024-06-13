@@ -12,7 +12,12 @@ include("cmake/register_robot.cmake")
 
 message("========================= CMake ===========================")
 
-register_robot(Robobot-9)
+# Add robots
+file(GLOB robot_list RELATIVE "${CMAKE_SOURCE_DIR}/res/robot/" "res/robot/**" )
+foreach(robot ${robot_list})
+  if (IS_DIRECTORY "${CMAKE_SOURCE_DIR}/res/robot/${robot}")
+    make_robot_package(${robot} RESOURCES_DIR "res/robot/${robot}")
+  endif()
+endforeach()
 
-ament_auto_package()
 message("========================== Make ==========================")
