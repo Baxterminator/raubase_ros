@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>raubase_sim</name>
+  <version>0.1.0</version>
+  <description>DTU Raubase ROS2 simulation-related package</description>
+  <maintainer email="geoffrey.cote@centraliens-nantes.org">Geoffrey Côte</maintainer>
+  <author>Geoffrey Côte</author>
+  <url type="repository">https://github.com/Baxterminator/raubase_ros</url>
+  <license>MIT</license>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

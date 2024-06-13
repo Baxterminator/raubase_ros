@@ -17,13 +17,12 @@ This package is maintained by:
   
 ## Dependencies
 
-|   Package    |                                         Link                                         |
-| :----------: | :----------------------------------------------------------------------------------: |
-|    rclcpp    |                                    ROS2 Standard                                     |
-|   std_msgs   |                                    ROS2 Standard                                     |
-| sensor_msgs  |                                    ROS2 Standard                                     |
-|    OpenCV    |                    [OpenCV website](https://opencv.org/releases/)                    |
-|  cv_bridge   |       [Vision OpenCV Github](https://github.com/ros-perception/vision_opencv)        |
-| raubase_msgs | [Baxterminator - RobotBot MSG Github](https://github.com/Baxterminator/raubase_msgs) |
-| ament_cmake  |                                    ROS2 Standard                                     |
-|    Rosidl    |                                    ROS2 Standard                                     |
+|   Package   |                                  Link                                   |
+| :---------: | :---------------------------------------------------------------------: |
+|   rclcpp    |                              ROS2 Standard                              |
+|  std_msgs   |                              ROS2 Standard                              |
+| sensor_msgs |                              ROS2 Standard                              |
+|   OpenCV    |             [OpenCV website](https://opencv.org/releases/)              |
+|  cv_bridge  | [Vision OpenCV Github](https://github.com/ros-perception/vision_opencv) |
+| ament_cmake |                              ROS2 Standard                              |
+|   Rosidl    |                              ROS2 Standard                              |

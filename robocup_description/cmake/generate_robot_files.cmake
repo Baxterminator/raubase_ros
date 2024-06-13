@@ -1,0 +1,22 @@
+function(generate_folders pkg_name src_folder build_folder)
+  set(${src_folder} "${CMAKE_CURRENT_BINARY_DIR}/autogen_${pkg_name}" PARENT_SCOPE)
+  set(${build_folder} "${CMAKE_CURRENT_BINARY_DIR}/${pkg_name}" PARENT_SCOPE)
+  file(MAKE_DIRECTORY ${src_folder})
+endfunction()
+
+function(replace_var TXT rname OUT)
+  string(REPLACE "$ROBOTNAME" ${rname} tmp_txt ${TXT})
+  set(${OUT} ${tmp_txt} PARENT_SCOPE)
+endfunction()
+
+function(generate_cmakelist pkg_name src_folder)
+  file(READ "cmake/templates/CMakeLists.txt" cmake_content)
+  replace_var(${cmake_content} ${pkg_name} txt_out)
+  file(WRITE "${src_folder}/CMakeLists.txt" ${txt_out})
+endfunction()
+
+function(generate_package pkg_name src_folder)
+  file(READ "cmake/templates/package.xml" pkg_content)
+  replace_var(${pkg_content} ${pkg_name} txt_out)
+  file(WRITE "${src_folder}/package.xml" ${txt_out})
+endfunction()
