@@ -15,7 +15,8 @@ This package is maintained by:
 
 ## Dependencies
 
-|  Name  | Version |
-| :----: | :-----: |
-|  ROS2  | Humble  |
-| Python | >= 3.10 |
+|    Name    |                             Version                              |
+| :--------: | :--------------------------------------------------------------: |
+|    ROS2    |                              Humble                              |
+|   Python   |                             >= 3.10                              |
+| ros_arcana | [ROS Arcana Github](https://github.com/Baxterminator/ros_arcana) |

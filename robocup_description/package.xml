@@ -10,6 +10,8 @@
   <license>MIT</license>
 
   <depend>rclpy</depend>
+  <depend>arcana_cmake</depend>
+  <depend>raubase_sim</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

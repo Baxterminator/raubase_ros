@@ -6,9 +6,12 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) 
 
 find_package(ament_cmake_auto REQUIRED)
+find_package(arcana_cmake REQUIRED)
 ament_auto_find_build_dependencies()
 
 include("cmake/register_robot.cmake")
+
+fetch_system_info(DISPLAY)
 
 message("========================= CMake ===========================")
 

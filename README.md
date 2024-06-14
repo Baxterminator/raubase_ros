@@ -26,3 +26,4 @@ This package is maintained by:
 |  cv_bridge  | [Vision OpenCV Github](https://github.com/ros-perception/vision_opencv) |
 | ament_cmake |                              ROS2 Standard                              |
 |   Rosidl    |                              ROS2 Standard                              |
+| ros_arcana  |    [ROS Arcana Github](https://github.com/Baxterminator/ros_arcana)     |

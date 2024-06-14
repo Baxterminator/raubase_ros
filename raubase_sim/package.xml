@@ -9,6 +9,8 @@
   <url type="repository">https://github.com/Baxterminator/raubase_ros</url>
   <license>MIT</license>
 
+  <depend>arcana_cmake</depend>
+
   <export>
     <build_type>ament_cmake</build_type>
   </export>
