@@ -1,0 +1,18 @@
+<!-- SDF Macro for putting a sun-->
+<light xmlns:xacro="http://ros.org/wiki/xacro">
+<xacro:macro name="robocupLight" params="name:='sun' pos:='0 0 10 0 0 0' dir='0.2 0.2 -1.0'" >
+  <light type="directional" name="${name}">
+    <cast_shadows>true</cast_shadows>
+    <pose>${pos}</pose>
+    <diffuse>0.8 0.8 0.8 1</diffuse>
+    <specular>0.2 0.2 0.2 1</specular>
+    <attenuation>
+      <range>10</range>
+      <constant>1.0</constant>
+      <linear>0.01</linear>
+      <quadratic>0.001</quadratic>
+    </attenuation>
+    <direction>${dir}</direction>
+  </light>
+</xacro:macro>
+</light>

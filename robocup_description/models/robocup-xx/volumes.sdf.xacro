@@ -1,0 +1,66 @@
+<xacro xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="stdVolumeLink" params="name pose visualmesh collidermesh">
+    <link name="${name}">
+      <inertial>
+        <inertia>
+          <ixx>1</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>1</iyy>
+          <iyz>0</iyz>
+          <izz>1</izz>
+        </inertia>
+        <mass>10000.0</mass>
+      </inertial>
+
+      <visual name="${name}_visual">
+        <pose>${pose}</pose>
+        <geometry>
+          <mesh>
+            <uri>${visualmesh}</uri>
+          </mesh>
+        </geometry>
+      </visual>
+
+      <collision name="${name}_collider">
+        <pose>${pose}</pose>
+        <geometry>
+          <mesh>
+            <uri>${collidermesh}</uri>
+          </mesh>
+        </geometry>
+      </collision>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="robocupVolumes" params="name:='Volumes' pose:='0.0 0.0 0.0 0.0 0.0 0.0'">
+    <model name="${name}">
+      <static>true</static>
+      <pose>${pose}</pose>
+      <xacro:stdVolumeLink 
+        name="uphill" 
+        pose="0 0 0 0 0 ${radians(-90)}" 
+        visualmesh="$(find dtu_robocup_description)/assets/robocup-xx/Uphill/Uphill.dae"
+        collidermesh="$(find dtu_robocup_description)/assets/robocup-xx/Uphill/Uphill.stl"
+      />
+      <xacro:stdVolumeLink 
+        name="slope_in" 
+        pose="0.11 -0.71 0.0 0 0 ${radians(-90)}" 
+        visualmesh="$(find dtu_robocup_description)/assets/robocup-xx/SlopeIn/SlopeIn.dae"
+        collidermesh="$(find dtu_robocup_description)/assets/robocup-xx/SlopeIn/SlopeIn.stl"
+      />
+      <xacro:stdVolumeLink 
+        name="slope_out" 
+        pose="-0.41 0.41 0.0 0 0 ${radians(180)}" 
+        visualmesh="$(find dtu_robocup_description)/assets/robocup-xx/SlopeOut/SlopeOut.dae"
+        collidermesh="$(find dtu_robocup_description)/assets/robocup-xx/SlopeOut/SlopeOut.stl"
+      />
+      <xacro:stdVolumeLink 
+        name="stairs" 
+        pose="-0.41 -0.19 0.0 0 0 ${radians(180)}" 
+        visualmesh="$(find dtu_robocup_description)/assets/robocup-xx/Stairs/Stairs.dae"
+        collidermesh="$(find dtu_robocup_description)/assets/robocup-xx/Stairs/Stairs.stl"
+      />
+    </model>
+  </xacro:macro>
+</xacro>

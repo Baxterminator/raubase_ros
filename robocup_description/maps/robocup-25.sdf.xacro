@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<sdf version="1.9" xmlns:xacro="http://ros.org/wiki/xacro">
+  <world name="robocup_24">
+    <!-- World properties -->
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <!-- Plugins used -->
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+  </plugin>
+
+  <scene>
+    <ambient>1 1 1 1</ambient>
+    <background>0.5 0.5 0.5 1</background>
+    <!-- <sky>
+      <time>12.0</time>
+    </sky> -->
+    <shadows>1</shadows>
+    <origin_visual>1</origin_visual>
+  </scene>
+
+  <xacro:include filename="$(find dtu_robocup_description)/assets/robocup-xx/sun.xacro"/>
+  <xacro:robocupLight name="sun" pos="5 5 20 0 0 0" dir="0.4 -0.4 -0.9"/>
+
+  <model name="ground_plane">
+    <static>true</static>
+    <link name="link">
+      <collision name="collision">
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>100 100</size>
+          </plane>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>100</mu>
+              <mu2>50</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+      <visual name="visual">
+        <cast_shadows>true</cast_shadows>
+        <geometry>
+          <plane>
+            <normal>0 0 1</normal>
+            <size>100 100</size>
+          </plane>
+        </geometry>
+        <material>
+          <diffuse>1 1 1 1</diffuse>
+        </material>
+      </visual>
+    </link>
+  </model>
+
+  <xacro:include filename="$(find dtu_robocup_description)/models/robocup-xx/volumes.sdf.xacro"/>
+  <xacro:robocupVolumes pose="5.0 5.0 0 0 0 0"/>
+
+  <xacro:include filename="$(find arcana_gazebo)/models/ArUco.sdf.xacro"/>
+  <xacro:aruco pose="0 0 1 0 0 0" id="10"/>
+
+
+  </world>
+</sdf>

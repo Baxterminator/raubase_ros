@@ -1,7 +1,7 @@
 function(generate_folders pkg_name src_folder build_folder)
   set(${src_folder} "${CMAKE_CURRENT_BINARY_DIR}/autogen_${pkg_name}" PARENT_SCOPE)
   set(${build_folder} "${CMAKE_CURRENT_BINARY_DIR}/${pkg_name}" PARENT_SCOPE)
-  file(MAKE_DIRECTORY ${src_folder})
+  #file(MAKE_DIRECTORY ${src_folder})
 endfunction()
 
 function(replace_var TXT rname OUT)
